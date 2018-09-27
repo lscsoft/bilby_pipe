@@ -38,13 +38,18 @@ observatory_lookup = dict(H1='H', L1='L')
 
 def gw_data_find(observatory, gps_start_time, gps_end_time, calibration):
     """ Builds a gw_data_find call and process output """
+    logger.info('Building gw_data_find command line')
+
     observatory_code = observatory_lookup[observatory]
-    type = '{}_HOFT_C0{}'.format(observatory, calibration)
+
+    dtype = '{}_HOFT_C0{}'.format(observatory, calibration)
+    logger.info('Using LDRDataFind query type {}'.format(dtype))
+
     cl_list = ['gw_data_find']
     cl_list.append('--observatory {}'.format(observatory_code))
     cl_list.append('--gps-start-time {}'.format(gps_start_time))
     cl_list.append('--gps-end-time {}'.format(gps_end_time))
-    cl_list.append('--type {}'.format(type))
+    cl_list.append('--type {}'.format(dtype))
     cl_list.append('--url-type file')
     cl = ' '.join(cl_list)
     output = run_commandline(cl)

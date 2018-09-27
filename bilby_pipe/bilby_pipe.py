@@ -6,6 +6,7 @@ import json
 import urllib3
 import argparse
 from .gw_data_find import gw_data_find
+from .utils import logger
 
 
 def get_output_directory(gracedb, label):
@@ -39,21 +40,26 @@ def gracedb_to_json(gracedb, outdir=None):
     outdir: str, optional
         If given, a string identfying the location in which to store the json
     """
+    logger.info(
+        'Starting routine to download GraceDb candidate {}'.format(gracedb))
     from ligo.gracedb.rest import GraceDb
 
-    # Initialise client and attempt to download
+    logger.info('Initialise client and attempt to download')
     client = GraceDb()
     try:
         candidate = client.event(gracedb)
+        logger.info('Successfully downloaded candidate')
     except urllib3.HTTPError:
         raise ValueError("No candidate found")
 
-    outfilepath = os.path.join(outdir, '{}.json'.format(gracedb))
 
-    # Write the candidate for future reference
     json_output = candidate.json()
-    with open(outfilepath, 'w') as outfile:
-            json.dump(json_output, outfile, indent=2)
+
+    if outdir is not None:
+        outfilepath = os.path.join(outdir, '{}.json'.format(gracedb))
+        logger.info('Writing candidate to {}'.format(outfilepath))
+        with open(outfilepath, 'w') as outfile:
+                json.dump(json_output, outfile, indent=2)
 
     return json_output
 
