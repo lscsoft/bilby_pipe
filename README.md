@@ -16,7 +16,7 @@ working version of `gw_data_find` without explicitly pointing it to the server
 
 ## Example
 
-In this example, we call :code:`bilby_pipe` for the gracedb event G184098,
+In this example, we call `bilby_pipe` for the gracedb event G184098,
 which is GW150914. Other required inputs are the executable to run, and the
 accounting group.
 
@@ -35,7 +35,7 @@ $ bilby_pipe --gracedb G184098 --label GW150914 --executable script.py --account
 The directory PE_G184098_GW150914/logs doesn't exist, creating it...
 ```
 
-This generates a directory :code:`PE_G184098_GW150914` which has the following structure
+This generates a directory `PE_G184098_GW150914` which has the following structure
 
 ```bash
 $ ls PE_G184098_GW150914
@@ -46,7 +46,7 @@ L1-L1_HOFT_C02_CACHE-1126259458.391-4.lcf
 script.py_20180926_01.submit
 ```
 
-The file :code:`G184098.json` contains all the event data available from Gracedb.
+The file `G184098.json` contains all the event data available from Gracedb.
 There are then also two cache files and a submit script
 
 ```bash
