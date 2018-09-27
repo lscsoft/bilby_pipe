@@ -28,6 +28,10 @@ def set_up_argument_parsing():
                         help='The duration of data about the event to use')
     parser.add_argument('--label', type=str, required=True,
                         help='A unique label for the query')
+    parser.add_argument('--executable', type=str, required=True,
+                        help='The executable to run')
+    parser.add_argument('--accounting', type=str, required=True,
+                        help='The accounting group to use')
     return parser.parse_args()
 
 
@@ -115,6 +119,18 @@ def gw_data_find(observatory, gps_start_time, duration, calibration,
     return output_cache_file
 
 
+def create_submit(executable, accounting_group, outdir, cache_files):
+    import pycondor
+    error = log = output = os.path.join(outdir, 'logs')
+    submit = outdir
+    extra_lines = 'accounting_group={}'.format(accounting_group)
+    arguments = '--frames ' + ' '.join(cache_files)
+    job = pycondor.Job(
+        name=executable, executable=executable, extra_lines=extra_lines,
+        output=output, log=log, error=error, submit=submit,
+        arguments=arguments)
+    job.build()
+
 def main():
     args = set_up_argument_parsing()
     outdir = get_output_directory(args.gracedb, args.label)
@@ -127,3 +143,4 @@ def main():
             det, gps_start_time, args.duration, args.calibration,
             outdir=outdir)
         cache_files.append(output_cache_file)
+    create_submit(args.executable, args.accounting, outdir, cache_files)
