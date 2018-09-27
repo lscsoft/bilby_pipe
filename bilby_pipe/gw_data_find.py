@@ -36,7 +36,8 @@ def run_commandline(cl, log_level=20, raise_error=True, return_output=True):
 
 observatory_lookup = dict(H1='H', L1='L')
 
-def gw_data_find(observatory, gps_start_time, gps_end_time, calibration):
+def gw_data_find(observatory, gps_start_time, duration, calibration,
+                 outdir='.'):
     """ Builds a gw_data_find call and process output """
     logger.info('Building gw_data_find command line')
 
@@ -45,14 +46,20 @@ def gw_data_find(observatory, gps_start_time, gps_end_time, calibration):
     dtype = '{}_HOFT_C0{}'.format(observatory, calibration)
     logger.info('Using LDRDataFind query type {}'.format(dtype))
 
+    cache_file = '{}-{}_CACHE-{}-{}.lcf'.format(
+        observatory, dtype, gps_start_time, duration)
+    output_cache_file = os.path.join(outdir, cache_file)
+
+    gps_end_time = gps_start_time + duration
+
     cl_list = ['gw_data_find']
     cl_list.append('--observatory {}'.format(observatory_code))
     cl_list.append('--gps-start-time {}'.format(gps_start_time))
     cl_list.append('--gps-end-time {}'.format(gps_end_time))
     cl_list.append('--type {}'.format(dtype))
+    cl_list.append('--output {}'.format(output_cache_file))
     cl_list.append('--url-type file')
+    cl_list.append('--lal-cache')
     cl = ' '.join(cl_list)
-    output = run_commandline(cl)
-    framefile = output.replace('file://localhost', '').rstrip('\n')
-    return framefile
+    out = run_commandline(cl)
 

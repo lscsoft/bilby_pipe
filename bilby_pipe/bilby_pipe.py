@@ -25,6 +25,8 @@ def set_up_argument_parsing():
                         help='The detector names, {H1, L1}')
     parser.add_argument('--calibration', type=int, default=2,
                         help='Which calibration to use')
+    parser.add_argument('--duration', type=int, default=4,
+                        help='The duration of data about the event to use')
     parser.add_argument('--label', type=str, required=True,
                         help='A unique label for the query')
     return parser.parse_args()
@@ -69,10 +71,8 @@ def main():
     outdir = get_output_directory(args.gracedb, args.label)
     candidate = gracedb_to_json(args.gracedb, outdir)
     event_time = candidate['gpstime']
-    gps_start_time = event_time - 2
-    gps_end_time = event_time + 2
-    filenames = [
-        gw_data_find(det, gps_start_time, gps_end_time, args.calibration)
-        for det in args.detectors]
-    print('\n')
-    print(filenames)
+    gps_start_time = event_time - args.duration
+    gps_end_time = event_time + args.duration
+    for det in args.detectors:
+        gw_data_find(det, gps_start_time, args.duration, args.calibration,
+                     outdir=outdir)
