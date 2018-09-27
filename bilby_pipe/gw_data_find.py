@@ -34,13 +34,32 @@ def run_commandline(cl, log_level=20, raise_error=True, return_output=True):
         process.communicate()
 
 
-observatory_lookup = dict(H1='H', L1='L')
-
 def gw_data_find(observatory, gps_start_time, duration, calibration,
                  outdir='.'):
-    """ Builds a gw_data_find call and process output """
+    """ Builds a gw_data_find call and process output
+
+    Parameters
+    ----------
+    observatory: str, {H1, L1}
+        Observatory description
+    gps_start_time: float
+        The start time in gps to look for data
+    duration: int
+        The duration (integer) in s
+    calibrartion: int {1, 2}
+        Use C01 or C02 calibration
+    outdir: string
+        A path to the directory where output is stored
+
+    Returns
+    -------
+    output_cache_file: str
+        Path to the output cache file
+
+    """
     logger.info('Building gw_data_find command line')
 
+    observatory_lookup = dict(H1='H', L1='L')
     observatory_code = observatory_lookup[observatory]
 
     dtype = '{}_HOFT_C0{}'.format(observatory, calibration)
@@ -62,4 +81,4 @@ def gw_data_find(observatory, gps_start_time, duration, calibration,
     cl_list.append('--lal-cache')
     cl = ' '.join(cl_list)
     out = run_commandline(cl)
-
+    return output_cache_file

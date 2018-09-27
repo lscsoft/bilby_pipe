@@ -73,6 +73,9 @@ def main():
     event_time = candidate['gpstime']
     gps_start_time = event_time - args.duration
     gps_end_time = event_time + args.duration
+    cache_files = []
     for det in args.detectors:
-        gw_data_find(det, gps_start_time, args.duration, args.calibration,
-                     outdir=outdir)
+        output_cache_file = gw_data_find(
+            det, gps_start_time, args.duration, args.calibration,
+            outdir=outdir)
+        cache_files.append(output_cache_file)
