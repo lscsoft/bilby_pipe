@@ -5,14 +5,13 @@ import os
 import json
 import urllib3
 import argparse
-from .gw_data_find import gw_data_find
 from .utils import logger
+from . import utils
 
 
 def get_output_directory(gracedb, label):
     outdir = 'PE_{}_{}'.format(gracedb, label)
-    if os.path.isdir(outdir) is False:
-        os.mkdir(outdir)
+    utils.check_directory_exists_and_if_not_mkdir(outdir)
     return outdir
 
 
@@ -66,13 +65,62 @@ def gracedb_to_json(gracedb, outdir=None):
     return json_output
 
 
+def gw_data_find(observatory, gps_start_time, duration, calibration,
+                 outdir='.'):
+    """ Builds a gw_data_find call and process output
+
+    Parameters
+    ----------
+    observatory: str, {H1, L1}
+        Observatory description
+    gps_start_time: float
+        The start time in gps to look for data
+    duration: int
+        The duration (integer) in s
+    calibrartion: int {1, 2}
+        Use C01 or C02 calibration
+    outdir: string
+        A path to the directory where output is stored
+
+    Returns
+    -------
+    output_cache_file: str
+        Path to the output cache file
+
+    """
+    logger.info('Building gw_data_find command line')
+
+    observatory_lookup = dict(H1='H', L1='L')
+    observatory_code = observatory_lookup[observatory]
+
+    dtype = '{}_HOFT_C0{}'.format(observatory, calibration)
+    logger.info('Using LDRDataFind query type {}'.format(dtype))
+
+    cache_file = '{}-{}_CACHE-{}-{}.lcf'.format(
+        observatory, dtype, gps_start_time, duration)
+    output_cache_file = os.path.join(outdir, cache_file)
+
+    gps_end_time = gps_start_time + duration
+
+    cl_list = ['gw_data_find']
+    cl_list.append('--observatory {}'.format(observatory_code))
+    cl_list.append('--gps-start-time {}'.format(gps_start_time))
+    cl_list.append('--gps-end-time {}'.format(gps_end_time))
+    cl_list.append('--type {}'.format(dtype))
+    cl_list.append('--output {}'.format(output_cache_file))
+    cl_list.append('--url-type file')
+    cl_list.append('--lal-cache')
+    cl = ' '.join(cl_list)
+    utils.run_commandline(cl)
+    return output_cache_file
+
+
 def main():
     args = set_up_argument_parsing()
     outdir = get_output_directory(args.gracedb, args.label)
     candidate = gracedb_to_json(args.gracedb, outdir)
     event_time = candidate['gpstime']
     gps_start_time = event_time - args.duration
-    gps_end_time = event_time + args.duration
     cache_files = []
     for det in args.detectors:
         output_cache_file = gw_data_find(
