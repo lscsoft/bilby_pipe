@@ -1,16 +1,14 @@
-bilby_pipe
-==========
+# bilby_pipe
 
 A package for automating transient gravitational wave parameter estimation
 
-Installation
-------------
+## Installation
 
 Clone the repository then run
 
-.. codeblock bash
-
-    $ python setup.py install
+```bash
+$ python setup.py install
+```
 
 This will install all dependencies.
 
