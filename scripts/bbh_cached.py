@@ -22,12 +22,14 @@ from bilby_pipe.utils import load_data_from_cache_file
 
 
 # parse arguments
-parser = argparse.ArgumentParser(parents=[command_line_parser])
-parser.add_argument("-p", "--prior_file",
-                    default=None, help="prior file")
-parser.add_argument("--trigger_time", type=float, help="Trigger time")
+parser = argparse.ArgumentParser(parents=[command_line_parser],
+                                 fromfile_prefix_chars='@')
+parser.add_argument("--trigger_time", type=float, help="Trigger time",
+                    required=True)
 parser.add_argument("--frame_caches", default=None, nargs="*",
-                    help="Cache files containing information about frames")
+                    help="Cache files containing information about frames",
+                    required=True)
+parser.add_argument("-p", "--prior_file", default=None, help="prior file")
 parser.add_argument("--channel_names", default=None, nargs="*",
                     help="Channel names to use, if not provided known "
                     "channel names will be tested.")
@@ -94,7 +96,7 @@ logging.info('Sampling seed is {}'.format(sampling_seed))
 
 # Run sampler
 result = run_sampler(
-        likelihood=likelihood, priors=priors, sampler='pymultinest',
+        likelihood=likelihood, priors=priors, sampler='dynesty',
         label='{}_{}'.format(
             ''.join([ifo.name for ifo in ifos]), args.trigger_time),
         nlive=500, outdir=args.outdir,

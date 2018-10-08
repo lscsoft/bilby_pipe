@@ -10,7 +10,7 @@ from . import utils
 
 
 def get_output_directory(gracedb, label):
-    outdir = 'PE_{}_{}'.format(gracedb, label)
+    outdir = 'outdir_{}_{}'.format(gracedb, label)
     utils.check_directory_exists_and_if_not_mkdir(outdir)
     return outdir
 
@@ -18,6 +18,8 @@ def get_output_directory(gracedb, label):
 def set_up_argument_parsing():
     parser = argparse.ArgumentParser(
         usage='Query GraceDB and write results to json')
+    parser.add_argument('--ini', type=str, required=True,
+                        help='The ini file')
     parser.add_argument('--gracedb', type=str, required=True,
                         help='The gracedb event UID')
     parser.add_argument('--detectors', nargs='+', default=['H1', 'L1'],
@@ -28,8 +30,6 @@ def set_up_argument_parsing():
                         help='The duration of data about the event to use')
     parser.add_argument('--label', type=str, required=True,
                         help='A unique label for the query')
-    parser.add_argument('--executable', type=str, required=True,
-                        help='The executable to run')
     parser.add_argument('--accounting', type=str, required=True,
                         help='The accounting group to use')
     return parser.parse_args()
@@ -56,7 +56,6 @@ def gracedb_to_json(gracedb, outdir=None):
         logger.info('Successfully downloaded candidate')
     except urllib3.HTTPError:
         raise ValueError("No candidate found")
-
 
     json_output = candidate.json()
 
@@ -119,28 +118,32 @@ def gw_data_find(observatory, gps_start_time, duration, calibration,
     return output_cache_file
 
 
-def create_submit(executable, accounting_group, outdir, cache_files):
+def create_submit(args, outdir, trigger_time, cache_files):
     import pycondor
     error = log = output = os.path.join(outdir, 'logs')
     submit = outdir
-    extra_lines = 'accounting_group={}'.format(accounting_group)
-    arguments = '--frames ' + ' '.join(cache_files)
+    extra_lines = 'accounting_group={}'.format(args.accounting)
+    arguments = '--frame_caches ' + ' '.join(cache_files)
+    arguments += ' @{}'.format(args.ini)
+    arguments += ' --trigger_time {}'.format(trigger_time)
     job = pycondor.Job(
-        name=executable, executable=executable, extra_lines=extra_lines,
+        name=args.label, executable=args.executable, extra_lines=extra_lines,
         output=output, log=log, error=error, submit=submit,
         arguments=arguments)
     job.build()
 
+
 def main():
     args = set_up_argument_parsing()
+    args.executable = '/home/gregory.ashton/bilby_pipe/scripts/bbh_cached.py'
     outdir = get_output_directory(args.gracedb, args.label)
     candidate = gracedb_to_json(args.gracedb, outdir)
-    event_time = candidate['gpstime']
-    gps_start_time = event_time - args.duration
+    trigger_time = candidate['gpstime']
+    gps_start_time = trigger_time - args.duration
     cache_files = []
     for det in args.detectors:
         output_cache_file = gw_data_find(
             det, gps_start_time, args.duration, args.calibration,
             outdir=outdir)
         cache_files.append(output_cache_file)
-    create_submit(args.executable, args.accounting, outdir, cache_files)
+    create_submit(args, outdir, trigger_time, cache_files)

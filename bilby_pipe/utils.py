@@ -1,7 +1,7 @@
 import os
 import logging
 import subprocess
-from tupak.gw.detector import get_empty_interferometer, PowerSpectralDensity
+from bilby.gw.detector import get_empty_interferometer, PowerSpectralDensity
 
 
 def run_commandline(cl, log_level=20, raise_error=True, return_output=True):
@@ -128,6 +128,8 @@ def load_data_from_cache_file(
         for line in lines:
             line = line.strip()
             _, _, frame_start, frame_duration, frame_name = line.split(' ')
+            frame_start = float(frame_start)
+            frame_duration = float(frame_duration)
             if frame_name[:4] == 'file':
                 frame_name = frame_name[16:]
             if not data_set & (frame_start < segment_start) &\
