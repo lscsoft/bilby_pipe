@@ -22,8 +22,6 @@ def set_up_argument_parsing():
                help='The output label')
     parser.add('--outdir', type=str, default='bilby_outdir',
                help='The output directory')
-    parser.add('--detectors', nargs='+',
-               help='The detector names')
     parser.add('--accounting', type=str, required=True,
                help='The accounting group to use')
     parser.add('--executable', type=str, required=True,
