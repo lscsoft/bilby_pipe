@@ -12,6 +12,39 @@ from .utils import logger
 from . import utils
 
 
+class Input(object):
+    def __init__(self, args, unknown_args):
+        """ An object to hold all the inputs to bilby_pipe """
+        self.unknown_args = unknown_args
+        args_dict = vars(args)
+        for key, val in args_dict.items():
+            print(key, val)
+            setattr(self, key, val)
+
+    @property
+    def include_detectors(self):
+        return self._include_detectors
+
+    @include_detectors.setter
+    def include_detectors(self, include_detectors):
+        if isinstance(include_detectors, str):
+            self._include_detectors = ' '.join(include_detectors).split(' ')
+        elif isinstance(include_detectors, list):
+            self._include_detectors = include_detectors
+        else:
+            raise ValueError('Input `include_detectors` = {} not understood'
+                             .format(include_detectors))
+
+    @property
+    def outdir(self):
+        return self._outdir
+
+    @outdir.setter
+    def outdir(self, outdir):
+        utils.check_directory_exists_and_if_not_mkdir(outdir)
+        self._outdir = outdir
+
+
 def set_up_argument_parsing():
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',
@@ -38,20 +71,20 @@ def set_up_argument_parsing():
     return args, unknown_args
 
 
-def create_job_per_detector_set(args, detectors, dag, unknown_args):
-    error = log = output = os.path.join(args.outdir, 'logs')
-    submit = args.outdir
-    extra_lines = 'accounting_group={}'.format(args.accounting)
-    new_cert_path = setup_certificates(args.outdir)
+def create_job_per_detector_set(inputs, dag, detectors):
+    error = log = output = os.path.join(inputs.outdir, 'logs')
+    submit = inputs.outdir
+    extra_lines = 'accounting_group={}'.format(inputs.accounting)
+    new_cert_path = setup_certificates(inputs.outdir)
     extra_lines += '\nx509userproxy={}'.format(new_cert_path)
-    arguments = '--ini {}'.format(args.ini)
-    name = args.label + '_' + ''.join(detectors)
+    arguments = '--ini {}'.format(inputs.ini)
+    name = inputs.label + '_' + ''.join(detectors)
     if isinstance(detectors, list):
-        detectors = ' '.join(detectors) 
+        detectors = ' '.join(detectors)
     arguments += ' --detectors {}'.format(detectors)
-    arguments += ' ' + ' '.join(unknown_args)
+    arguments += ' ' + ' '.join(inputs.unknown_args)
     pycondor.Job(
-        name=name, executable=args.executable, extra_lines=extra_lines,
+        name=name, executable=inputs.executable, extra_lines=extra_lines,
         output=output, log=log, error=error, submit=submit,
         arguments=arguments, dag=dag)
 
@@ -79,13 +112,11 @@ def setup_certificates(outdir):
 
 
 def main():
-    args, unknown_args = set_up_argument_parsing()
-    utils.check_directory_exists_and_if_not_mkdir(args.outdir)
-    args = setup_executable(args)
-    detectors = ' '.join(args.include_detectors).split(' ')
-    dag = pycondor.Dagman(name=args.label, submit=args.outdir)
-    if args.coherence_test:
-        for detector in detectors:
-            create_job_per_detector_set(args, detector, dag, unknown_args)
-    create_job_per_detector_set(args, detectors, dag, unknown_args)
+    inputs = Input(*set_up_argument_parsing())
+    setup_executable(inputs)
+    dag = pycondor.Dagman(name=inputs.label, submit=inputs.outdir)
+    if inputs.coherence_test:
+        for detector in inputs.include_detectors:
+            create_job_per_detector_set(inputs, dag, detector)
+    create_job_per_detector_set(inputs, dag, inputs.include_detectors)
     dag.build()
