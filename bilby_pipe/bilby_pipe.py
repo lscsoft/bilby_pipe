@@ -23,6 +23,7 @@ class Input(object):
         self.coherence_test = args.coherence_test
         self.executable_library = args.executable_library
         self.executable = args.executable
+        self.x509userproxy = args.X509
         if args.exe_help:
             self.executable_help()
 
@@ -67,6 +68,22 @@ class Input(object):
         os.system('{} --help'.format(self.executable))
         sys.exit()
 
+    @property
+    def x509userproxy(self):
+        return self._x509userproxy
+
+    @x509userproxy.setter
+    def x509userproxy(self, x509userproxy):
+        if os.path.isfile(x509userproxy):
+            self._x509userproxy = x509userproxy
+        elif x509userproxy is None:
+            cert_alias = 'X509_USER_PROXY'
+            cert_path = os.environ[cert_alias]
+            new_cert_path = os.path.join(
+                self.outdir, os.path.basename(cert_path))
+            shutil.copyfile(cert_path, new_cert_path)
+            self._x509userproxy = new_cert_path
+
 
 def set_up_argument_parsing():
     parser = configargparse.ArgParser(
@@ -90,6 +107,11 @@ def set_up_argument_parsing():
     parser.add('--executable_library', type=str,
                default='/home/gregory.ashton/bilby_pipe/lib_scripts/',
                help='The executable library')
+    parser.add('--X509', type=str, default=None,
+               help=('If given, the path to the users X509 certificate file.'
+                     'If not given, a copy of the file at the env. variable '
+                     '$X509_USER_PROXY will be made in outdir and linked in '
+                     'the condor jobs submission'))
     args, unknown_args = parser.parse_known_args()
     return args, unknown_args
 
@@ -98,8 +120,7 @@ def create_job_per_detector_set(inputs, dag, detectors):
     error = log = output = os.path.join(inputs.outdir, 'logs')
     submit = inputs.outdir
     extra_lines = 'accounting_group={}'.format(inputs.accounting)
-    new_cert_path = setup_certificates(inputs.outdir)
-    extra_lines += '\nx509userproxy={}'.format(new_cert_path)
+    extra_lines += '\nx509userproxy={}'.format(inputs.x509userproxy)
     arguments = '--ini {}'.format(inputs.ini)
     name = inputs.label + '_' + ''.join(detectors)
     if isinstance(detectors, list):
@@ -110,14 +131,6 @@ def create_job_per_detector_set(inputs, dag, detectors):
         name=name, executable=inputs.executable, extra_lines=extra_lines,
         output=output, log=log, error=error, submit=submit,
         arguments=arguments, dag=dag)
-
-
-def setup_certificates(outdir):
-    cert_alias = 'X509_USER_PROXY'
-    cert_path = os.environ[cert_alias]
-    new_cert_path = os.path.join(outdir, os.path.basename(cert_path))
-    shutil.copyfile(cert_path, new_cert_path)
-    return new_cert_path
 
 
 def main():
