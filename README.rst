@@ -1,4 +1,5 @@
 |pipeline status| |coverage report|
+
 bilby_pipe
 ==========
 
@@ -8,6 +9,8 @@ Installation
 ------------
 
 Clone the repository then run::
+
+.. code-block:: console
 
    $ python setup.py install
 
