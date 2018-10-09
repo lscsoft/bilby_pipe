@@ -2,6 +2,7 @@ import os
 import unittest
 from argparse import Namespace
 import copy
+import shutil
 
 import bilby_pipe
 
@@ -10,8 +11,9 @@ class TestInput(unittest.TestCase):
 
     def setUp(self):
         self.directory = os.path.abspath(os.path.dirname(__file__))
+        self.outdir = 'outdir'
         self.test_args = Namespace(
-            ini='file.ini', submit=True, outdir='outdir', label='label',
+            ini='file.ini', submit=True, outdir=self.outdir, label='label',
             accounting='accounting.group', include_detectors='H1',
             coherence_test=False, executable_library=self.directory,
             executable='executable.py', exe_help=False,
@@ -20,6 +22,7 @@ class TestInput(unittest.TestCase):
         self.inputs = bilby_pipe.Input(self.test_args, self.test_unknown_args)
 
     def tearDown(self):
+        shutil.rmtree(self.outdir)
         del self.test_args
         del self.inputs
 
