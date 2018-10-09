@@ -18,7 +18,12 @@ __all__ = ['Input']
 class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
+        logger.debug('Creating new Input object')
+
         self.known_detectors = ['H1', 'L1', 'V1']
+        logger.debug('Known detector list = {}'.format(self.known_detectors))
+        logger.debug('Input args = {}'.format(args))
+        logger.debug('Input unknown_args = {}'.format(unknown_args))
 
         self.unknown_args = unknown_args
         self.ini = args.ini
@@ -205,11 +210,13 @@ class Dag(object):
         `self._create_jobs()`
 
         """
+        logger.debug("Generating list of jobs")
         jobs = []
         jobs.append(dict(detectors=self.inputs.include_detectors))
         if self.inputs.coherence_test:
             for detector in self.inputs.include_detectors:
                 jobs.append(dict(detectors=[detector]))
+        logger.debug("List of jobs = {}".format(jobs))
         return jobs
 
     def _create_job(self, detectors):
@@ -284,6 +291,7 @@ def parse_args(args):
                      'If not given, a copy of the file at the env. variable '
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
+    parser.add('-v', '--verbose', action='store_true', help='verbose')
     args, unknown_args = parser.parse_known_args(args)
     return args, unknown_args
 

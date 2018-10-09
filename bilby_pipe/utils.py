@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 
 
@@ -34,6 +35,9 @@ def setup_logger(outdir=None, label=None, log_level='INFO',
         If true, print version information
     """
 
+    if '-v' in sys.argv:
+        log_level = 'DEBUG'
+
     if type(log_level) is str:
         try:
             level = getattr(logging, log_level.upper())
@@ -46,7 +50,8 @@ def setup_logger(outdir=None, label=None, log_level='INFO',
     logger.propagate = False
     logger.setLevel(level)
 
-    if not all([type(h) == logging.StreamHandler for h in logger.handlers]):
+    streams = [type(h) == logging.StreamHandler for h in logger.handlers]
+    if len(streams) == 0 or not all(streams):
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(name)s %(levelname)-8s: %(message)s',
@@ -80,5 +85,5 @@ def setup_logger(outdir=None, label=None, log_level='INFO',
         logger.info('Running bilby_pipe version: {}'.format(version))
 
 
-setup_logger()
+setup_logger(print_version=True)
 logger = logging.getLogger('bilby_pipe')
