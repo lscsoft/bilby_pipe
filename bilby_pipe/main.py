@@ -255,7 +255,7 @@ class Dag(object):
             self.dag.build()
 
 
-def set_up_argument_parsing():
+def parse_args(args):
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',
         ignore_unknown_config_file_keys=True)
@@ -284,10 +284,11 @@ def set_up_argument_parsing():
                      'If not given, a copy of the file at the env. variable '
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
-    args, unknown_args = parser.parse_known_args()
+    args, unknown_args = parser.parse_known_args(args)
     return args, unknown_args
 
 
 def main():
-    inputs = Input(*set_up_argument_parsing())
+    args, unknown_args = parse_args(sys.argv[1:])
+    inputs = Input(args, unknown_args)
     Dag(inputs)
