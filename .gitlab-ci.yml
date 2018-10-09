@@ -1,0 +1,48 @@
+# This script is an edited version of the example found at
+# https://git.ligo.org/lscsoft/example-ci-project/blob/python/.gitlab-ci.yml
+# Each 0th-indendation level is a job that will be run within GitLab CI
+# The only exception are a short list of reserved keywords
+#
+# https://docs.gitlab.com/ee/ci/yaml/#gitlab-ci-yml
+
+# stages is a reserved keyword that defines job dependencies and
+# parallelization. each stage runs in parallel but must complete
+# before the next stage begins
+
+stages:
+  - test
+  - deploy
+
+python-3:
+  stage: test
+  image: bilbydev/test-suite-py3
+  script:
+    - python setup.py install
+
+    # Run pyflakes
+    - flake8 .
+
+    # Run tests and collect coverage data
+    - pytest --cov=bilby_pipe
+    - coverage html
+    - coverage-badge -o coverage_badge.svg -f
+
+  artifacts:
+    paths:
+      - htmlcov/
+      - coverage_badge.svg
+
+pages:
+  stage: deploy
+  dependencies:
+    - python-3
+  script:
+    - mkdir public/
+    - mv htmlcov/ public/
+    - mv /builds/Monash/bilby/coverage_badge.svg public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - master
