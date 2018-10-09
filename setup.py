@@ -64,7 +64,8 @@ setup(name='bilby_pipe',
       version=version,
       package_data={'bilby_pipe': [version_file]},
       packages=['bilby_pipe'],
-      install_requires=['future', 'ligo-gracedb', 'pycondor', 'configargparse'],
+      install_requires=['future', 'ligo-gracedb', 'pycondor',
+                        'configargparse'],
       entry_points={'console_scripts':
                     ['bilby_pipe=bilby_pipe.main:main']
                     },

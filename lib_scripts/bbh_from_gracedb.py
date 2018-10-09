@@ -58,10 +58,11 @@ candidate, frame_caches = bilby.gw.utils.get_gracedb(
 trigger_time = candidate['gpstime']
 
 # Create the waveform_generator using a LAL BinaryBlackHole source function
+par_cov = bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 waveform_generator = bilby.gw.WaveformGenerator(
     sampling_frequency=sampling_frequency, duration=duration,
     frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
-    parameter_conversion=bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters,
+    parameter_conversions=par_cov,
     waveform_arguments={
         'reference_frequency': 20., 'waveform_approximant': 'IMRPhenomPv2',
         'minimum_frequency': 20.})
