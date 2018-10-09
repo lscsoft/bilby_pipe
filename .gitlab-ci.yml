@@ -23,7 +23,7 @@ python-3:
     - flake8 .
 
     # Run tests and collect coverage data
-    - pytest --cov=bilby_pipe
+    - pytest --cov bilby_pipe
     - coverage html
     - coverage-badge -o coverage_badge.svg -f
 
