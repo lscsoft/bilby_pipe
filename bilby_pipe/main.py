@@ -168,8 +168,8 @@ class Dag(object):
         retry : int or None, optional
             Option to specify the number of retries for all Job arguments. This
             can be superseded for arguments added via the add_arg() method.
-            Note: this feature is only available to Jobs that are submitted via a
-            Dagman (default is None; no retries).
+            Note: this feature is only available to Jobs that are submitted via
+            a Dagman (default is None; no retries).
         verbose : int, optional
             Level of logging verbosity option are 0-warning, 1-info,
             2-debugging (default is 0).
@@ -247,10 +247,11 @@ class Dag(object):
             name=name, executable=self.inputs.executable, error=error, log=log,
             output=output, submit=submit, request_memory=self.request_memory,
             request_disk=self.request_disk, request_cpus=self.request_cpus,
-            getenv=self.getenv, universe=self.universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            getenv=self.getenv, universe=self.universe,
+            initialdir=self.initialdir, notification=self.notification,
+            requirements=self.requirements, queue=self.queue,
+            extra_lines=extra_lines, dag=self.dag, arguments=arguments,
+            retry=self.retry, verbose=self.verbose)
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """

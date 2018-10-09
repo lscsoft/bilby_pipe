@@ -71,7 +71,7 @@ waveform_generator = bilby.gw.WaveformGenerator(
 ifos = bilby.gw.detector.InterferometerList([])
 if frame_caches is not None:
     if args.channel_names is None:
-        args.channel_names = [None]*len(frame_caches)
+        args.channel_names = [None] * len(frame_caches)
     for cache_file, channel_name in zip(frame_caches, args.channel_names):
         ifos.append(bilby.gw.detector.load_data_from_cache_file(
             cache_file, trigger_time, duration, args.psd_duration,
@@ -86,8 +86,8 @@ label = '{}_{}_{}'.format(
 # Set up prior
 priors = bilby.gw.prior.BBHPriorSet(filename=prior_file)
 priors['geocent_time'] = bilby.core.prior.Uniform(
-        minimum=trigger_time - 0.1, maximum=trigger_time + 0.1,
-        name='geocent_time', latex_label='$t_c$', unit='$s$')
+    minimum=trigger_time - 0.1, maximum=trigger_time + 0.1,
+    name='geocent_time', latex_label='$t_c$', unit='$s$')
 
 likelihood = bilby.gw.likelihood.GravitationalWaveTransient(
     interferometers=ifos, waveform_generator=waveform_generator, prior=priors,
@@ -100,7 +100,7 @@ logger.info('Sampling seed is {}'.format(sampling_seed))
 
 # Run sampler
 result = bilby.run_sampler(
-        likelihood=likelihood, priors=priors, sampler=args.sampler,
-        label=label, outdir=args.outdir,
-        conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
-        **sampler_kwargs)
+    likelihood=likelihood, priors=priors, sampler=args.sampler,
+    label=label, outdir=args.outdir,
+    conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+    **sampler_kwargs)

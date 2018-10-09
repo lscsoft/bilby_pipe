@@ -37,12 +37,12 @@ class TestDag(unittest.TestCase):
                                     dict(detectors=['H1']),
                                     dict(detectors=['L1'])])
 
-    #def test_build_submit(self):
-    #    test_args = copy.copy(self.test_args)
-    #    test_args.submit = True
-    #    inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
-    #    dag = bilby_pipe.Dag(inputs)
-    #    dag.build_submit()
+    # def test_build_submit(self):
+    #     test_args = copy.copy(self.test_args)
+    #     test_args.submit = True
+    #     inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
+    #     dag = bilby_pipe.Dag(inputs)
+    #     dag.build_submit()
 
 
 if __name__ == '__main__':
