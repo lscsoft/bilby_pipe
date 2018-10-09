@@ -4,6 +4,7 @@
 import os
 import sys
 import shutil
+import numpy as np
 
 import configargparse
 import pycondor
@@ -18,6 +19,8 @@ __all__ = ['Input']
 class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
+        self.known_detectors = ['H1', 'L1', 'V1']
+
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
@@ -34,17 +37,37 @@ class Input(object):
 
     @property
     def include_detectors(self):
+        """ A list of the detectors to include, e.g., ['H1', 'L1'] """
         return self._include_detectors
 
     @include_detectors.setter
     def include_detectors(self, include_detectors):
         if isinstance(include_detectors, str):
-            self._include_detectors = ' '.join(include_detectors).split(' ')
+            det_list = self._split_string_by_space(include_detectors)
         elif isinstance(include_detectors, list):
-            self._include_detectors = include_detectors
+            if len(include_detectors) == 1:
+                det_list = self._split_string_by_space(include_detectors[0])
+            else:
+                det_list = include_detectors
         else:
             raise ValueError('Input `include_detectors` = {} not understood'
                              .format(include_detectors))
+
+        det_list.sort()
+        det_list = [det.upper() for det in det_list]
+
+        for element in det_list:
+            if element not in self.known_detectors:
+                raise ValueError(
+                    'include_detectors contains "{}" not in the known '
+                    'detectors list: {} '.format(
+                        element, self.known_detectors))
+        self._include_detectors = det_list
+
+    @staticmethod
+    def _split_string_by_space(string):
+        """ Converts "H1 L1" to ["H1", "L1"] """
+        return string.split(' ')
 
     @property
     def outdir(self):
@@ -67,6 +90,8 @@ class Input(object):
                 self._executable = executable
             else:
                 raise ValueError('Unable to identify executable')
+        else:
+            self._executable = executable
 
     def executable_help(self):
         logger.info('Printing help message for given executable')
