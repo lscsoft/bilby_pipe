@@ -43,8 +43,10 @@ def create_job_per_detector_set(args, detectors, dag, unknown_args):
     extra_lines = 'accounting_group={}'.format(args.accounting)
     arguments = '--ini {}'.format(args.ini)
     name = args.label + '_' + ''.join(detectors)
-    arguments += ' --detectors {}'.format(' '.join(detectors))
-    arguments += ' '.join(unknown_args)
+    if isinstance(detectors, list):
+        detectors = ' '.join(detectors) 
+    arguments += ' --detectors {}'.format(detectors)
+    arguments += ' ' + ' '.join(unknown_args)
     pycondor.Job(
         name=name, executable=args.executable, extra_lines=extra_lines,
         output=output, log=log, error=error, submit=submit,
