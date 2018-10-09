@@ -16,10 +16,15 @@ class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
         self.unknown_args = unknown_args
-        args_dict = vars(args)
-        for key, val in args_dict.items():
-            print(key, val)
-            setattr(self, key, val)
+        self.outdir = args.outdir
+        self.label = args.label
+        self.accounting = args.accounting
+        self.include_detectors = args.include_detectors
+        self.coherence_test = args.coherence_test
+        self.executable_library = args.executable_library
+        self.executable = args.executable
+        if args.exe_help:
+            self.executable_help()
 
     @property
     def include_detectors(self):
@@ -43,6 +48,24 @@ class Input(object):
     def outdir(self, outdir):
         utils.check_directory_exists_and_if_not_mkdir(outdir)
         self._outdir = outdir
+
+    @property
+    def executable(self):
+        return self._executable
+
+    @executable.setter
+    def executable(self, executable):
+        if os.path.isfile(executable) is False:
+            executable = os.path.join(self.executable_library, executable)
+            if os.path.isfile(executable):
+                self._executable = executable
+            else:
+                raise ValueError('Unable to identify executable')
+
+    def executable_help(self):
+        logger.info('Printing help message for given executable')
+        os.system('{} --help'.format(self.executable))
+        sys.exit()
 
 
 def set_up_argument_parsing():
@@ -89,20 +112,6 @@ def create_job_per_detector_set(inputs, dag, detectors):
         arguments=arguments, dag=dag)
 
 
-def setup_executable(args):
-    if os.path.isfile(args.executable) is False:
-        executable = os.path.join(args.executable_library, args.executable)
-        if os.path.isfile(executable):
-            args.executable = executable
-        else:
-            raise ValueError('Unable to identify executable')
-    if args.exe_help:
-        logger.info('Printing help message for given executable')
-        os.system('{} --help'.format(args.executable))
-        sys.exit()
-    return args
-
-
 def setup_certificates(outdir):
     cert_alias = 'X509_USER_PROXY'
     cert_path = os.environ[cert_alias]
@@ -113,7 +122,6 @@ def setup_certificates(outdir):
 
 def main():
     inputs = Input(*set_up_argument_parsing())
-    setup_executable(inputs)
     dag = pycondor.Dagman(name=inputs.label, submit=inputs.outdir)
     if inputs.coherence_test:
         for detector in inputs.include_detectors:
