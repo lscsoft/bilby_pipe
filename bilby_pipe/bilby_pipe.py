@@ -16,6 +16,8 @@ class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
         self.unknown_args = unknown_args
+        self.ini = args.ini
+        self.submit = args.submit
         self.outdir = args.outdir
         self.label = args.label
         self.accounting = args.accounting
@@ -74,15 +76,17 @@ class Input(object):
 
     @x509userproxy.setter
     def x509userproxy(self, x509userproxy):
-        if os.path.isfile(x509userproxy):
-            self._x509userproxy = x509userproxy
-        elif x509userproxy is None:
+        if x509userproxy is None:
             cert_alias = 'X509_USER_PROXY'
             cert_path = os.environ[cert_alias]
             new_cert_path = os.path.join(
                 self.outdir, os.path.basename(cert_path))
             shutil.copyfile(cert_path, new_cert_path)
             self._x509userproxy = new_cert_path
+        elif os.path.isfile(x509userproxy):
+            self._x509userproxy = x509userproxy
+        else:
+            raise ValueError('Input X509 not a file or not understood')
 
 
 def set_up_argument_parsing():
@@ -90,6 +94,8 @@ def set_up_argument_parsing():
         usage='Generate submission scripts for the job',
         ignore_unknown_config_file_keys=True)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
+    parser.add('--submit', action='store_true',
+               help='If given, build and submit')
     parser.add('--exe-help', action='store_true',
                help='Print the help function for the executable')
     parser.add('--include-detectors', nargs='+', default=['H1', 'L1'],
@@ -140,4 +146,9 @@ def main():
         for detector in inputs.include_detectors:
             create_job_per_detector_set(inputs, dag, detector)
     create_job_per_detector_set(inputs, dag, inputs.include_detectors)
-    dag.build()
+    if inputs.submit:
+        raise NotImplementedError(
+            "This method is currently failing for unknown reasons")
+        dag.build_submit()
+    else:
+        dag.build()
