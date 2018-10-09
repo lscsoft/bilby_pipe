@@ -117,7 +117,10 @@ class Input(object):
 
 
 class Dag(object):
-    def __init__(self, inputs, job_logs='logs'):
+    def __init__(self, inputs, job_logs='logs', request_memory=None,
+                 request_disk=None, request_cpus=None, getenv=True,
+                 universe='vanilla', initialdir=None, notification='never',
+                 requirements=None, queue=None, retry=None, verbose=0):
         """ A class to handle the creation and building of a DAG
 
         Parameters
@@ -127,7 +130,61 @@ class Dag(object):
         jobs_logs: str
             A path relative to the `inputs.outdir` to store per-job logs
 
+        Parameters pass to PyCondor
+        ---------------------------
+        request_memory : str or None, optional
+            Memory request to be included in submit file.
+            request_disk : str or None, optional
+            Disk request to be included in submit file.
+        request_cpus : int or None, optional
+            Number of CPUs to request in submit file.
+        getenv : bool or None, optional
+            Whether or not to use the current environment settings when running
+            the job (default is None).
+        universe : str or None, optional
+            Universe execution environment to be specified in submit file
+            (default is None).
+        initialdir : str or None, optional
+            Initial directory for relative paths (defaults to the directory was
+            the job was submitted from).
+        notification : str or None, optional
+            E-mail notification preference (default is None).
+        requirements : str or None, optional
+            Additional requirements to be included in ClassAd.
+        queue : int or None, optional
+            Integer specifying how many times you would like this job to run.
+        extra_lines : list or None, optional
+            List of additional lines to be added to submit file.
+        dag : Dagman, optional
+            If specified, Job will be added to dag (default is None).
+        arguments : str or iterable, optional
+            Arguments with which to initialize the Job list of arguments
+            (default is None).
+        retry : int or None, optional
+            Option to specify the number of retries for all Job arguments. This
+            can be superseded for arguments added via the add_arg() method.
+            Note: this feature is only available to Jobs that are submitted via a
+            Dagman (default is None; no retries).
+        verbose : int, optional
+            Level of logging verbosity option are 0-warning, 1-info,
+            2-debugging (default is 0).
+
+        Note, the "Parameters passed to pycondor" are passed directly to
+        `pycondor.Job()`. Documentation for these is taken verbatim from the
+        API available at https://jrbourbeau.github.io/pycondor/api.html
+
         """
+        self.request_memory = request_memory
+        self.request_disk = request_disk
+        self.request_cpus = request_disk
+        self.getenv = getenv
+        self.universe = universe
+        self.initialdir = initialdir
+        self.notification = notification
+        self.requirements = requirements
+        self.queue = queue
+        self.retry = retry
+        self.verbose = verbose
 
         self.dag = pycondor.Dagman(name=inputs.label, submit=inputs.outdir)
         self.inputs = inputs
@@ -180,9 +237,13 @@ class Dag(object):
         arguments += ' --detectors {}'.format(' '.join(detectors))
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         pycondor.Job(
-            name=name, executable=self.inputs.executable,
-            extra_lines=extra_lines, output=output, log=log, error=error,
-            submit=submit, arguments=arguments, dag=self.dag)
+            name=name, executable=self.inputs.executable, error=error, log=log,
+            output=output, submit=submit, request_memory=self.request_memory,
+            request_disk=self.request_disk, request_cpus=self.request_cpus,
+            getenv=self.getenv, universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
