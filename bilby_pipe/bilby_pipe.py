@@ -3,6 +3,7 @@
 """
 import os
 import sys
+import shutil
 
 import configargparse
 import pycondor
@@ -41,6 +42,8 @@ def create_job_per_detector_set(args, detectors, dag, unknown_args):
     error = log = output = os.path.join(args.outdir, 'logs')
     submit = args.outdir
     extra_lines = 'accounting_group={}'.format(args.accounting)
+    new_cert_path = setup_certificates(args.outdir)
+    extra_lines += '\nx509userproxy={}'.format(new_cert_path)
     arguments = '--ini {}'.format(args.ini)
     name = args.label + '_' + ''.join(detectors)
     if isinstance(detectors, list):
@@ -65,6 +68,14 @@ def setup_executable(args):
         os.system('{} --help'.format(args.executable))
         sys.exit()
     return args
+
+
+def setup_certificates(outdir):
+    cert_alias = 'X509_USER_PROXY'
+    cert_path = os.environ[cert_alias]
+    new_cert_path = os.path.join(outdir, os.path.basename(cert_path))
+    shutil.copyfile(cert_path, new_cert_path)
+    return new_cert_path
 
 
 def main():
