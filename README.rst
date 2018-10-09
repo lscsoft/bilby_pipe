@@ -12,6 +12,8 @@ Clone the repository then run
 
 .. code-block:: console
 
+.. code-block:: console
+
    $ python setup.py install
 
 This will install all dependencies. Currently, it assumes you have access to a
