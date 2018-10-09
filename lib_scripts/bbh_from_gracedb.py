@@ -12,7 +12,7 @@ from bilby.core.utils import logger
 
 parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
 parser.add('--ini', is_config_file=True, help='The ini-style config file')
-parser.add('--gracedb', type=str, help='Gracedb UID')
+parser.add('--gracedb', type=str, help='Gracedb UID', required=True)
 parser.add('--detectors', nargs='+', default=['H1', 'L1'],
            help='The names of detectors to include {H1, L1}')
 parser.add('--calibration', type=int, default=2,
@@ -42,10 +42,16 @@ prior_file = args.prior_file
 detectors = ' '.join(args.detectors).split(' ')  # Check to make sure is a list
 duration = args.duration
 sampling_frequency = 4096.
-try:
-    sampler_kwargs = eval(args.sampler_kwargs)
-except NameError as e:
-    raise ValueError("Unable to parse sampler_kwargs: {}".format(e))
+
+if args.sampler_kwargs:
+    try:
+        sampler_kwargs = eval(args.sampler_kwargs)
+    except (NameError, TypeError) as e:
+        raise ValueError(
+            "Error {}. Unable to parse sampler_kwargs: {}"
+            .format(e, args.sampler_kwargs))
+else:
+    sampler_kwargs = None
 
 candidate, frame_caches = bilby.gw.utils.get_gracedb(
     args.gracedb, args.outdir, duration, args.calibration, detectors)
