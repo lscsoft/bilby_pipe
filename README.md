@@ -1,3 +1,5 @@
+![pipeline status](https://git.ligo.org/Monash/bilby_pipe/badges/master/pipeline.svg)
+![coverage report](https://monash.docs.ligo.org/bilby_pipe/coverage_badge.svg)
 # bilby_pipe
 
 A package for automating transient gravitational wave parameter estimation
