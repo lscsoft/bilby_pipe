@@ -45,7 +45,7 @@ def write_version_file(version):
 def get_long_description():
     """ Finds the README and reads in the description """
     here = path.abspath(path.dirname(__file__))
-    with open(path.join(here, 'README.md')) as f:
+    with open(path.join(here, 'README.rst')) as f:
             long_description = f.read()
     return long_description
 

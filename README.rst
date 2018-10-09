@@ -1,4 +1,5 @@
 |pipeline status| |coverage report|
+
 bilby_pipe
 ==========
 
@@ -7,7 +8,9 @@ A package for automating transient gravitational wave parameter estimation
 Installation
 ------------
 
-Clone the repository then run::
+Clone the repository then run
+
+.. code-block:: console
 
    $ python setup.py install
 
@@ -22,7 +25,9 @@ In this example, we call `bilby_pipe` for the gracedb event G184098,
 which is GW150914. Other required inputs are the executable to run, and the
 accounting group.
 
-First, create an ini file::
+First, create an ini file
+
+.. code-block:: console
 
    executable = bbh_from_gracedb.py
    accounting = ligo.dev.o3.cbc.pe.lalinference
@@ -34,7 +39,9 @@ First, create an ini file::
    sampler = dynesty
    sampler-kwargs = {'nlive': 100}
 
-Then submit with::
+Then submit with
+
+.. code-block:: console
 
    $ bilby_pipe test.ini --gracedb G184098
 
