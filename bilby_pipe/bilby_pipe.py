@@ -5,6 +5,7 @@ import os
 import sys
 
 import configargparse
+import pycondor
 
 from .utils import logger
 from . import utils
@@ -18,6 +19,9 @@ def set_up_argument_parsing():
                help='The ini file')
     parser.add('--exe-help', action='store_true',
                help='Print the help function for the executable')
+    parser.add('--include-detectors', nargs='+', default=['H1', 'L1'],
+               help='The names of detectors to include {H1, L1}')
+    parser.add('--coherence-test', action='store_true')
     parser.add('--label', type=str, default='LABEL',
                help='The output label')
     parser.add('--outdir', type=str, default='bilby_outdir',
@@ -30,20 +34,22 @@ def set_up_argument_parsing():
     parser.add('--executable_library', type=str,
                default='/home/gregory.ashton/bilby_pipe/lib_scripts/',
                help='The executable library')
-    return parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
+    return args, unknown_args
 
 
-def create_submit(args):
-    import pycondor
+def create_job_per_detector_set(args, detectors, dag, unknown_args):
     error = log = output = os.path.join(args.outdir, 'logs')
     submit = args.outdir
     extra_lines = 'accounting_group={}'.format(args.accounting)
     arguments = '--ini {}'.format(args.ini)
-    job = pycondor.Job(
-        name=args.label, executable=args.executable, extra_lines=extra_lines,
+    name = args.label + '_' + ''.join(detectors)
+    arguments += ' --detectors {}'.format(' '.join(detectors))
+    arguments += ' '.join(unknown_args)
+    pycondor.Job(
+        name=name, executable=args.executable, extra_lines=extra_lines,
         output=output, log=log, error=error, submit=submit,
-        arguments=arguments)
-    job.build()
+        arguments=arguments, dag=dag)
 
 
 def setup_executable(args):
@@ -61,7 +67,13 @@ def setup_executable(args):
 
 
 def main():
-    args = set_up_argument_parsing()
+    args, unknown_args = set_up_argument_parsing()
     utils.check_directory_exists_and_if_not_mkdir(args.outdir)
     args = setup_executable(args)
-    create_submit(args)
+    detectors = ' '.join(args.include_detectors).split(' ')
+    dag = pycondor.Dagman(name=args.label, submit=args.outdir)
+    if args.coherence_test:
+        for detector in detectors:
+            create_job_per_detector_set(args, detector, dag, unknown_args)
+    create_job_per_detector_set(args, detectors, dag, unknown_args)
+    dag.build()
