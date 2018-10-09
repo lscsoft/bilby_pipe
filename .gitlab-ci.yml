@@ -39,7 +39,7 @@ pages:
   script:
     - mkdir public/
     - mv htmlcov/ public/
-    - mv /builds/Monash/bilby/coverage_badge.svg public/
+    - mv /builds/Monash/bilby_pipe/coverage_badge.svg public/
   artifacts:
     paths:
       - public
