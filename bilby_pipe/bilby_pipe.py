@@ -15,8 +15,7 @@ def set_up_argument_parsing():
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',
         ignore_unknown_config_file_keys=True)
-    parser.add('--ini', type=str, required=True, is_config_file=True,
-               help='The ini file')
+    parser.add('ini', type=str, is_config_file=True, help='The ini file')
     parser.add('--exe-help', action='store_true',
                help='Print the help function for the executable')
     parser.add('--include-detectors', nargs='+', default=['H1', 'L1'],
