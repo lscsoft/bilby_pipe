@@ -12,6 +12,9 @@ from .utils import logger
 from . import utils
 
 
+__all__ = ['Input']
+
+
 class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
