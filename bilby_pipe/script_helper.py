@@ -42,8 +42,8 @@ def create_default_parser():
                "channel names will be tested.")
     parser.add('--psd_duration', default=500, type=int,
                help='Time used to generate the PSD, default is 500.')
-    parser.add('--reference_frequency', default=20, type=float)
-    parser.add('--minimum-frequency', default=20, type=float)
+    parser.add('--reference_frequency', default=20., type=float)
+    parser.add('--minimum-frequency', default=20., type=float)
     parser.add('--waveform_approximant', default='IMRPhenomPv2', type=str)
     parser.add('--distance-marginalization', action='store_true',
                default=False)
@@ -69,6 +69,22 @@ class ScriptInput(object):
         args_dict = vars(args)
         for key, value in args_dict.items():
             setattr(self, key, value)
+
+    @property
+    def minimum_frequency(self):
+        return self._minimum_frequency
+
+    @minimum_frequency.setter
+    def minimum_frequency(self, minimum_frequency):
+        self._minimum_frequency = float(minimum_frequency)
+
+    @property
+    def reference_frequency(self):
+        return self._reference_frequency
+
+    @reference_frequency.setter
+    def reference_frequency(self, reference_frequency):
+        self._reference_frequency = float(reference_frequency)
 
     @staticmethod
     def _split_string_by_space(string):

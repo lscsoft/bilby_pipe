@@ -34,7 +34,7 @@ inputs = GracedbScriptInputs(args)
 result = bilby.run_sampler(
     likelihood=inputs.likelihood, priors=inputs.priors, sampler=inputs.sampler,
     label=inputs.run_label, outdir=inputs.outdir,
-    conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+    # conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
     **inputs.sampler_kwargs)
 
 result.plot_corner()
