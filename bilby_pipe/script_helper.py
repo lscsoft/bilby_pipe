@@ -137,9 +137,8 @@ class ScriptInput(object):
 
     @property
     def run_label(self):
-        label = '{}_{}_{}'.format(
-            self.label, ''.join(self.detectors),
-            self.trigger_time)
+        label = '{}_{}'.format(
+            self.label, ''.join(self.detectors))
         return label
 
     @property

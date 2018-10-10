@@ -19,5 +19,6 @@ result.search_parameter_keys = ['a', 'b']
 result.parameter_labels_with_unit = ['a', 'b']
 result.posterior = pd.DataFrame(dict(a=np.random.normal(0, 1, 100),
                                      b=np.random.normal(0, 1, 100)))
+result.save_to_file()
 result.plot_corner()
 
