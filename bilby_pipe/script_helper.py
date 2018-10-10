@@ -65,7 +65,6 @@ class ScriptInput(object):
         logger.info('Sampling seed is {}'.format(sampling_seed))
 
         args_dict = vars(args)
-        import IPython; IPython.embed()
         for key, value in args_dict.items():
             setattr(self, key, value)
 
@@ -121,9 +120,9 @@ class ScriptInput(object):
             ifos = bilby.gw.detector.InterferometerList([])
             if self.frame_caches is not None:
                 if self.channel_names is None:
-                    channel_names = [None] * len(self.frame_caches)
+                    self.channel_names = [None] * len(self.frame_caches)
                 for cache_file, channel_name in zip(self.frame_caches,
-                                                    channel_names):
+                                                    self.channel_names):
                     ifos.append(bilby.gw.detector.load_data_from_cache_file(
                         cache_file, self.trigger_time, self.duration,
                         self.psd_duration, channel_name))
@@ -144,7 +143,7 @@ class ScriptInput(object):
     @property
     def priors(self):
         priors = bilby.gw.prior.BBHPriorSet(
-            filename=self._prior_file)
+            filename=self.prior_file)
         priors['geocent_time'] = bilby.core.prior.Uniform(
             minimum=self.trigger_time - self.deltaT / 2,
             maximum=self.trigger_time + self.deltaT / 2,
@@ -152,11 +151,15 @@ class ScriptInput(object):
         return priors
 
     @property
+    def parameter_conversion(self):
+        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+
+    @property
     def waveform_generator(self):
         waveform_generator = bilby.gw.WaveformGenerator(
             sampling_frequency=self.sampling_frequency, duration=self.duration,
             frequency_domain_source_model=self.frequency_domain_source_model,
-            parameter_conversions=self.parameter_conversions,
+            parameter_conversion=self.parameter_conversion,
             waveform_arguments=self.waveform_arguments)
         return waveform_generator
 

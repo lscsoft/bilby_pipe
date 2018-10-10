@@ -22,7 +22,7 @@ class GracedbScriptInputs(script_helper.ScriptInput):
 
     @property
     def frequency_domain_source_model(self):
-        return bilby.gw.source.lal_binary_black_hole,
+        return bilby.gw.source.lal_binary_black_hole
 
 
 parser = script_helper.create_default_parser()
