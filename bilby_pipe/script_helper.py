@@ -31,6 +31,8 @@ def create_default_parser():
     parser.add('--duration', type=int, default=4,
                help='The duration of data around the event to use')
     parser.add("--prior_file", default=None, help="prior file")
+    parser.add("--trigger-time", default=None, type=float,
+               help="The trigger time")
     parser.add("--deltaT", type=float, default=0.1,
                help=("The symmetric width (in s) around the trigger time to"
                      "search over the coalesence time"))
@@ -136,7 +138,7 @@ class ScriptInput(object):
     @property
     def run_label(self):
         label = '{}_{}_{}'.format(
-            self.label, ''.join([ifo.name for ifo in self.ifos]),
+            self.label, ''.join(self.detectors),
             self.trigger_time)
         return label
 

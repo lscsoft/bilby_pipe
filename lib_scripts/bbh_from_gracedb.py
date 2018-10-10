@@ -36,3 +36,5 @@ result = bilby.run_sampler(
     label=inputs.run_label, outdir=inputs.outdir,
     conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
     **inputs.sampler_kwargs)
+
+result.plot_corner()
