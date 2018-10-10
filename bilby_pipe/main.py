@@ -112,7 +112,7 @@ class Input(object):
             cert_alias = 'X509_USER_PROXY'
             cert_path = os.environ[cert_alias]
             new_cert_path = os.path.join(
-                self.outdir, os.path.basename(cert_path))
+                self.outdir, '.' + os.path.basename(cert_path))
             shutil.copyfile(cert_path, new_cert_path)
             self._x509userproxy = new_cert_path
         elif os.path.isfile(x509userproxy):
@@ -133,7 +133,7 @@ class Dag(object):
         inputs: bilby_pipe.Input
             An object holding the inputs built from the command-line/ini
         jobs_logs: str
-            A path relative to the `inputs.outdir` to store per-job logs
+            A path `inputs.outdir/{label}_{job_logs}` to store per-job logs
 
         Parameters pass to PyCondor
         ---------------------------
@@ -232,7 +232,9 @@ class Dag(object):
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
-        job_logs_path = os.path.join(self.inputs.outdir, self.job_logs)
+        job_logs_path = os.path.join(self.inputs.outdir,
+                                     '{}_{}'.format(
+                                         self.inputs.label, self.job_logs))
         error = job_logs_path
         log = job_logs_path
         output = job_logs_path
