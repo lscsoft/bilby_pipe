@@ -267,10 +267,15 @@ class Dag(object):
         log = job_logs_path
         output = job_logs_path
         submit = self.inputs.outdir
-        name = self.inputs.label + '_postprocessing'
+        name = self.inputs.label + '_combined'
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
-        arguments = ('-r {}/*h5 -f {}/combined.png'
-                     .format(self.inputs.outdir, self.inputs.outdir))
+        expected_h5_files = ['{}/{}_result.h5'.format(self.inputs.outdir,
+                                                      job.name)
+                             for job in self.jobs]
+        labels = ' '.join(''.join(job['detectors']) for job in self.jobs_inputs)
+        arguments = ('-r {} -f {}/{}_corner.png -l {}'
+                     .format(' '.join(expected_h5_files), self.inputs.outdir,
+                             name, labels))
         executable = '/home/gregory.ashton/anaconda3/bin/bilby_plot'
         post_job = pycondor.Job(
             name=name, executable=executable, extra_lines=extra_lines,

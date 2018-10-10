@@ -13,7 +13,7 @@ header = ('''
 section_template = (''''
 <div class="container">
   <h2> {title} </h2>
-  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{title}">Simple collapsible</button>
+  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#{title}">corner plot </button>
   <div id="{title}" class="collapse">
       <img src="{corner_file_path}" alt="No image available" style="width:700px;">
   </div>
