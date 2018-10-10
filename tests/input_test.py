@@ -131,7 +131,7 @@ class TestInput(unittest.TestCase):
         os.environ['X509_USER_PROXY'] = os.path.realpath(test_args.X509)
         test_args.X509 = None
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
-        X509_cached_copy = os.path.join(test_args.outdir, 'X509.txt')
+        X509_cached_copy = os.path.join(test_args.outdir, '.X509.txt')
         self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
 

@@ -33,9 +33,9 @@ class TestDag(unittest.TestCase):
         test_args.coherence_test = True
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
         dag = bilby_pipe.Dag(inputs)
-        self.assertEqual(dag.jobs, [dict(detectors=['H1', 'L1']),
-                                    dict(detectors=['H1']),
-                                    dict(detectors=['L1'])])
+        self.assertEqual(dag.jobs_inputs, [dict(detectors=['H1', 'L1']),
+                                           dict(detectors=['H1']),
+                                           dict(detectors=['L1'])])
 
     # def test_build_submit(self):
     #     test_args = copy.copy(self.test_args)

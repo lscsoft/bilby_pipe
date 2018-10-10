@@ -29,4 +29,3 @@ footer = ('''
 def get_section(title, corner_file_path):
     return section_template.format(
         title=title, corner_file_path=corner_file_path)
-
