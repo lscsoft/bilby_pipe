@@ -4,6 +4,7 @@
 import os
 import sys
 import shutil
+import itertools
 
 import configargparse
 import pycondor
@@ -28,6 +29,7 @@ class Input(object):
         self.outdir = args.outdir
         self.label = args.label
         self.accounting = args.accounting
+        self.sampler = args.sampler
         self.include_detectors = args.include_detectors
         self.coherence_test = args.coherence_test
         self.executable = args.executable
@@ -212,26 +214,38 @@ class Dag(object):
     def jobs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
 
+        This contains the logic of generating multiple parallel running jobs
         The keys of each dictionary should be the keyword arguments to
         `self._create_jobs()`
 
         """
         logger.debug("Generating list of jobs")
-        jobs = []
-        jobs.append(dict(detectors=self.inputs.include_detectors))
+
+        detectors_list = []
+        detectors_list.append(self.inputs.include_detectors)
         if self.inputs.coherence_test:
             for detector in self.inputs.include_detectors:
-                jobs.append(dict(detectors=[detector]))
+                detectors_list.append([detector])
+
+        sampler_list = self.inputs.sampler
+
+        prod_list = itertools.product(detectors_list, sampler_list)
+        jobs = []
+        for detectors, sampler in prod_list:
+            jobs.append(dict(detectors=detectors, sampler=sampler))
+
         logger.debug("List of jobs = {}".format(jobs))
         return jobs
 
-    def _create_job(self, detectors):
+    def _create_job(self, detectors, sampler):
         """ Create a condor job and add it to the dag
 
         Parameters
         ----------
         detectors: list, str
             A list of the detectors to include, e.g. `['H1', 'L1']`
+        sampler: str
+            The sampler to use for the job
 
         """
 
@@ -248,6 +262,7 @@ class Dag(object):
         arguments = '--ini {}'.format(self.inputs.ini)
         name = self.inputs.label + '_' + ''.join(detectors)
         arguments += ' --detectors {}'.format(' '.join(detectors))
+        arguments += ' --sampler {}'.format(sampler)
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         pycondor.Job(
             name=name, executable=self.inputs.executable, error=error, log=log,
@@ -278,6 +293,8 @@ def parse_args(args):
                help='If given, build and submit')
     parser.add('--exe-help', action='store_true',
                help='Print the help function for the executable')
+    parser.add('--sampler', nargs='+', default='dynesty',
+               help='Sampler to use, or list of sampler to use')
     parser.add('--include-detectors', nargs='+', default=['H1', 'L1'],
                help='The names of detectors to include {H1, L1}')
     parser.add('--coherence-test', action='store_true')
