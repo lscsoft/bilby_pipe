@@ -12,9 +12,6 @@ from .utils import logger
 from . import utils
 
 
-__all__ = ['Input']
-
-
 class Input(object):
     def __init__(self, args, unknown_args):
         """ An object to hold all the inputs to bilby_pipe """
@@ -33,7 +30,6 @@ class Input(object):
         self.accounting = args.accounting
         self.include_detectors = args.include_detectors
         self.coherence_test = args.coherence_test
-        self.executable_library = args.executable_library
         self.executable = args.executable
         self.x509userproxy = args.X509
         if args.exe_help:
@@ -88,14 +84,20 @@ class Input(object):
 
     @executable.setter
     def executable(self, executable):
-        if os.path.isfile(executable) is False:
-            executable = os.path.join(self.executable_library, executable)
-            if os.path.isfile(executable):
-                self._executable = executable
+        if os.path.isfile(executable):
+            self._executable = executable
+        else:
+            executable_library = 'lib_scripts'
+            executable_path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                executable_library,
+                executable)
+            if os.path.isfile(executable_path):
+                self._executable = executable_path
+            elif os.path.isfile(executable_path + '.py'):
+                self._executable = executable_path + '.py'
             else:
                 raise ValueError('Unable to identify executable')
-        else:
-            self._executable = executable
 
     def executable_help(self):
         logger.info('Printing help message for given executable')
@@ -110,11 +112,15 @@ class Input(object):
     def x509userproxy(self, x509userproxy):
         if x509userproxy is None:
             cert_alias = 'X509_USER_PROXY'
-            cert_path = os.environ[cert_alias]
-            new_cert_path = os.path.join(
-                self.outdir, os.path.basename(cert_path))
-            shutil.copyfile(cert_path, new_cert_path)
-            self._x509userproxy = new_cert_path
+            try:
+                cert_path = os.environ[cert_alias]
+                new_cert_path = os.path.join(
+                    self.outdir, os.path.basename(cert_path))
+                shutil.copyfile(cert_path, new_cert_path)
+                self._x509userproxy = new_cert_path
+            except KeyError:
+                logger.warning("Unable to set X509_USER_PROXY")
+                self._x509userproxy = None
         elif os.path.isfile(x509userproxy):
             self._x509userproxy = x509userproxy
         else:
@@ -284,9 +290,6 @@ def parse_args(args):
     parser.add('--executable', type=str, required=True,
                help=('Either a path to the executable or the name of '
                      'the execuatable in the library'))
-    parser.add('--executable_library', type=str,
-               default='/home/gregory.ashton/bilby_pipe/lib_scripts/',
-               help='The executable library')
     parser.add('--X509', type=str, default=None,
                help=('If given, the path to the users X509 certificate file.'
                      'If not given, a copy of the file at the env. variable '

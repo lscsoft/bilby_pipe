@@ -62,15 +62,15 @@ setup(name='bilby_pipe',
       author_email='',
       license='',
       version=version,
-      package_data={'bilby_pipe': [version_file]},
-      packages=['bilby_pipe'],
+      package_data={'bilby_pipe': [version_file],
+                    'lib_scripts': ['*py']},
+      packages=['bilby_pipe', 'lib_scripts'],
       install_requires=['future', 'ligo-gracedb', 'pycondor',
                         'configargparse'],
       entry_points={'console_scripts':
                     ['bilby_pipe=bilby_pipe.main:main']
                     },
       classifiers=[
-          "Programming Language :: Python :: 2.7",
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",
           "Operating System :: OS Independent"])
