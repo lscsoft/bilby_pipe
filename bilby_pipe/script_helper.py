@@ -72,9 +72,15 @@ class ScriptInput(object):
             setattr(self, key, value)
 
     @staticmethod
-    def _split_string_by_space(string):
-        """ Converts "H1 L1" to ["H1", "L1"] """
-        return string.split(' ')
+    def _convert_string_to_list(string):
+        """ Converts various strings to a list """
+        string = string.replace(',', ' ')
+        string = string.replace('[', '')
+        string = string.replace(']', '')
+        string = string.replace('"', '')
+        string = string.replace("'", '')
+        string_list = string.split()
+        return string_list
 
     @property
     def detectors(self):
@@ -83,11 +89,10 @@ class ScriptInput(object):
 
     @detectors.setter
     def detectors(self, detectors):
-        if isinstance(detectors, str):
-            det_list = self._split_string_by_space(detectors)
-        elif isinstance(detectors, list):
+        """ Handles various types of user input """
+        if isinstance(detectors, list):
             if len(detectors) == 1:
-                det_list = self._split_string_by_space(detectors[0])
+                det_list = self._convert_string_to_list(detectors[0])
             else:
                 det_list = detectors
         else:
