@@ -27,9 +27,8 @@ class GracedbScriptInputs(script_helper.ScriptInput):
 
 parser = script_helper.create_default_parser()
 parser.add('--gracedb', type=str, help='Gracedb UID', required=True)
-args = parser.parse_args()
 
-inputs = GracedbScriptInputs(args)
+inputs = GracedbScriptInputs(parser)
 
 result = bilby.run_sampler(
     likelihood=inputs.likelihood, priors=inputs.priors, sampler=inputs.sampler,

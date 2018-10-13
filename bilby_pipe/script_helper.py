@@ -5,6 +5,7 @@ A collection of classes and functions useful for generating scripts
 
 import numpy as np
 import configargparse
+import sys
 
 from bilby.core.utils import logger
 import bilby
@@ -33,40 +34,62 @@ def create_default_parser():
                help='Which calibration to use')
     parser.add('--duration', type=int, default=4,
                help='The duration of data around the event to use')
-    parser.add("--prior-file", default=None, help="prior file")
-    parser.add("--deltaT", type=float, default=0.1,
-               help=("The symmetric width (in s) around the trigger time to"
-                     " search over the coalesence time"))
     parser.add("--sampling-frequency", default=4096, type=int)
     parser.add("--channel-names", default=None, nargs="*",
                help="Channel names to use, if not provided known "
                "channel names will be tested.")
     parser.add('--psd-duration', default=500, type=int,
                help='Time used to generate the PSD, default is 500.')
-    parser.add('--reference-frequency', default=20, type=float)
     parser.add('--minimum-frequency', default=20, type=float)
-    parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str)
-    parser.add('--distance-marginalization', action='store_true',
-               default=False)
-    parser.add('--phase-marginalization', action='store_true', default=True)
-    parser.add('--time-marginalization', action='store_true', default=True)
-    parser.add('--outdir', default='outdir', help='Output directory')
-    parser.add('--label', default='outdir', help='Output label')
-    parser.add('--sampler', default=None)
+    parser.add("--prior-file", default=None, help="prior file")
+    parser.add("--deltaT", type=float, default=0.1,
+               help=("The symmetric width (in s) around the trigger time to"
+                     " search over the coalesence time"))
+    parser.add('--reference-frequency', default=20, type=float,
+               help="The reference frequency")
+    parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
+               help="Name of the waveform approximant")
+    parser.add(
+        '--distance-marginalization', action='store_true', default=False,
+        help='If true, use a distance-marginalized likelihood')
+    parser.add(
+        '--phase-marginalization', action='store_true', default=True,
+        help='If true, use a phase-marginalized likelihood')
+    parser.add(
+        '--time-marginalization', action='store_true', default=True,
+        help='If true, use a time-marginalized likelihood')
+    parser.add('--sampler', type=str, default=None)
     parser.add('--sampler-kwargs', default=None)
+    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--label', default='label', help='Output label')
+    parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
     return parser
 
 
 class ScriptInput(object):
-    def __init__(self, args):
-        """ An object to hold all the inputs to the script """
+    def __init__(self, parser=None, args_list=None):
+        """ An object to hold all the inputs to the script
+
+        Parameters
+        ----------
+        parser: configargparse.ArgParser, optional
+            The parser containing the command line / ini file inputs. If not
+            given, then `bilby_pipe.script_helper.create_default_parser()` is
+            used.
+
+        """
+
+        if args_list is None:
+            args_list = sys.argv[1:]
+
+        if parser is None:
+            parser = create_default_parser()
+
+        args, unknown_args = parser.parse_known_args(args_list)
 
         logger.info('Command line arguments: {}'.format(args))
 
-        sampling_seed = np.random.randint(1, 1e6)
-        np.random.seed(sampling_seed)
-        logger.info('Sampling seed is {}'.format(sampling_seed))
-
+        self.unknown_args = unknown_args
         args_dict = vars(args)
         for key, value in args_dict.items():
             setattr(self, key, value)
@@ -96,12 +119,24 @@ class ScriptInput(object):
             else:
                 det_list = detectors
         else:
-            raise ValueError('Input `include_detectors` = {} not understood'
+            raise ValueError('Input `detectors` = {} not understood'
                              .format(detectors))
 
         det_list.sort()
         det_list = [det.upper() for det in det_list]
         self._detectors = det_list
+
+    @property
+    def sampling_seed(self):
+        return self._samplng_seed
+
+    @sampling_seed.setter
+    def sampling_seed(self, sampling_seed):
+        if sampling_seed is None:
+            sampling_seed = np.random.randint(1, 1e6)
+        self._samplng_seed = sampling_seed
+        np.random.seed(sampling_seed)
+        logger.info('Sampling seed set to {}'.format(sampling_seed))
 
     @property
     def sampler_kwargs(self):
