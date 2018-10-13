@@ -24,25 +24,28 @@ def create_default_parser():
     """
     parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
-    parser.add('--detectors', nargs='+', default=['H1', 'L1'],
-               help='The names of detectors to include {H1, L1}')
+    parser.add(
+        '--detectors', action='append',
+        help=('The names of detectors to include. If given in the ini file, '
+              'multiple detectors are specified by `detectors=[H1, L1]`. If '
+              'given at the command line, as `--detectors H1 --detectors L1`'))
     parser.add('--calibration', type=int, default=2,
                help='Which calibration to use')
     parser.add('--duration', type=int, default=4,
                help='The duration of data around the event to use')
-    parser.add("--prior_file", default=None, help="prior file")
+    parser.add("--prior-file", default=None, help="prior file")
     parser.add("--deltaT", type=float, default=0.1,
                help=("The symmetric width (in s) around the trigger time to"
-                     "search over the coalesence time"))
+                     " search over the coalesence time"))
     parser.add("--sampling-frequency", default=4096, type=int)
-    parser.add("--channel_names", default=None, nargs="*",
+    parser.add("--channel-names", default=None, nargs="*",
                help="Channel names to use, if not provided known "
                "channel names will be tested.")
-    parser.add('--psd_duration', default=500, type=int,
+    parser.add('--psd-duration', default=500, type=int,
                help='Time used to generate the PSD, default is 500.')
-    parser.add('--reference_frequency', default=20, type=float)
+    parser.add('--reference-frequency', default=20, type=float)
     parser.add('--minimum-frequency', default=20, type=float)
-    parser.add('--waveform_approximant', default='IMRPhenomPv2', type=str)
+    parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str)
     parser.add('--distance-marginalization', action='store_true',
                default=False)
     parser.add('--phase-marginalization', action='store_true', default=True)
@@ -65,7 +68,6 @@ class ScriptInput(object):
         logger.info('Sampling seed is {}'.format(sampling_seed))
 
         args_dict = vars(args)
-        import IPython; IPython.embed()
         for key, value in args_dict.items():
             setattr(self, key, value)
 
