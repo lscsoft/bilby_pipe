@@ -15,9 +15,9 @@ class TestInput(unittest.TestCase):
         self.test_args = Namespace(
             ini='file.ini', submit=True, outdir=self.outdir, label='label',
             accounting='accounting.group', include_detectors='H1',
-            coherence_test=False, executable_library=self.directory,
-            executable='executable.py', exe_help=False,
-            X509=os.path.join(self.directory, 'X509.txt'))
+            coherence_test=False, executable='bbh_from_gracedb.py', exe_help=False,
+            X509=os.path.join(self.directory, 'X509.txt'),
+            sampler=['nestle'])
         self.test_unknown_args = ['--argument', 'value']
         self.inputs = bilby_pipe.Input(self.test_args, self.test_unknown_args)
 
@@ -38,18 +38,9 @@ class TestInput(unittest.TestCase):
     def test_label(self):
         self.assertEqual(self.inputs.label, self.test_args.label)
 
-    def test_executable_library(self):
-        self.assertEqual(self.inputs.executable_library,
-                         self.test_args.executable_library)
-
-    def test_executable_from_library(self):
-        executable = os.path.join(
-            self.inputs.executable_library, self.inputs.executable)
-        self.assertEqual(self.inputs.executable, executable)
-
     def test_executable_from_path(self):
         executable = os.path.join(
-            self.inputs.executable_library, self.inputs.executable)
+            self.directory, self.inputs.executable)
         test_args = copy.copy(self.test_args)
         test_args.executable = executable
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
