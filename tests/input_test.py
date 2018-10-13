@@ -117,7 +117,14 @@ class TestInput(unittest.TestCase):
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
         self.assertEqual(inputs.x509userproxy, test_args.X509)
 
-    def test_x506_from_env_variable(self):
+    def test_x509_environ_unset(self):
+        test_args = copy.copy(self.test_args)
+        test_args.X509 = None
+        os.environ.unsetenv('X509_USER_PROXY')
+        inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
+        self.assertEqual(inputs.x509userproxy, None)
+
+    def test_x509_from_env_variable(self):
         test_args = copy.copy(self.test_args)
         os.environ['X509_USER_PROXY'] = os.path.realpath(test_args.X509)
         test_args.X509 = None
