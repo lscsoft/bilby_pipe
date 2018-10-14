@@ -22,7 +22,7 @@ class GracedbScriptInputs(script_helper.ScriptInput):
 
     @property
     def frequency_domain_source_model(self):
-        return bilby.gw.source.lal_binary_black_hole,
+        return bilby.gw.source.lal_binary_black_hole
 
 
 parser = script_helper.create_default_parser()
@@ -33,5 +33,7 @@ inputs = GracedbScriptInputs(parser)
 result = bilby.run_sampler(
     likelihood=inputs.likelihood, priors=inputs.priors, sampler=inputs.sampler,
     label=inputs.run_label, outdir=inputs.outdir,
-    conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+    # conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
     **inputs.sampler_kwargs)
+
+result.plot_corner()

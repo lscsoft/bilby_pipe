@@ -34,6 +34,8 @@ def create_default_parser():
                help='Which calibration to use')
     parser.add('--duration', type=int, default=4,
                help='The duration of data around the event to use')
+    parser.add("--trigger-time", default=None, type=float,
+               help="The trigger time")
     parser.add("--sampling-frequency", default=4096, type=int)
     parser.add("--channel-names", default=None, nargs="*",
                help="Channel names to use, if not provided known "
@@ -58,7 +60,9 @@ def create_default_parser():
     parser.add(
         '--time-marginalization', action='store_true', default=True,
         help='If true, use a time-marginalized likelihood')
-    parser.add('--sampler', type=str, default=None)
+    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--label', default='outdir', help='Output label')
+    parser.add('--sampler', default=None)
     parser.add('--sampler-kwargs', default=None)
     parser.add('--outdir', default='outdir', help='Output directory')
     parser.add('--label', default='label', help='Output label')
@@ -93,6 +97,22 @@ class ScriptInput(object):
         args_dict = vars(args)
         for key, value in args_dict.items():
             setattr(self, key, value)
+
+    @property
+    def minimum_frequency(self):
+        return self._minimum_frequency
+
+    @minimum_frequency.setter
+    def minimum_frequency(self, minimum_frequency):
+        self._minimum_frequency = float(minimum_frequency)
+
+    @property
+    def reference_frequency(self):
+        return self._reference_frequency
+
+    @reference_frequency.setter
+    def reference_frequency(self, reference_frequency):
+        self._reference_frequency = float(reference_frequency)
 
     @staticmethod
     def _convert_string_to_list(string):
@@ -163,9 +183,9 @@ class ScriptInput(object):
             ifos = bilby.gw.detector.InterferometerList([])
             if self.frame_caches is not None:
                 if self.channel_names is None:
-                    channel_names = [None] * len(self.frame_caches)
+                    self.channel_names = [None] * len(self.frame_caches)
                 for cache_file, channel_name in zip(self.frame_caches,
-                                                    channel_names):
+                                                    self.channel_names):
                     ifos.append(bilby.gw.detector.load_data_from_cache_file(
                         cache_file, self.trigger_time, self.duration,
                         self.psd_duration, channel_name))
@@ -178,15 +198,14 @@ class ScriptInput(object):
 
     @property
     def run_label(self):
-        label = '{}_{}_{}'.format(
-            self.label, ''.join([ifo.name for ifo in self.ifos]),
-            self.trigger_time)
+        label = '{}_{}'.format(
+            self.label, ''.join(self.detectors))
         return label
 
     @property
     def priors(self):
         priors = bilby.gw.prior.BBHPriorSet(
-            filename=self._prior_file)
+            filename=self.prior_file)
         priors['geocent_time'] = bilby.core.prior.Uniform(
             minimum=self.trigger_time - self.deltaT / 2,
             maximum=self.trigger_time + self.deltaT / 2,
@@ -194,11 +213,15 @@ class ScriptInput(object):
         return priors
 
     @property
+    def parameter_conversion(self):
+        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+
+    @property
     def waveform_generator(self):
         waveform_generator = bilby.gw.WaveformGenerator(
             sampling_frequency=self.sampling_frequency, duration=self.duration,
             frequency_domain_source_model=self.frequency_domain_source_model,
-            parameter_conversions=self.parameter_conversions,
+            parameter_conversion=self.parameter_conversion,
             waveform_arguments=self.waveform_arguments)
         return waveform_generator
 

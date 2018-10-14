@@ -11,6 +11,7 @@ import pycondor
 
 from .utils import logger
 from . import utils
+from . import summary
 
 
 class Input(object):
@@ -141,7 +142,7 @@ class Dag(object):
         inputs: bilby_pipe.Input
             An object holding the inputs built from the command-line/ini
         jobs_logs: str
-            A path relative to the `inputs.outdir` to store per-job logs
+            A path `inputs.outdir/{label}_{job_logs}` to store per-job logs
 
         Parameters pass to PyCondor
         ---------------------------
@@ -202,16 +203,18 @@ class Dag(object):
         self.dag = pycondor.Dagman(name=inputs.label, submit=inputs.outdir)
         self.inputs = inputs
         self.job_logs = job_logs
+        self.jobs = []
         self.create_jobs()
+        self.create_postprocessing_jobs()
         self.build_submit()
 
     def create_jobs(self):
         """ Create all the condor jobs and add them to the dag """
-        for job in self.jobs:
-            self._create_job(**job)
+        for job_input in self.jobs_inputs:
+            self.jobs.append(self._create_job(**job_input))
 
     @property
-    def jobs(self):
+    def jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
 
         This contains the logic of generating multiple parallel running jobs
@@ -220,7 +223,6 @@ class Dag(object):
 
         """
         logger.debug("Generating list of jobs")
-
         detectors_list = []
         detectors_list.append(self.inputs.include_detectors)
         if self.inputs.coherence_test:
@@ -230,12 +232,12 @@ class Dag(object):
         sampler_list = self.inputs.sampler
 
         prod_list = itertools.product(detectors_list, sampler_list)
-        jobs = []
+        jobs_inputs = []
         for detectors, sampler in prod_list:
-            jobs.append(dict(detectors=detectors, sampler=sampler))
+            jobs_inputs.append(dict(detectors=detectors, sampler=sampler))
 
-        logger.debug("List of jobs = {}".format(jobs))
-        return jobs
+        logger.debug("List of job inputs = {}".format(jobs_inputs))
+        return jobs_inputs
 
     def _create_job(self, detectors, sampler):
         """ Create a condor job and add it to the dag
@@ -252,7 +254,9 @@ class Dag(object):
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
-        job_logs_path = os.path.join(self.inputs.outdir, self.job_logs)
+        job_logs_path = os.path.join(self.inputs.outdir,
+                                     '{}_{}'.format(
+                                         self.inputs.label, self.job_logs))
         error = job_logs_path
         log = job_logs_path
         output = job_logs_path
@@ -264,7 +268,7 @@ class Dag(object):
         arguments += ' --detectors {}'.format(' '.join(detectors))
         arguments += ' --sampler {}'.format(sampler)
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
-        pycondor.Job(
+        job = pycondor.Job(
             name=name, executable=self.inputs.executable, error=error, log=log,
             output=output, submit=submit, request_memory=self.request_memory,
             request_disk=self.request_disk, request_cpus=self.request_cpus,
@@ -273,6 +277,32 @@ class Dag(object):
             requirements=self.requirements, queue=self.queue,
             extra_lines=extra_lines, dag=self.dag, arguments=arguments,
             retry=self.retry, verbose=self.verbose)
+        return job
+
+    def create_postprocessing_jobs(self):
+        job_logs_path = os.path.join(self.inputs.outdir,
+                                     '{}_{}'.format(
+                                         self.inputs.label, self.job_logs))
+        error = job_logs_path
+        log = job_logs_path
+        output = job_logs_path
+        submit = self.inputs.outdir
+        name = self.inputs.label + '_combined'
+        extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
+        expected_h5_files = ['{}/{}_result.h5'.format(self.inputs.outdir,
+                                                      job.name)
+                             for job in self.jobs]
+        labels = ' '.join(''.join(job['detectors']) for job in self.jobs_inputs)
+        arguments = ('-r {} -f {}/{}_corner.png -l {}'
+                     .format(' '.join(expected_h5_files), self.inputs.outdir,
+                             name, labels))
+        executable = '/home/gregory.ashton/anaconda3/bin/bilby_plot'
+        post_job = pycondor.Job(
+            name=name, executable=executable, extra_lines=extra_lines,
+            error=error, log=log, output=output,
+            submit=submit, arguments=arguments, dag=self.dag)
+        for job in self.jobs:
+            post_job.add_parent(job)
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
@@ -306,7 +336,7 @@ def parse_args(args):
                help='The accounting group to use')
     parser.add('--executable', type=str, required=True,
                help=('Either a path to the executable or the name of '
-                     'the execuatable in the library'))
+                     'the executable in the library'))
     parser.add('--X509', type=str, default=None,
                help=('If given, the path to the users X509 certificate file.'
                      'If not given, a copy of the file at the env. variable '
@@ -320,4 +350,12 @@ def parse_args(args):
 def main():
     args, unknown_args = parse_args(sys.argv[1:])
     inputs = Input(args, unknown_args)
-    Dag(inputs)
+    dag = Dag(inputs)
+    summary_content = ''
+    summary_content += summary.header
+    for job in dag.dag:
+        figure = '{}_corner.png'.format(job.name)
+        summary_content += summary.get_section(job.name, figure)
+    summary_content += summary.footer
+    with open('{}/summary.html'.format(inputs.outdir), 'w+') as f:
+        f.write(summary_content)
