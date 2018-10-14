@@ -204,6 +204,7 @@ class Dag(object):
         self.inputs = inputs
         self.job_logs = job_logs
         self.jobs = []
+        self.jobs_outputs = []
         self.create_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
@@ -264,7 +265,7 @@ class Dag(object):
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
-        name = self.inputs.label + '_' + ''.join(detectors)
+        name = '{}_{}_{}'.format(self.inputs.label, ''.join(detectors), sampler)
         arguments += ' --detectors {}'.format(' '.join(detectors))
         arguments += ' --sampler {}'.format(sampler)
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
@@ -277,6 +278,9 @@ class Dag(object):
             requirements=self.requirements, queue=self.queue,
             extra_lines=extra_lines, dag=self.dag, arguments=arguments,
             retry=self.retry, verbose=self.verbose)
+
+        logger.debug('Adding job: {}'.format(name))
+        self.jobs_outputs.append(JobOutput(directory=self.inputs.outdir, name=name))
         return job
 
     def create_postprocessing_jobs(self):
@@ -312,6 +316,16 @@ class Dag(object):
             self.dag.build_submit()
         else:
             self.dag.build()
+
+
+class JobOutput():
+    def __init__(self, directory, name):
+        self.directory = directory
+        self.name = name
+
+    @property
+    def full_corner(self):
+        return os.path.join(self.directory, '{}_corner.png'.format(self.name))
 
 
 def parse_args(args):
@@ -351,11 +365,4 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:])
     inputs = Input(args, unknown_args)
     dag = Dag(inputs)
-    summary_content = ''
-    summary_content += summary.header
-    for job in dag.dag:
-        figure = '{}_corner.png'.format(job.name)
-        summary_content += summary.get_section(job.name, figure)
-    summary_content += summary.footer
-    with open('{}/summary.html'.format(inputs.outdir), 'w+') as f:
-        f.write(summary_content)
+    summary.create_summary_page(inputs.outdir, dag.jobs_outputs)

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+{% for job in jobs %}
+<div class="container">
+    <h2> {{ job.name }} </h2>
+    <button type="button" class="btn btn-info" data-toggle="collapse"
+            data-target="#{{ job.name }}"> corner plot </button>
+    <div id="{{ job.name }}" class="collapse">
+    <img src="{{ job.full_corner }}" alt="No image available" style="width:700px;">
+    </div>
+</div>
+{% endfor %}
+
+</body>
+</html>
+

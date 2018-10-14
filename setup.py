@@ -65,7 +65,7 @@ setup(name='bilby_pipe',
       package_data={'bilby_pipe': [version_file],
                     'lib_scripts': ['*py']},
       packages=['bilby_pipe', 'lib_scripts'],
-      install_requires=['future', 'pycondor', 'configargparse'],
+      install_requires=['future', 'pycondor', 'configargparse', 'jinja2'],
       entry_points={'console_scripts':
                     ['bilby_pipe=bilby_pipe.main:main']
                     },
