@@ -61,6 +61,7 @@ class TestScriptHelper(unittest.TestCase):
         args_list = self.default_args_list + ['--detectors', '[L1, H1]']
         inputs = bilby_pipe.script_helper.ScriptInput(
             parser=self.parser, args_list=args_list)
+        self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
     def test_script_inputs_detectors_from_command_line_as_undelimited_list(self):
         args_list = self.default_args_list + ['--detectors', '[L1 H1]']
