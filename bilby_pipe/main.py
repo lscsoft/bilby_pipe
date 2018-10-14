@@ -118,7 +118,7 @@ class Input(object):
             try:
                 cert_path = os.environ[cert_alias]
                 new_cert_path = os.path.join(
-                    self.outdir, os.path.basename(cert_path))
+                    self.outdir, '.' + os.path.basename(cert_path))
                 shutil.copyfile(cert_path, new_cert_path)
                 self._x509userproxy = new_cert_path
             except KeyError:

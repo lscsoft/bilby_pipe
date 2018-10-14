@@ -60,8 +60,6 @@ def create_default_parser():
     parser.add(
         '--time-marginalization', action='store_true', default=True,
         help='If true, use a time-marginalized likelihood')
-    parser.add('--outdir', default='outdir', help='Output directory')
-    parser.add('--label', default='outdir', help='Output label')
     parser.add('--sampler', default=None)
     parser.add('--sampler-kwargs', default=None)
     parser.add('--outdir', default='outdir', help='Output directory')

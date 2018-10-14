@@ -36,7 +36,7 @@ class TestDag(unittest.TestCase):
         expected_jobs = [dict(detectors=['H1', 'L1'], sampler='nestle'),
                          dict(detectors=['H1'], sampler='nestle'),
                          dict(detectors=['L1'], sampler='nestle')]
-        self.assertEqual(dag.jobs, expected_jobs)
+        self.assertEqual(dag.jobs_inputs, expected_jobs)
 
     # def test_build_submit(self):
     #     test_args = copy.copy(self.test_args)
