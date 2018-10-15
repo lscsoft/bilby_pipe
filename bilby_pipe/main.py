@@ -121,8 +121,14 @@ class Input(object):
                     self.outdir, '.' + os.path.basename(cert_path))
                 shutil.copyfile(cert_path, new_cert_path)
                 self._x509userproxy = new_cert_path
+            except FileNotFoundError:
+                logger.warning(
+                    "Environment variable X509_USER_PROXY does not point to a"
+                    " file. Try running $ligo-proxy-init albert.einstein")
             except KeyError:
-                logger.warning("Unable to set X509_USER_PROXY")
+                logger.warning(
+                    "Environment variable X509_USER_PROXY not set"
+                    " Try running $ligo-proxy-init albert.einstein")
                 self._x509userproxy = None
         elif os.path.isfile(x509userproxy):
             self._x509userproxy = x509userproxy
