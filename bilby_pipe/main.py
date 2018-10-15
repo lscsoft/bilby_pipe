@@ -365,4 +365,4 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:])
     inputs = Input(args, unknown_args)
     dag = Dag(inputs)
-    summary.create_summary_page(inputs.outdir, dag.jobs_outputs)
+    summary.create_summary_page(inputs, dag)
