@@ -9,8 +9,7 @@ import pandas as pd
 import numpy as np
 
 parser = script_helper.create_default_parser()
-args = parser.parse_args()
-inputs = script_helper.ScriptInput(args)
+inputs = script_helper.ScriptInput(parser)
 
 result = bilby.result.Result()
 result.outdir = inputs.outdir

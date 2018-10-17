@@ -55,10 +55,10 @@ def create_default_parser():
         '--distance-marginalization', action='store_true', default=False,
         help='If true, use a distance-marginalized likelihood')
     parser.add(
-        '--phase-marginalization', action='store_true', default=True,
+        '--phase-marginalization', action='store_true', default=False,
         help='If true, use a phase-marginalized likelihood')
     parser.add(
-        '--time-marginalization', action='store_true', default=True,
+        '--time-marginalization', action='store_true', default=False,
         help='If true, use a time-marginalized likelihood')
     parser.add('--sampler', default=None)
     parser.add('--sampler-kwargs', default=None)
@@ -193,6 +193,10 @@ class ScriptInput(object):
                 raise Exception("Cannot find any data!")
         else:
             return self._ifos
+
+    @ifos.setter
+    def ifos(self, ifos):
+        self._ifos = ifos
 
     @property
     def run_label(self):
