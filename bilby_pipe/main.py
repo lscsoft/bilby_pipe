@@ -137,18 +137,16 @@ class Input(object):
 
 
 class Dag(object):
-    def __init__(self, inputs, job_logs='logs', request_memory=None,
-                 request_disk=None, request_cpus=None, getenv=True,
-                 universe='vanilla', initialdir=None, notification='never',
-                 requirements=None, queue=None, retry=None, verbose=0):
+    def __init__(self, inputs, request_memory=None, request_disk=None,
+                 request_cpus=None, getenv=True, universe='vanilla',
+                 initialdir=None, notification='never', requirements=None,
+                 queue=None, retry=None, verbose=0):
         """ A class to handle the creation and building of a DAG
 
         Parameters
         ----------
         inputs: bilby_pipe.Input
             An object holding the inputs built from the command-line/ini
-        jobs_logs: str
-            A path `inputs.outdir/{label}_{job_logs}` to store per-job logs
 
         Parameters pass to PyCondor
         ---------------------------
@@ -205,15 +203,20 @@ class Dag(object):
         self.queue = queue
         self.retry = retry
         self.verbose = verbose
-
-        self.dag = pycondor.Dagman(name=inputs.label, submit=inputs.outdir)
         self.inputs = inputs
-        self.job_logs = job_logs
+
+        self.dag = pycondor.Dagman(
+            name='main_' + inputs.label,
+            submit=self.submit_directory)
         self.jobs = []
         self.jobs_outputs = []
         self.create_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
+
+    @property
+    def submit_directory(self):
+        return os.path.join(self.inputs.outdir, 'submit')
 
     def create_jobs(self):
         """ Create all the condor jobs and add them to the dag """
@@ -261,13 +264,11 @@ class Dag(object):
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
-        job_logs_path = os.path.join(self.inputs.outdir,
-                                     '{}_{}'.format(
-                                         self.inputs.label, self.job_logs))
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
         error = job_logs_path
         log = job_logs_path
         output = job_logs_path
-        submit = self.inputs.outdir
+        submit = self.submit_directory
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
@@ -290,14 +291,12 @@ class Dag(object):
         return job
 
     def create_postprocessing_jobs(self):
-        job_logs_path = os.path.join(self.inputs.outdir,
-                                     '{}_{}'.format(
-                                         self.inputs.label, self.job_logs))
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
         error = job_logs_path
         log = job_logs_path
         output = job_logs_path
-        submit = self.inputs.outdir
-        name = self.inputs.label + '_combined'
+        submit = self.submit_directory
+        name = self.inputs.label + '_combine_results'
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         expected_h5_files = ['{}/{}_result.h5'.format(self.inputs.outdir,
                                                       job.name)
