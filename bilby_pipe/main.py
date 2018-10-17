@@ -316,8 +316,6 @@ class Dag(object):
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
         if self.inputs.submit:
-            raise NotImplementedError(
-                "This method is currently failing for unknown reasons")
             self.dag.build_submit()
         else:
             self.dag.build()
