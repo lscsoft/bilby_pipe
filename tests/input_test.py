@@ -121,7 +121,6 @@ class TestInput(unittest.TestCase):
         test_args = copy.copy(self.test_args)
         test_args.X509 = None
         os.environ.unsetenv('X509_USER_PROXY')
-        import IPython; IPython.embed()
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
         self.assertEqual(inputs.x509userproxy, None)
 
