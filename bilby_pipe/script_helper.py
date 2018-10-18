@@ -204,8 +204,8 @@ class ScriptInput(object):
 
     @property
     def run_label(self):
-        label = '{}_{}'.format(
-            self.label, ''.join(self.detectors))
+        label = '{}_{}_{}'.format(
+            self.label, ''.join(self.detectors), self.sampler)
         return label
 
     @property
