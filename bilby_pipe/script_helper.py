@@ -25,6 +25,10 @@ def create_default_parser():
     """
     parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
+    parser.add('--cluster', type=int,
+               help='The condor cluster ID', default=None)
+    parser.add('--process', type=int,
+               help='The condor process ID', default=None)
     parser.add(
         '--detectors', action='append',
         help=('The names of detectors to include. If given in the ini file, '

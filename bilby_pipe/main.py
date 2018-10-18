@@ -29,6 +29,8 @@ class Input(object):
         self.submit = args.submit
         self.outdir = args.outdir
         self.label = args.label
+        self.queue = args.queue
+        self.create_summary = args.create_summary
         self.accounting = args.accounting
         self.sampler = args.sampler
         self.include_detectors = args.include_detectors
@@ -140,7 +142,7 @@ class Dag(object):
     def __init__(self, inputs, request_memory=None, request_disk=None,
                  request_cpus=None, getenv=True, universe='vanilla',
                  initialdir=None, notification='never', requirements=None,
-                 queue=None, retry=None, verbose=0):
+                 retry=None, verbose=0):
         """ A class to handle the creation and building of a DAG
 
         Parameters
@@ -169,8 +171,6 @@ class Dag(object):
             E-mail notification preference (default is None).
         requirements : str or None, optional
             Additional requirements to be included in ClassAd.
-        queue : int or None, optional
-            Integer specifying how many times you would like this job to run.
         extra_lines : list or None, optional
             List of additional lines to be added to submit file.
         dag : Dagman, optional
@@ -200,7 +200,6 @@ class Dag(object):
         self.initialdir = initialdir
         self.notification = notification
         self.requirements = requirements
-        self.queue = queue
         self.retry = retry
         self.verbose = verbose
         self.inputs = inputs
@@ -272,22 +271,27 @@ class Dag(object):
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
-        name = '{}_{}_{}'.format(self.inputs.label, ''.join(detectors), sampler)
-        arguments += ' --detectors {}'.format(' '.join(detectors))
+        run_label = '{}_{}_{}'.format(self.inputs.label, ''.join(detectors),
+                                      sampler)
+        for detector in detectors:
+            arguments += ' --detectors {}'.format(detector)
         arguments += ' --sampler {}'.format(sampler)
+        arguments += ' --cluster $(Cluster)'
+        arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         job = pycondor.Job(
-            name=name, executable=self.inputs.executable, error=error, log=log,
+            name=run_label, executable=self.inputs.executable, error=error, log=log,
             output=output, submit=submit, request_memory=self.request_memory,
             request_disk=self.request_disk, request_cpus=self.request_cpus,
             getenv=self.getenv, universe=self.universe,
             initialdir=self.initialdir, notification=self.notification,
-            requirements=self.requirements, queue=self.queue,
+            requirements=self.requirements, queue=self.inputs.queue,
             extra_lines=extra_lines, dag=self.dag, arguments=arguments,
             retry=self.retry, verbose=self.verbose)
 
-        logger.debug('Adding job: {}'.format(name))
-        self.jobs_outputs.append(JobOutput(directory=self.inputs.outdir, name=name))
+        logger.debug('Adding job: {}'.format(run_label))
+        self.jobs_outputs.append(JobOutput(directory=self.inputs.outdir,
+                                           name=run_label))
         return job
 
     def create_postprocessing_jobs(self):
@@ -334,7 +338,7 @@ class JobOutput():
 def parse_args(args):
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',
-        ignore_unknown_config_file_keys=True)
+        ignore_unknown_config_file_keys=True, allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
     parser.add('--submit', action='store_true',
                help='If given, build and submit')
@@ -345,10 +349,13 @@ def parse_args(args):
     parser.add('--include-detectors', nargs='+', default=['H1', 'L1'],
                help='The names of detectors to include {H1, L1}')
     parser.add('--coherence-test', action='store_true')
+    parser.add('--queue', type=int, default=1)
     parser.add('--label', type=str, default='LABEL',
                help='The output label')
     parser.add('--outdir', type=str, default='bilby_outdir',
                help='The output directory')
+    parser.add('--create-summary', action='store_true',
+               help='If true, create a summary page')
     parser.add('--accounting', type=str, required=True,
                help='The accounting group to use')
     parser.add('--executable', type=str, required=True,
@@ -368,4 +375,5 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:])
     inputs = Input(args, unknown_args)
     dag = Dag(inputs)
-    summary.create_summary_page(inputs, dag)
+    if inputs.create_summary:
+        summary.create_summary_page(inputs, dag)

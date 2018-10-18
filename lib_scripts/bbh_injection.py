@@ -41,9 +41,9 @@ likelihood = bilby.gw.likelihood.GravitationalWaveTransient(
     distance_marginalization=inputs.distance_marginalization,
     time_marginalization=inputs.time_marginalization)
 
+label = inputs.run_label + '_{}_{}'.format(inputs.cluster, inputs.process)
 result = bilby.run_sampler(
     likelihood=likelihood, priors=priors, sampler=inputs.sampler,
-    label=inputs.run_label, outdir=inputs.outdir,
-    **inputs.sampler_kwargs)
+    label=label, outdir=inputs.outdir, **inputs.sampler_kwargs)
 
 result.plot_corner()
