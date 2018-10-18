@@ -19,7 +19,7 @@ class TestScriptHelper(unittest.TestCase):
         self.assertEqual(inputs.calibration, 2)
         self.assertEqual(inputs.label, 'label')
         self.assertEqual(inputs.channel_names, ['name1', 'name2'])
-        self.assertEqual(inputs.phase_marginalization, True)
+        self.assertEqual(inputs.phase_marginalization, False)
         self.assertEqual(inputs.sampler_kwargs, {'a': 1, 'b': 2})
 
     def test_script_inputs_detectors_from_ini(self):

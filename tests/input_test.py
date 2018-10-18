@@ -16,7 +16,7 @@ class TestInput(unittest.TestCase):
             ini='file.ini', submit=True, outdir=self.outdir, label='label',
             accounting='accounting.group', include_detectors='H1',
             coherence_test=False, executable='bbh_from_gracedb.py', exe_help=False,
-            X509=os.path.join(self.directory, 'X509.txt'),
+            X509=os.path.join(self.directory, 'X509.txt'), queue=1, create_summary=False,
             sampler=['nestle'])
         self.test_unknown_args = ['--argument', 'value']
         self.inputs = bilby_pipe.Input(self.test_args, self.test_unknown_args)
@@ -121,6 +121,7 @@ class TestInput(unittest.TestCase):
         test_args = copy.copy(self.test_args)
         test_args.X509 = None
         os.environ.unsetenv('X509_USER_PROXY')
+        import IPython; IPython.embed()
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
         self.assertEqual(inputs.x509userproxy, None)
 
