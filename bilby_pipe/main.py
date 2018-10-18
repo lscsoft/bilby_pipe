@@ -333,7 +333,6 @@ class JobOutput():
     @property
     def full_corner(self):
         return '{}_corner.png'.format(self.name)
-        #return os.path.join(self.directory, '{}_corner.png'.format(self.name))
 
 
 def parse_args(args):
