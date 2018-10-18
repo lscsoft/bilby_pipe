@@ -101,6 +101,11 @@ class ScriptInput(object):
             setattr(self, key, value)
 
     @property
+    def frequency_domain_source_model(self):
+        raise NotImplementedError(
+            "The ScriptInput child must define the frequency_domain_source_model")
+
+    @property
     def minimum_frequency(self):
         return self._minimum_frequency
 
@@ -180,27 +185,17 @@ class ScriptInput(object):
             self._sampler_kwargs = None
 
     @property
-    def ifos(self):
-        if getattr(self, '_ifos', None) is None:
-            ifos = bilby.gw.detector.InterferometerList([])
-            if self.frame_caches is not None:
-                if self.channel_names is None:
-                    self.channel_names = [None] * len(self.frame_caches)
-                for cache_file, channel_name in zip(self.frame_caches,
-                                                    self.channel_names):
-                    ifos.append(bilby.gw.detector.load_data_from_cache_file(
-                        cache_file, self.trigger_time, self.duration,
-                        self.psd_duration, channel_name))
-                self._ifos = ifos
-                return self._ifos
-            else:
-                raise Exception("Cannot find any data!")
-        else:
-            return self._ifos
+    def interferometers(self):
+        try:
+            return self._interferometers
+        except AttributeError as e:
+            raise ValueError(
+                "Interferometer data not set, either set this directly or "
+                "define it as a property when subclassing ScriptInput")
 
-    @ifos.setter
-    def ifos(self, ifos):
-        self._ifos = ifos
+    @interferometers.setter
+    def interferometers(self, interferometers):
+        self._interferometers = interferometers
 
     @property
     def run_label(self):
@@ -241,7 +236,7 @@ class ScriptInput(object):
     @property
     def likelihood(self):
         return bilby.gw.likelihood.GravitationalWaveTransient(
-            interferometers=self.ifos,
+            interferometers=self.interferometers,
             waveform_generator=self.waveform_generator, prior=self.priors,
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,

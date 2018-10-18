@@ -23,13 +23,13 @@ waveform_generator = inputs.waveform_generator
 injection_parameters = priors.sample()
 while injection_parameters['mass_1'] < injection_parameters['mass_2']:
     injection_parameters = priors.sample()
-ifos = bilby.gw.detector.InterferometerList(inputs.detectors)
-ifos.set_strain_data_from_power_spectral_densities(
+interferometers = bilby.gw.detector.InterferometerList(inputs.detectors)
+interferometers.set_strain_data_from_power_spectral_densities(
     sampling_frequency=inputs.sampling_frequency, duration=inputs.duration,
     start_time=inputs.trigger_time - inputs.duration / 2.)
-ifos.inject_signal(waveform_generator=waveform_generator,
-                   parameters=injection_parameters)
-inputs.ifos = ifos
+interferometers.inject_signal(waveform_generator=waveform_generator,
+                              parameters=injection_parameters)
+inputs.interferometers = interferometers
 
 for key in ['a_1', 'a_2', 'tilt_1', 'tilt_2', 'phi_12', 'phi_jl', 'psi', 'ra',
             'dec', 'geocent_time', 'phase']:
