@@ -111,7 +111,12 @@ class Input(object):
 
     @property
     def x509userproxy(self):
-        return self._x509userproxy
+        try:
+            return self._x509userproxy
+        except AttributeError:
+            raise ValueError(
+                "The X509 user proxy has not been correctly set, please check"
+                " the logs")
 
     @x509userproxy.setter
     def x509userproxy(self, x509userproxy):
@@ -376,4 +381,4 @@ def main():
     inputs = Input(args, unknown_args)
     dag = Dag(inputs)
     if inputs.create_summary:
-        summary.create_summary_page(inputs, dag)
+        summary.create_summary_page(dag)

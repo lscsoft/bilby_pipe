@@ -1,14 +1,32 @@
-from jinja2 import Environment, FileSystemLoader
+import jinja2
 import os
 
 
-def create_summary_page(inputs, dag):
-    """ Generates the HTML summary page given the jobs list """
+def create_summary_page(dag):
+    """ Generates the HTML summary page
+
+    The summary page is generated from a Jinja2 template matching the
+    executable filename in bilby_pipe/templates.
+
+    Parameters
+    ----------
+    dag: bilby_pipe.main.Dag
+        A dag object containing the `inputs` data and `jobs_outputs`
+
+
+    """
     root = os.path.dirname(os.path.abspath(__file__))
     templates_dir = os.path.join(root, 'templates')
-    env = Environment(loader=FileSystemLoader(templates_dir))
-    template = env.get_template('summary.html')
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
 
-    filename = os.path.join(inputs.outdir, 'summary.html')
+    template = '{}.html'.format(
+        os.path.splitext(os.path.basename(dag.inputs.executable))[0])
+
+    try:
+        template = env.get_template(template)
+    except jinja2.TemplateNotFound as e:
+        raise ValueError("Unable to generate a summary page: {}".format(e))
+
+    filename = os.path.join(dag.inputs.outdir, 'summary.html')
     with open(filename, 'w') as fh:
-        fh.write(template.render(jobs=dag.jobs_outputs, inputs=inputs))
+        fh.write(template.render(jobs=dag.jobs_outputs, inputs=dag.inputs))
