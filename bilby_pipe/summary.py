@@ -19,8 +19,7 @@ def create_summary_page(dag):
     templates_dir = os.path.join(root, 'templates')
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(templates_dir))
 
-    template = '{}.html'.format(
-        os.path.splitext(os.path.basename(dag.inputs.executable))[0])
+    template = '{}.html'.format('basic_template')
 
     try:
         template = env.get_template(template)

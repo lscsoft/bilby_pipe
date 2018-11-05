@@ -52,32 +52,18 @@ tr:nth-child(even) {
 
 <body>
 
-    <div class='container'> <h1> Summary page </h1> </div>
+<div class='container'> <h1> Summary page </h1> </div>
 
 <div class="container">
 <button class="accordion"> Job summary </button>
 <div class="panel">
 <table>
+{% for key in inputs.meta_keys %}
 <tr>
-   <th scope="row">Executable</th>
-   <td> {{ inputs.executable }} </td>
+    <th scope="row"> {{ key }} </th>
+   <td> {{ inputs[key] }} </td>
 </tr>
-<tr>
-   <th scope="row">Accounting tag</th>
-   <td> {{ inputs.accounting }} </td>
-</tr>
-<tr>
-   <th scope="row">Include detectors </th>
-   <td> {{ inputs.include_detectors }} </td>
-</tr>
-<tr>
-   <th scope="row">Coherence test </th>
-   <td> {{ inputs.coherence_test }} </td>
-</tr>
-<tr>
-   <th scope="row">Samplers </th>
-   <td> {{ inputs.sampler }} </td>
-</tr>
+{% endfor %}
 </table>
 </div>
 

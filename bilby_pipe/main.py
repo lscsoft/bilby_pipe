@@ -40,6 +40,10 @@ class Input(object):
         if args.exe_help:
             self.executable_help()
 
+        self.meta_keys = ['label', 'outdir', 'ini', 'executable',
+                          'include_detectors', 'coherence_test',
+                          'sampler', 'accounting']
+
     @property
     def include_detectors(self):
         """ A list of the detectors to include, e.g., ['H1', 'L1'] """
@@ -81,7 +85,7 @@ class Input(object):
     @outdir.setter
     def outdir(self, outdir):
         utils.check_directory_exists_and_if_not_mkdir(outdir)
-        self._outdir = outdir
+        self._outdir = os.path.abspath(outdir)
 
     @property
     def executable(self):
