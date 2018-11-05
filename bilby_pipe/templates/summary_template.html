@@ -47,6 +47,14 @@ tr:nth-child(even) {
     overflow: hidden;
 }
 
+.alignleft {
+        float: left;
+}
+.alignright {
+        float: right;
+}
+
+
 </style>
 
 
@@ -67,14 +75,9 @@ tr:nth-child(even) {
 </table>
 </div>
 
-{% for job in jobs %}
+{% for page in results_pages %}
 <div class="container">
-    <h2> {{ job.name }} </h2>
-    <button type="button" class="btn btn-info" data-toggle="collapse"
-            data-target="#{{ job.name }}"> corner plot </button>
-    <div id="{{ job.name }}" class="collapse">
-    <img src="{{ job.full_corner }}" alt="No image available" style="width:700px;">
-    </div>
+    <a href="{{ results_pages[page] }}"> {{ page }} </a>
 </div>
 {% endfor %}
 

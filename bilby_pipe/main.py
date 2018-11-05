@@ -11,7 +11,7 @@ import pycondor
 
 from .utils import logger
 from . import utils
-from . import summary
+from . import webpages
 
 
 class Input(object):
@@ -217,7 +217,7 @@ class Dag(object):
             name='main_' + inputs.label,
             submit=self.submit_directory)
         self.jobs = []
-        self.jobs_outputs = []
+        self.results_pages = dict()
         self.create_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
@@ -299,8 +299,7 @@ class Dag(object):
             retry=self.retry, verbose=self.verbose)
 
         logger.debug('Adding job: {}'.format(run_label))
-        self.jobs_outputs.append(JobOutput(directory=self.inputs.outdir,
-                                           name=run_label))
+        self.results_pages[run_label] = '{}.html'.format(run_label)
         return job
 
     def create_postprocessing_jobs(self):
@@ -385,4 +384,4 @@ def main():
     inputs = Input(args, unknown_args)
     dag = Dag(inputs)
     if inputs.create_summary:
-        summary.create_summary_page(dag)
+        webpages.create_summary_page(dag)

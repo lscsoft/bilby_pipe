@@ -61,4 +61,4 @@ result = bilby.run_sampler(
     # conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
     **inputs.sampler_kwargs)
 
-result.plot_corner()
+webpages.create_run_output(result)
