@@ -333,16 +333,6 @@ class Dag(object):
             self.dag.build()
 
 
-class JobOutput():
-    def __init__(self, directory, name):
-        self.directory = directory
-        self.name = name
-
-    @property
-    def full_corner(self):
-        return '{}_corner.png'.format(self.name)
-
-
 def parse_args(args):
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',

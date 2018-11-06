@@ -4,9 +4,8 @@ A Script for running PE based on a gracedb ID
 """
 from __future__ import division, print_function
 
-from bilby_pipe import script_helper
+from bilby_pipe import script_helper, webpages
 import bilby
-import webpages
 
 
 class GracedbScriptInputs(script_helper.ScriptInput):

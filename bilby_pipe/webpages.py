@@ -33,6 +33,7 @@ def create_summary_page(dag):
 
 
 def create_run_output(result):
+    """ Create a HTML results page from a bilby result object """
 
     corner_plot = '{}_corner.png'.format(result.label)
     oneD_table = {}
