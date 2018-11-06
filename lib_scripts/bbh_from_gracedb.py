@@ -6,6 +6,7 @@ from __future__ import division, print_function
 
 from bilby_pipe import script_helper
 import bilby
+import webpages
 
 
 class GracedbScriptInputs(script_helper.ScriptInput):

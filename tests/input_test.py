@@ -33,7 +33,8 @@ class TestInput(unittest.TestCase):
         self.assertEqual(self.inputs.submit, self.test_args.submit)
 
     def test_outdir(self):
-        self.assertEqual(self.inputs.outdir, self.test_args.outdir)
+        self.assertEqual(os.path.abspath(self.test_args.outdir),
+                         self.inputs.outdir)
 
     def test_label(self):
         self.assertEqual(self.inputs.label, self.test_args.label)
@@ -129,7 +130,8 @@ class TestInput(unittest.TestCase):
         os.environ['X509_USER_PROXY'] = os.path.realpath(test_args.X509)
         test_args.X509 = None
         inputs = bilby_pipe.Input(test_args, self.test_unknown_args)
-        X509_cached_copy = os.path.join(test_args.outdir, '.X509.txt')
+        X509_cached_copy = os.path.abspath(os.path.join(test_args.outdir,
+                                                        '.X509.txt'))
         self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
 

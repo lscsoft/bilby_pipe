@@ -1,6 +1,5 @@
 import jinja2
 import os
-import bilby
 
 
 def create_summary_page(dag):
