@@ -40,6 +40,7 @@ class Input(object):
         if args.exe_help:
             self.executable_help()
 
+        # These keys are used in the webpages summary
         self.meta_keys = ['label', 'outdir', 'ini', 'executable',
                           'include_detectors', 'coherence_test',
                           'sampler', 'accounting']
@@ -115,6 +116,7 @@ class Input(object):
 
     @property
     def x509userproxy(self):
+        """ A path to the users X509 certificate used for authentication """
         try:
             return self._x509userproxy
         except AttributeError:
@@ -303,27 +305,8 @@ class Dag(object):
         return job
 
     def create_postprocessing_jobs(self):
-        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
-        error = job_logs_path
-        log = job_logs_path
-        output = job_logs_path
-        submit = self.submit_directory
-        name = self.inputs.label + '_combine_results'
-        extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
-        expected_h5_files = ['{}/{}_result.h5'.format(self.inputs.outdir,
-                                                      job.name)
-                             for job in self.jobs]
-        labels = ' '.join(''.join(job['detectors']) for job in self.jobs_inputs)
-        arguments = ('-r {} -f {}/{}_corner.png -l {}'
-                     .format(' '.join(expected_h5_files), self.inputs.outdir,
-                             name, labels))
-        executable = '/home/gregory.ashton/anaconda3/bin/bilby_plot'
-        post_job = pycondor.Job(
-            name=name, executable=executable, extra_lines=extra_lines,
-            error=error, log=log, output=output,
-            submit=submit, arguments=arguments, dag=self.dag)
-        for job in self.jobs:
-            post_job.add_parent(job)
+        """ Generate postprocessing job """
+        pass
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
