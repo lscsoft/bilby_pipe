@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    text-align: centre;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+}
+
+.active, .accordion:hover {
+    background-color: #ccc;
+}
+
+.panel {
+    padding: 0 18px;
+    background-color: white;
+    display: none;
+    overflow: hidden;
+}
+
+.alignleft {
+        float: left;
+}
+.alignright {
+        float: right;
+}
+
+
+</style>
+
+
+<body>
+
+<div class="container">
+<h1> {{ title }} </h1>
+</div>
+
+<div class="container">
+<button class="accordion"> Corner plot </button>
+<div class="panel">
+    <img src="{{ corner_plot }}" alt="No image available" style="width:700px;">
+</div>
+</div>
+
+
+<div class="container">
+<button class="accordion"> 1D posterior table </button>
+<div class="panel">
+<table>
+{% for key in parameter_keys %}
+<tr>
+    <th scope="row"> {{ key }} </th>
+    <td>
+      <p class="alignleft">{{ oneD_table[key] }} </p>
+      <p class="alignright">
+      <button type="button" class="btn btn-info" data-toggle="collapse"
+            data-target="#{{ key }}"> Histogram </button>
+    <div id="{{ key }}" class="collapse">
+    <img src="{{ oneD_figures[key] }}" alt="No image available" style="width:700px;">
+    </div>
+      </p>
+
+    <div style="clear: both;"></div>
+   </td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var panel = this.nextElementSibling;
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+        } else {
+            panel.style.display = "block";
+        }
+    });
+}
+</script>
+
+
+</body>
+</html>
+
