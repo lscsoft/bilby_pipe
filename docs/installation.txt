@@ -1,0 +1,35 @@
+============
+Installation
+============
+
+Install bilby_pipe from source
+------------------------------
+
+:code:`bilby_pipe` is developed and tested with for Python 3+. In the
+following, we assume you have a working python installation, `python pip
+<https://packaging.python.org/tutorials/installing-packages/#use-pip-for-installing)>`_,
+and `git <https://git-scm.com/>`_.
+
+Clone the repository and then install the software:
+
+.. code-block:: console
+
+   $ git clone git@git.ligo.org:lscsoft/bilby_pipe.git
+   $ cd bilby_pipe/
+   $ python setup.py install
+
+Once you have run these steps, you have :code:`bilby_pipe` installed.
+
+.. note::
+   If you do not have a git.ligo account, and recieve an error message:
+
+   .. code-block:: console
+
+      git@git.ligo.org: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+      fatal: Could not read from remote repository.
+
+   Then you need to use the HTTPS URL, e.g., replace the first line above with
+
+   .. code-block:: console
+
+      $ git clone https://git.ligo.org/lscsoft/bilby.git

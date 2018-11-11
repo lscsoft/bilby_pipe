@@ -32,6 +32,21 @@ python-3:
       - htmlcov/
       - coverage_badge.svg
 
+documentation:
+  stage: test
+  image: bilbydev/bilby
+  script:
+    - python setup.py install
+
+    # Make the documentation
+    - cd docs
+    - make clean
+    - make html
+
+  artifacts:
+    paths:
+      - docs/_build/html/
+
 pages:
   stage: deploy
   dependencies:
@@ -40,6 +55,7 @@ pages:
     - mkdir public/
     - mv htmlcov/ public/
     - mv /builds/Monash/bilby_pipe/coverage_badge.svg public/
+    - mv docs/_build/html/* public/
   artifacts:
     paths:
       - public
