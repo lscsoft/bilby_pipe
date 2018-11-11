@@ -5,8 +5,8 @@ bilby_pipe
 
 A package for automating transient gravitational wave parameter estimation
 
-Documentation including a basic example can be found in the `project wiki <https://git.ligo.org/Monash/bilby_pipe/wikis/home>`_. 
-Please add issues (including feature requests) to the `issue tracker <https://git.ligo.org/Monash/bilby_pipe/issues>`_.
+Documentation including a basic example can be found in the `project wiki <https://git.ligo.org/lscsoft/bilby_pipe/wikis/home>`_. 
+Please add issues (including feature requests) to the `issue tracker <https://git.ligo.org/lscsoft/bilby_pipe/issues>`_.
 
 
 Installation
@@ -25,8 +25,8 @@ working version of `gw_data_find` without explicitly pointing it to the server
 (i.e., that you are working on one of the LDG clusters).
 
 
-.. |pipeline status| image:: https://git.ligo.org/Monash/bilby_pipe/badges/master/pipeline.svg
-   :target: https://git.ligo.org/Monash/bilby_pipe/commits/master
+.. |pipeline status| image:: https://git.ligo.org/lscsoft/bilby_pipe/badges/master/pipeline.svg
+   :target: https://git.ligo.org/lscsoft/bilby_pipe/commits/master
 .. |coverage report| image:: https://monash.docs.ligo.org/bilby_pipe/coverage_badge.svg
    :target: https://monash.docs.ligo.org/bilby_pipe/htmlcov/
 
