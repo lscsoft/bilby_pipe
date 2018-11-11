@@ -51,6 +51,7 @@ pages:
   stage: deploy
   dependencies:
     - python-3
+    - documentation
   script:
     - mkdir public/
     - mv htmlcov/ public/
