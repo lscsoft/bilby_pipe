@@ -39,6 +39,7 @@ documentation:
     - python setup.py install
 
     # Make the documentation
+    - apt-get install graphviz
     - cd docs
     - pip install -r requirements.txt
     - make clean
@@ -54,7 +55,6 @@ pages:
     - python-3
     - documentation
   script:
-    - apt-get install graphviz
     - mkdir public/
     - mv htmlcov/ public/
     - mv /builds/lscsoft/bilby_pipe/coverage_badge.svg public/
