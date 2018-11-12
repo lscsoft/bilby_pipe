@@ -1,3 +1,6 @@
+"""
+bilby_pipe code used to generate dag-level summary pages
+"""
 import jinja2
 import os
 

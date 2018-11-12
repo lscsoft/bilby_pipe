@@ -1,11 +1,11 @@
-Welcome to the bilby_pipe documentation!
-========================================
 
 .. automodule:: bilby_pipe
     :members:
+
 
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
 
+   structure
    installation

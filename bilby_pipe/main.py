@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 """
+The :code:`bilby_pipe.main` module contains the logic for intepretting user
+input, creating DAG files and submitting jobs.
 """
 import os
 import sys
@@ -15,8 +17,47 @@ from . import webpages
 
 
 class Input(object):
+    """ An object to hold all the inputs to bilby_pipe
+
+    Parameters
+    ----------
+    args: argparse.Namespace
+        A simple object storing the input arguments
+    unknown_args: list
+        A list of any arguments in `input_args` unknown by the parser
+
+    Attributes
+    ----------
+    ini: str
+        The path to the ini file
+    executable: str
+        The path to the executable file. The executable file stores the primary
+        logic of what code is to be run, e.g., an injection or a run on cached
+        frame files
+    submit: bool
+        If true, user-input to also submit the jobs
+    label: str
+        A label describing the job
+    outdir: str
+        The path to the directory where output will be stored
+    queue: int
+        The number of jobs to queue
+    create_summary: bool
+        If true, create a summary page
+    accounting: str
+        The accounting group to use
+    coherence_test: bool
+        If true, run the coherence test
+    include_detectors: list
+        A list of the detectors to include, e.g., ['H1', 'L1']
+    unknown_args: list
+        A list of unknown command line arguments
+    x509userproxy: str
+        A path to the users X509 certificate used for authentication
+
+    """
+
     def __init__(self, args, unknown_args):
-        """ An object to hold all the inputs to bilby_pipe """
         logger.debug('Creating new Input object')
 
         self.known_detectors = ['H1', 'L1', 'V1']
@@ -81,6 +122,7 @@ class Input(object):
 
     @property
     def outdir(self):
+        """ The path to the directory where output will be stored """
         return self._outdir
 
     @outdir.setter
@@ -90,6 +132,12 @@ class Input(object):
 
     @property
     def executable(self):
+        """ The path to the executable file
+
+        The executable file stores the primary logic of what code is to be run,
+        e.g., an injection or a run on cached frame files
+
+        """
         return self._executable
 
     @executable.setter
@@ -150,59 +198,62 @@ class Input(object):
 
 
 class Dag(object):
+    """ A class to handle the creation and building of a DAG
+
+    Parameters
+    ----------
+    inputs: bilby_pipe.Input
+        An object holding the inputs built from the command-line/ini
+
+    Other parameters
+    ----------------
+    request_memory : str or None, optional
+        Memory request to be included in submit file.
+        request_disk : str or None, optional
+        Disk request to be included in submit file.
+    request_cpus : int or None, optional
+        Number of CPUs to request in submit file.
+    getenv : bool or None, optional
+        Whether or not to use the current environment settings when running
+        the job (default is None).
+    universe : str or None, optional
+        Universe execution environment to be specified in submit file
+        (default is None).
+    initialdir : str or None, optional
+        Initial directory for relative paths (defaults to the directory was
+        the job was submitted from).
+    notification : str or None, optional
+        E-mail notification preference (default is None).
+    requirements : str or None, optional
+        Additional requirements to be included in ClassAd.
+    extra_lines : list or None, optional
+        List of additional lines to be added to submit file.
+    dag : Dagman, optional
+        If specified, Job will be added to dag (default is None).
+    arguments : str or iterable, optional
+        Arguments with which to initialize the Job list of arguments
+        (default is None).
+    retry : int or None, optional
+        Option to specify the number of retries for all Job arguments. This
+        can be superseded for arguments added via the add_arg() method.
+        Note: this feature is only available to Jobs that are submitted via
+        a Dagman (default is None; no retries).
+    verbose : int, optional
+        Level of logging verbosity option are 0-warning, 1-info,
+        2-debugging (default is 0).
+
+    Notes
+    -----
+        The "Other Parameters" are passed directly to
+        `pycondor.Job()`. Documentation for these is taken verbatim from the
+        API available at https://jrbourbeau.github.io/pycondor/api.html
+
+    """
+
     def __init__(self, inputs, request_memory=None, request_disk=None,
                  request_cpus=None, getenv=True, universe='vanilla',
                  initialdir=None, notification='never', requirements=None,
                  retry=None, verbose=0):
-        """ A class to handle the creation and building of a DAG
-
-        Parameters
-        ----------
-        inputs: bilby_pipe.Input
-            An object holding the inputs built from the command-line/ini
-
-        Parameters pass to PyCondor
-        ---------------------------
-        request_memory : str or None, optional
-            Memory request to be included in submit file.
-            request_disk : str or None, optional
-            Disk request to be included in submit file.
-        request_cpus : int or None, optional
-            Number of CPUs to request in submit file.
-        getenv : bool or None, optional
-            Whether or not to use the current environment settings when running
-            the job (default is None).
-        universe : str or None, optional
-            Universe execution environment to be specified in submit file
-            (default is None).
-        initialdir : str or None, optional
-            Initial directory for relative paths (defaults to the directory was
-            the job was submitted from).
-        notification : str or None, optional
-            E-mail notification preference (default is None).
-        requirements : str or None, optional
-            Additional requirements to be included in ClassAd.
-        extra_lines : list or None, optional
-            List of additional lines to be added to submit file.
-        dag : Dagman, optional
-            If specified, Job will be added to dag (default is None).
-        arguments : str or iterable, optional
-            Arguments with which to initialize the Job list of arguments
-            (default is None).
-        retry : int or None, optional
-            Option to specify the number of retries for all Job arguments. This
-            can be superseded for arguments added via the add_arg() method.
-            Note: this feature is only available to Jobs that are submitted via
-            a Dagman (default is None; no retries).
-        verbose : int, optional
-            Level of logging verbosity option are 0-warning, 1-info,
-            2-debugging (default is 0).
-
-        Note, the "Parameters passed to pycondor" are passed directly to
-        `pycondor.Job()`. Documentation for these is taken verbatim from the
-        API available at https://jrbourbeau.github.io/pycondor/api.html
-
-        """
         self.request_memory = request_memory
         self.request_disk = request_disk
         self.request_cpus = request_disk
@@ -316,7 +367,8 @@ class Dag(object):
             self.dag.build()
 
 
-def parse_args(args):
+def create_parser():
+    """ Creates the configargparse.ArgParser for bilby_pipe """
     parser = configargparse.ArgParser(
         usage='Generate submission scripts for the job',
         ignore_unknown_config_file_keys=True, allow_abbrev=False)
@@ -348,13 +400,39 @@ def parse_args(args):
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
     parser.add('-v', '--verbose', action='store_true', help='verbose')
-    args, unknown_args = parser.parse_known_args(args)
+    return parser
+
+
+def parse_args(input_args):
+    """ Parse an argument list using parser generated by create_parser()
+
+    Parameters
+    ----------
+    input_args: list
+        A list of arguments
+
+    Returns
+    -------
+    args: argparse.Namespace
+        A simple object storing the input arguments
+    unknown_args: list
+        A list of any arguments in `input_args` unknown by the parser
+
+    """
+
+    parser = create_parser()
+    args, unknown_args = parser.parse_known_args(input_args)
     return args, unknown_args
 
 
 def main():
+    """ Top-level interface for bilby_pipe """
+    # Read in the command line arguments
     args, unknown_args = parse_args(sys.argv[1:])
+    # Create an Inputs instance storing all the user-input
     inputs = Input(args, unknown_args)
+    # Create a Directed Acyclic Graph (DAG) of the workflow
     dag = Dag(inputs)
+    # If requested, create a summary page at the DAG-level
     if inputs.create_summary:
         webpages.create_summary_page(dag)

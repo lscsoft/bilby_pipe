@@ -4,3 +4,4 @@ numpydoc
 nbsphinx
 autodoc
 sphinx_rtd_theme
+sphinx-argparse

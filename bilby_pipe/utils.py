@@ -1,3 +1,6 @@
+"""
+A set of generic utilities used in bilby_pipe
+"""
 import os
 import sys
 import logging

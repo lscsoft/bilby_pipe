@@ -31,7 +31,9 @@ sys.path.insert(0, os.path.abspath('../bilby_pipe/'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax', 'numpydoc',
-              'nbsphinx', 'sphinx.ext.autosummary', 'sphinx.ext.autosectionlabel']
+              'sphinx.ext.graphviz', 'nbsphinx', 'sphinx.ext.autosummary',
+              'sphinx.ext.autosectionlabel', 'sphinx.ext.viewcode',
+              'sphinxarg.ext']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -46,7 +48,7 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bilby'
+project = u'bilby_pipe'
 copyright = u'2018, Greg Ashton'
 author = u'Gregory Ashton'
 
