@@ -39,7 +39,7 @@ documentation:
     - python setup.py install
 
     # Make the documentation
-    - apt-get install graphviz
+    - apt-get -y install graphviz
     - cd docs
     - pip install -r requirements.txt
     - make clean
