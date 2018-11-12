@@ -8,4 +8,5 @@
    :caption: Contents:
 
    structure
+   ini_file
    installation
