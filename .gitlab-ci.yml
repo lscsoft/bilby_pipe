@@ -54,6 +54,7 @@ pages:
     - python-3
     - documentation
   script:
+    - apt-get install graphviz
     - mkdir public/
     - mv htmlcov/ public/
     - mv /builds/lscsoft/bilby_pipe/coverage_badge.svg public/
