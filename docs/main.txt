@@ -1,0 +1,44 @@
+====
+main
+====
+
+.. automodule:: bilby_pipe.main
+
+Command line interface
+----------------------
+
+The primary user-interface for this code is a command line tool
+:code:`bilby_pipe` which is available after following the `installation
+instructions <installation.txt>`_.
+
+.. argparse::
+   :module: bilby_pipe.main
+   :func: create_parser
+   :prog: fancytool
+
+
+Main function
+-------------
+Functionally, this command line tool is
+calling the function :code:`bilby_pipe.main.main()`, which is transcribed here:
+
+.. literalinclude:: ../bilby_pipe/main.py
+   :lines: 379-
+
+As you can see, there 3 steps. First the command line arguments are parsed, the
+:code:`args` object stores the user inputs and any defaults (see `Command line
+interface`_) while :code:`unknown_args` is a list of any unknown arguments.
+
+The logic of handling the user input (in the form of the :code:`args` object)
+is handled by the Input_ object. Following this, the logic of generated a DAG
+given that user input is handled by the Dag_ object.
+
+Input
+-----
+
+.. autoclass:: bilby_pipe.main.Input
+
+Dag
+---
+
+.. autoclass:: bilby_pipe.main.Dag

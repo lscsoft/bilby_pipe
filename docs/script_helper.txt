@@ -1,0 +1,6 @@
+=============
+script_helper
+=============
+
+.. automodule:: bilby_pipe.script_helper
+
