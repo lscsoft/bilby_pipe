@@ -13,7 +13,7 @@ from bilby_pipe.utils import logger
 from bilby_pipe.main import Input
 
 
-def create_generate_interferometer_list_parser():
+def create_parser():
     """ Generate a parser for the generate_interferometer_list.py script
 
     Additional options can be added to the returned parser beforing calling
@@ -134,14 +134,17 @@ class GenerateInterferometerListInput(Input):
         At setting, will load the json candidate data and path to the frame
         cache file.
         """
-        logger.info("Setting gracedb id to {}".format(gracedb))
-        candidate, frame_caches = bilby.gw.utils.get_gracedb(
-            gracedb, self.outdir, self.duration, self.calibration,
-            self.detectors)
-        self.meta_data['gracedb_candidate'] = candidate
-        self._gracedb = gracedb
-        self.trigger_time = candidate['gpstime']
-        self.frame_caches = frame_caches
+        if gracedb is None:
+            self._gracedb = None
+        else:
+            logger.info("Setting gracedb id to {}".format(gracedb))
+            candidate, frame_caches = bilby.gw.utils.get_gracedb(
+                gracedb, self.outdir, self.duration, self.calibration,
+                self.detectors)
+            self.meta_data['gracedb_candidate'] = candidate
+            self._gracedb = gracedb
+            self.trigger_time = candidate['gpstime']
+            self.frame_caches = frame_caches
 
     @property
     def frame_caches(self):
@@ -201,6 +204,6 @@ class GenerateInterferometerListInput(Input):
 
 
 def main():
-    parser = create_generate_interferometer_list_parser()
+    parser = create_parser()
     data = GenerateInterferometerListInput(parser)
     data.save_interferometer_list()
