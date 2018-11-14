@@ -46,12 +46,6 @@ class TestScriptHelper(unittest.TestCase):
             inputs.run_label, '{}_{}_{}'.format(
                 inputs.label, ''.join(inputs.detectors), inputs.sampler))
 
-    def test_unset_frequency_domain_source_model(self):
-        inputs = bilby_pipe.script_helper.ScriptInput(
-            parser=self.parser, args_list=self.default_args_list)
-        with self.assertRaises(NotImplementedError):
-            inputs.frequency_domain_source_model
-
     def test_script_inputs_detectors_from_command_line(self):
         args_list = self.default_args_list + ['--detectors', 'H1', '--detectors', 'L1']
         inputs = bilby_pipe.script_helper.ScriptInput(

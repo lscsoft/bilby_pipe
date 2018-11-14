@@ -241,3 +241,9 @@ class ScriptInput(object):
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             time_marginalization=self.time_marginalization)
+
+    @property
+    def frequency_domain_source_model(self):
+        return bilby.gw.source.lal_binary_black_hole
+
+
