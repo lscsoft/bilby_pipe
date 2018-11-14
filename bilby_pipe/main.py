@@ -73,12 +73,27 @@ class Input(object):
     """ Superclass of input handlers """
 
     @property
+    def known_detectors(self):
+        try:
+            return self._known_detectors
+        except AttributeError:
+            return ['H1', 'L1', 'V1']
+
+    @known_detectors.setter
+    def known_detectors(self, known_detectors):
+        self._known_detectors = self._convert_detectors_input(known_detectors)
+
+    @property
     def detectors(self):
         """ A list of the detectors to include, e.g., ['H1', 'L1'] """
         return self._detectors
 
     @detectors.setter
     def detectors(self, detectors):
+        self._detectors = self._convert_detectors_input(detectors)
+        self._check_detectors_against_known_detectors()
+
+    def _convert_detectors_input(self, detectors):
         if isinstance(detectors, str):
             det_list = self._split_string_by_space(detectors)
         elif isinstance(detectors, list):
@@ -92,14 +107,15 @@ class Input(object):
 
         det_list.sort()
         det_list = [det.upper() for det in det_list]
+        return det_list
 
-        for element in det_list:
+    def _check_detectors_against_known_detectors(self):
+        for element in self.detectors:
             if element not in self.known_detectors:
                 raise ValueError(
                     'detectors contains "{}" not in the known '
                     'detectors list: {} '.format(
                         element, self.known_detectors))
-        self._detectors = det_list
 
     @staticmethod
     def _split_string_by_space(string):
@@ -169,7 +185,6 @@ class MainInput(Input):
         logger.debug('Creating new Input object')
         logger.info('Command line arguments: {}'.format(args))
 
-        self.known_detectors = ['H1', 'L1', 'V1']
         logger.debug('Known detector list = {}'.format(self.known_detectors))
 
         self.unknown_args = unknown_args
@@ -397,8 +412,7 @@ class Dag(object):
 
 def main():
     """ Top-level interface for bilby_pipe """
-    parser = create_parser()
-    args, unknown_args = parser.parse_known_args(sys.argv[1:])
+    args, unknown_args = parse_args(sys.argv[1:])
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
     dag = Dag(inputs)

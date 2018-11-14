@@ -32,10 +32,6 @@ class TestMainInput(unittest.TestCase):
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)
 
-    def test_outdir(self):
-        self.assertEqual(os.path.abspath(self.args.outdir),
-                         self.inputs.outdir)
-
     def test_label(self):
         self.assertEqual(self.inputs.label, self.args.label)
 
