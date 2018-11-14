@@ -92,12 +92,13 @@ class GenerateInterferometerList(object):
         At setting, will load the json candidate data and path to the frame
         cache file.
         """
+        logger.info("Setting gracedb id to {}".format(gracedb))
         candidate, frame_caches = bilby.gw.utils.get_gracedb(
             gracedb, self.outdir, self.duration, self.calibration,
             self.detectors)
         self.meta_data['gracedb_candidate'] = candidate
         self._gracedb = gracedb
-        self.trigger_time = self.candidate['gpstime']
+        self.trigger_time = candidate['gpstime']
         self.frame_caches = frame_caches
 
     @property
@@ -110,19 +111,22 @@ class GenerateInterferometerList(object):
 
     @frame_caches.setter
     def frame_caches(self, frame_caches):
+        """ Set the frame_caches, if successfull generate the interferometer list """
         if isinstance(frame_caches, list):
-            interferometers = bilby.gw.detector.InterferometerList([])
-            if self.channel_names is None:
-                channel_names_none_list = [None] * len(self.frame_caches)
-            for cache_file, channel_name in zip(self.frame_caches, channel_names_none_list):
-                interferometers.append(
-                    bilby.gw.detector.load_data_from_cache_file(
-                        cache_file, self.trigger_time, self.duration,
-                        self.psd_duration, channel_name))
-                self.interferometers = interferometers
-
+            self._frame_caches = frame_caches
         else:
             raise ValueError("frame_caches list must be a list")
+
+        # Set interferometers from frame_caches
+        interferometers = bilby.gw.detector.InterferometerList([])
+        if self.channel_names is None:
+            channel_names_none_list = [None] * len(frame_caches)
+        for cache_file, channel_name in zip(frame_caches, channel_names_none_list):
+            interferometers.append(
+                bilby.gw.detector.load_data_from_cache_file(
+                    cache_file, self.trigger_time, self.duration,
+                    self.psd_duration, channel_name))
+            self.interferometers = interferometers
 
     @property
     def interferometers(self):
@@ -135,6 +139,9 @@ class GenerateInterferometerList(object):
     @interferometers.setter
     def interferometers(self, interferometers):
         self._interferometers = interferometers
+
+    def save_interferometer_list(self):
+        self.interferometers.to_hdf5(outdir=self.outdir, label=self.label)
 
 
 def create_generate_interferometer_list_parser():
@@ -184,4 +191,4 @@ def create_generate_interferometer_list_parser():
 if __name__ == '__main__':
     parser = create_generate_interferometer_list_parser()
     data = GenerateInterferometerList(parser)
-    data.interferometers.to_hdf5()
+    data.save_interferometer_list()
