@@ -13,6 +13,7 @@ import bilby
 
 from bilby_pipe.utils import logger
 from bilby_pipe import webpages
+from bilby_pipe.main import Input
 
 
 def create_analyse_interferometer_list_parser():
@@ -63,7 +64,7 @@ def create_analyse_interferometer_list_parser():
     return parser
 
 
-class AnalyseInterferometerList(object):
+class AnalyseInterferometerListInput(Input):
     """ Handles user-input and creation of intermediate ifo list
 
     Parameters
@@ -107,38 +108,6 @@ class AnalyseInterferometerList(object):
     @reference_frequency.setter
     def reference_frequency(self, reference_frequency):
         self._reference_frequency = float(reference_frequency)
-
-    @staticmethod
-    def _convert_string_to_list(string):
-        """ Converts various strings to a list """
-        string = string.replace(',', ' ')
-        string = string.replace('[', '')
-        string = string.replace(']', '')
-        string = string.replace('"', '')
-        string = string.replace("'", '')
-        string_list = string.split()
-        return string_list
-
-    @property
-    def detectors(self):
-        """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
-        return self._detectors
-
-    @detectors.setter
-    def detectors(self, detectors):
-        """ Handles various types of user input """
-        if isinstance(detectors, list):
-            if len(detectors) == 1:
-                det_list = self._convert_string_to_list(detectors[0])
-            else:
-                det_list = detectors
-        else:
-            raise ValueError('Input `detectors` = {} not understood'
-                             .format(detectors))
-
-        det_list.sort()
-        det_list = [det.upper() for det in det_list]
-        self._detectors = det_list
 
     @property
     def sampling_seed(self):
@@ -241,5 +210,5 @@ class AnalyseInterferometerList(object):
 
 def main():
     parser = create_analyse_interferometer_list_parser()
-    analysis = AnalyseInterferometerList(parser)
+    analysis = AnalyseInterferometerListInput(parser)
     webpages.create_run_output(analysis.result)

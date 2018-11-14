@@ -10,6 +10,7 @@ import configargparse
 import bilby
 
 from bilby_pipe.utils import logger
+from bilby_pipe.main import Input
 
 
 def create_generate_interferometer_list_parser():
@@ -56,7 +57,7 @@ def create_generate_interferometer_list_parser():
     return parser
 
 
-class GenerateInterferometerList(object):
+class GenerateInterferometerListInput(Input):
     """ Handles user-input and creation of intermediate ifo list
 
     Parameters
@@ -99,17 +100,6 @@ class GenerateInterferometerList(object):
     @minimum_frequency.setter
     def minimum_frequency(self, minimum_frequency):
         self._minimum_frequency = float(minimum_frequency)
-
-    @staticmethod
-    def _convert_string_to_list(string):
-        """ Converts various strings to a list """
-        string = string.replace(',', ' ')
-        string = string.replace('[', '')
-        string = string.replace(']', '')
-        string = string.replace('"', '')
-        string = string.replace("'", '')
-        string_list = string.split()
-        return string_list
 
     @property
     def detectors(self):
@@ -212,5 +202,5 @@ class GenerateInterferometerList(object):
 
 def main():
     parser = create_generate_interferometer_list_parser()
-    data = GenerateInterferometerList(parser)
+    data = GenerateInterferometerListInput(parser)
     data.save_interferometer_list()
