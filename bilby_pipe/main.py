@@ -128,7 +128,6 @@ class Input(object):
         self._outdir = os.path.abspath(outdir)
 
 
-
 class MainInput(Input):
     """ An object to hold all the inputs to bilby_pipe
 

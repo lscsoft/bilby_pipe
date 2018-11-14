@@ -1,6 +1,5 @@
 import os
 import unittest
-from argparse import Namespace
 import copy
 import shutil
 

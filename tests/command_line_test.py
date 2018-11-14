@@ -32,58 +32,58 @@ class TestDagCommandLine(unittest.TestCase):
         self.assertEqual(unknown_args, expected_unknown_args)
 
 
-#class TestScriptHelperCommandLine(unittest.TestCase):
+# class TestScriptHelperCommandLine(unittest.TestCase):
 #
-#    def setUp(self):
-#        self.default_args = ['--ini', 'tests/test_script_helper_ini_file.ini']
-#        self.parser = bilby_pipe.script_helper.create_default_parser()
+#     def setUp(self):
+#         self.default_args = ['--ini', 'tests/test_script_helper_ini_file.ini']
+#         self.parser = bilby_pipe.script_helper.create_default_parser()
 #
-#    def tearDown(self):
-#        pass
+#     def tearDown(self):
+#         pass
 #
-#    def test_detectors_ini(self):
-#        args_list = self.default_args.copy()
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(type(parsed_args.detectors), list)
-#        self.assertEqual(parsed_args.detectors, ['H1', 'L1'])
+#     def test_detectors_ini(self):
+#         args_list = self.default_args.copy()
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(type(parsed_args.detectors), list)
+#         self.assertEqual(parsed_args.detectors, ['H1', 'L1'])
 #
-#    def test_detectors_command_line(self):
-#        args_list = self.default_args.copy()
-#        args_list.append('--detectors')
-#        args_list.append('H1')
-#        args_list.append('--detectors')
-#        args_list.append('L1')
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(type(parsed_args.detectors), list)
-#        self.assertEqual(parsed_args.detectors, ['H1', 'L1'])
+#     def test_detectors_command_line(self):
+#         args_list = self.default_args.copy()
+#         args_list.append('--detectors')
+#         args_list.append('H1')
+#         args_list.append('--detectors')
+#         args_list.append('L1')
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(type(parsed_args.detectors), list)
+#         self.assertEqual(parsed_args.detectors, ['H1', 'L1'])
 #
-#    def test_sampler_kwargs_ini(self):
-#        args_list = self.default_args.copy()
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(type(parsed_args.sampler_kwargs), str)
-#        self.assertEqual("{'a': 1, 'b': 2}", parsed_args.sampler_kwargs)
+#     def test_sampler_kwargs_ini(self):
+#         args_list = self.default_args.copy()
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(type(parsed_args.sampler_kwargs), str)
+#         self.assertEqual("{'a': 1, 'b': 2}", parsed_args.sampler_kwargs)
 #
-#    def test_sampler_kwargs_command_line(self):
-#        args_list = self.default_args.copy()
-#        args_list.append('--sampler-kwargs')
-#        args_list.append("{'a': 1, 'b': 2}")
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(type(parsed_args.sampler_kwargs), str)
-#        self.assertEqual("{'a': 1, 'b': 2}", parsed_args.sampler_kwargs)
+#     def test_sampler_kwargs_command_line(self):
+#         args_list = self.default_args.copy()
+#         args_list.append('--sampler-kwargs')
+#         args_list.append("{'a': 1, 'b': 2}")
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(type(parsed_args.sampler_kwargs), str)
+#         self.assertEqual("{'a': 1, 'b': 2}", parsed_args.sampler_kwargs)
 #
-#    def test_calbration_ini(self):
-#        args_list = self.default_args.copy()
-#        args_list.append('--calibration')
-#        args_list.append('4')
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(parsed_args.calibration, 4)
+#     def test_calbration_ini(self):
+#         args_list = self.default_args.copy()
+#         args_list.append('--calibration')
+#         args_list.append('4')
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(parsed_args.calibration, 4)
 #
-#    def test_duration_ini(self):
-#        args_list = self.default_args.copy()
-#        args_list.append('--duration')
-#        args_list.append('4')
-#        parsed_args = self.parser.parse_args(args_list)
-#        self.assertEqual(parsed_args.duration, 4)
+#     def test_duration_ini(self):
+#         args_list = self.default_args.copy()
+#         args_list.append('--duration')
+#         args_list.append('4')
+#         parsed_args = self.parser.parse_args(args_list)
+#         self.assertEqual(parsed_args.duration, 4)
 
 
 if __name__ == '__main__':

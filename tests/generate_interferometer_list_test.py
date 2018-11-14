@@ -37,12 +37,12 @@ class TestGenerateInterferometerListInput(unittest.TestCase):
             parser=self.parser, args_list=self.default_args_list)
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
-    #def test_run_label(self):
-    #    inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
-    #        parser=self.parser, args_list=self.default_args_list)
-    #    self.assertEqual(
-    #        inputs.run_label, '{}_{}_{}'.format(
-    #            inputs.label, ''.join(inputs.detectors), inputs.sampler))
+    # def test_run_label(self):
+    #     inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
+    #         parser=self.parser, args_list=self.default_args_list)
+    #     self.assertEqual(
+    #         inputs.run_label, '{}_{}_{}'.format(
+    #             inputs.label, ''.join(inputs.detectors), inputs.sampler))
 
     def test_script_inputs_detectors_from_command_line(self):
         args_list = self.default_args_list + ['--detectors', 'H1', '--detectors', 'L1']
@@ -79,17 +79,17 @@ class TestGenerateInterferometerListInput(unittest.TestCase):
             parser=self.parser, args_list=args_list)
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
-    #def test_unset_sampling_seed(self):
-    #    args_list = self.default_args_list
-    #    inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
-    #        parser=self.parser, args_list=args_list)
-    #    self.assertEqual(type(inputs.sampling_seed), int)
+    # def test_unset_sampling_seed(self):
+    #     args_list = self.default_args_list
+    #     inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
+    #         parser=self.parser, args_list=args_list)
+    #     self.assertEqual(type(inputs.sampling_seed), int)
 
-    #def test_set_sampling_seed(self):
-    #    args_list = self.default_args_list + ['--sampling-seed', '1']
-    #    inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
-    #        parser=self.parser, args_list=args_list)
-    #    self.assertEqual(inputs.sampling_seed, 1)
+    # def test_set_sampling_seed(self):
+    #     args_list = self.default_args_list + ['--sampling-seed', '1']
+    #     inputs = bilby_pipe.generate_interferometer_list.GenerateInterferometerListInput(
+    #         parser=self.parser, args_list=args_list)
+    #     self.assertEqual(inputs.sampling_seed, 1)
 
 
 if __name__ == '__main__':
