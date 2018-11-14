@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-bilby_pipe script to generate the stored interferometer list
+Script to create the stored interferometer list
 """
 from __future__ import division, print_function
 
@@ -10,6 +10,50 @@ import configargparse
 import bilby
 
 from bilby_pipe.utils import logger
+
+
+def create_generate_interferometer_list_parser():
+    """ Generate a parser for the generate_interferometer_list.py script
+
+    Additional options can be added to the returned parser beforing calling
+    `parser.parse_args` to generate the arguments`
+
+    Returns
+    -------
+    parser: configargparse.ArgParser
+        A parser with all the default options already added
+
+    """
+    parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
+    parser.add('--ini', is_config_file=True, help='The ini-style config file')
+    parser.add('--cluster', type=int,
+               help='The condor cluster ID', default=None)
+    parser.add('--process', type=int,
+               help='The condor process ID', default=None)
+    parser.add(
+        '--detectors', action='append',
+        help=('The names of detectors to include. If given in the ini file, '
+              'multiple detectors are specified by `detectors=[H1, L1]`. If '
+              'given at the command line, as `--detectors H1 --detectors L1`'))
+    parser.add('--calibration', type=int, default=2,
+               help='Which calibration to use')
+    parser.add('--duration', type=int, default=4,
+               help='The duration of data around the event to use')
+    parser.add("--trigger-time", default=None, type=float,
+               help="The trigger time")
+    parser.add("--sampling-frequency", default=4096, type=int)
+    parser.add("--channel-names", default=None, nargs="*",
+               help="Channel names to use, if not provided known "
+               "channel names will be tested.")
+    parser.add('--psd-duration', default=500, type=int,
+               help='Time used to generate the PSD, default is 500.')
+    parser.add('--minimum-frequency', default=20, type=float)
+    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--label', default='label', help='Output label')
+
+    # Method specific options below here
+    parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
+    return parser
 
 
 class GenerateInterferometerList(object):
@@ -47,6 +91,14 @@ class GenerateInterferometerList(object):
         self.label = args.label
 
         self.gracedb = args.gracedb
+
+    @property
+    def minimum_frequency(self):
+        return self._minimum_frequency
+
+    @minimum_frequency.setter
+    def minimum_frequency(self, minimum_frequency):
+        self._minimum_frequency = float(minimum_frequency)
 
     @staticmethod
     def _convert_string_to_list(string):
@@ -114,19 +166,33 @@ class GenerateInterferometerList(object):
         """ Set the frame_caches, if successfull generate the interferometer list """
         if isinstance(frame_caches, list):
             self._frame_caches = frame_caches
+            self._set_interferometers_from_frame_caches(frame_caches)
+        elif frame_caches is None:
+            self._frame_caches = None
         else:
             raise ValueError("frame_caches list must be a list")
 
-        # Set interferometers from frame_caches
+    def _set_interferometers_from_frame_caches(self, frame_caches):
+        """ Helper method to set the interferometers from a list of frame_caches
+
+        If no channel names are supplied, an attempt is made by bilby to
+        infer the correct channel name.
+
+        Parameters
+        ----------
+        frame_caches: list
+            A list of strings pointing to the frame cache file
+        """
         interferometers = bilby.gw.detector.InterferometerList([])
         if self.channel_names is None:
-            channel_names_none_list = [None] * len(frame_caches)
-        for cache_file, channel_name in zip(frame_caches, channel_names_none_list):
-            interferometers.append(
-                bilby.gw.detector.load_data_from_cache_file(
-                    cache_file, self.trigger_time, self.duration,
-                    self.psd_duration, channel_name))
-            self.interferometers = interferometers
+            channel_names_none = [None] * len(frame_caches)
+        for cache_file, channel_name in zip(frame_caches, channel_names_none):
+            interferometer = bilby.gw.detector.load_data_from_cache_file(
+                cache_file, self.trigger_time, self.duration,
+                self.psd_duration, channel_name)
+            interferometer.minimum_frequency = self.minimum_frequency
+            interferometers.append(interferometer)
+        self.interferometers = interferometers
 
     @property
     def interferometers(self):
@@ -142,50 +208,6 @@ class GenerateInterferometerList(object):
 
     def save_interferometer_list(self):
         self.interferometers.to_hdf5(outdir=self.outdir, label=self.label)
-
-
-def create_generate_interferometer_list_parser():
-    """ Generate a parser for the generate_interferometer_list.py script
-
-    Additional options can be added to the returned parser beforing calling
-    `parser.parse_args` to generate the arguments`
-
-    Returns
-    -------
-    parser: configargparse.ArgParser
-        A parser with all the default options already added
-
-    """
-    parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
-    parser.add('--ini', is_config_file=True, help='The ini-style config file')
-    parser.add('--cluster', type=int,
-               help='The condor cluster ID', default=None)
-    parser.add('--process', type=int,
-               help='The condor process ID', default=None)
-    parser.add(
-        '--detectors', action='append',
-        help=('The names of detectors to include. If given in the ini file, '
-              'multiple detectors are specified by `detectors=[H1, L1]`. If '
-              'given at the command line, as `--detectors H1 --detectors L1`'))
-    parser.add('--calibration', type=int, default=2,
-               help='Which calibration to use')
-    parser.add('--duration', type=int, default=4,
-               help='The duration of data around the event to use')
-    parser.add("--trigger-time", default=None, type=float,
-               help="The trigger time")
-    parser.add("--sampling-frequency", default=4096, type=int)
-    parser.add("--channel-names", default=None, nargs="*",
-               help="Channel names to use, if not provided known "
-               "channel names will be tested.")
-    parser.add('--psd-duration', default=500, type=int,
-               help='Time used to generate the PSD, default is 500.')
-    parser.add('--minimum-frequency', default=20, type=float)
-    parser.add('--outdir', default='outdir', help='Output directory')
-    parser.add('--label', default='label', help='Output label')
-
-    # Method specific options below here
-    parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
-    return parser
 
 
 if __name__ == '__main__':
