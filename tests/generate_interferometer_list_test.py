@@ -1,6 +1,6 @@
 import unittest
 
-import bilby_pipe
+import bilby_pipe.generate_interferometer_list
 
 
 class TestGenerateInterferometerListInput(unittest.TestCase):
