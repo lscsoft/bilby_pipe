@@ -321,11 +321,11 @@ class Dag(object):
 
     @property
     def generate_data_executable(self):
-        return 'bilby_pipe_generate_data'
+        return shutil.which('bilby_pipe_generate_data')
 
     @property
     def analyse_data_executable(self):
-        return 'bilby_pipe_analyse_data'
+        return shutil.which('bilby_pipe_analyse_data')
 
     @property
     def submit_directory(self):
