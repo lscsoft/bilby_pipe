@@ -62,13 +62,14 @@ setup(name='bilby_pipe',
       author_email='',
       license='',
       version=version,
-      package_data={'bilby_pipe': [version_file, 'templates/*html'],
-                    'lib_scripts': ['*py']},
-      packages=['bilby_pipe', 'lib_scripts'],
+      package_data={'bilby_pipe': [version_file, 'templates/*html']},
+      packages=['bilby_pipe'],
       install_requires=['future', 'pycondor>=0.5', 'configargparse', 'jinja2'],
-      entry_points={'console_scripts':
-                    ['bilby_pipe=bilby_pipe.main:main']
-                    },
+      entry_points={
+          'console_scripts': [
+              'bilby_pipe=bilby_pipe.main:main',
+              'bilby_pipe_generate_data=bilby_pipe.generate_interferometer_list:main',
+              'bilby_pipe_analyse_data=bilby_pipe.analyse_interferometer_list:main']},
       classifiers=[
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",

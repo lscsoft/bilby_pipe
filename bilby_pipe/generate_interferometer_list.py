@@ -210,7 +210,7 @@ class GenerateInterferometerList(object):
         self.interferometers.to_hdf5(outdir=self.outdir, label=self.label)
 
 
-if __name__ == '__main__':
+def main():
     parser = create_generate_interferometer_list_parser()
     data = GenerateInterferometerList(parser)
     data.save_interferometer_list()

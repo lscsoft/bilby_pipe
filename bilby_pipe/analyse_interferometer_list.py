@@ -239,7 +239,7 @@ class AnalyseInterferometerList(object):
             **self.sampler_kwargs)
 
 
-if __name__ == '__main__':
+def main():
     parser = create_analyse_interferometer_list_parser()
     analysis = AnalyseInterferometerList(parser)
     webpages.create_run_output(analysis.result)
