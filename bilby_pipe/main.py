@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-The :code:`bilby_pipe.main` module contains the logic for intepretting user
-input, creating DAG files and submitting jobs.
+This module contains the logic for intepretting user input, creating DAG files
+and submitting jobs.
 """
 import os
 import sys
@@ -246,7 +246,7 @@ class Dag(object):
     Parameters
     ----------
     inputs: bilby_pipe.Input
-        An object holding the inputs built from the command-line/ini
+        An object holding the inputs built from the command-line and ini file.
 
     Other parameters
     ----------------
@@ -314,21 +314,57 @@ class Dag(object):
             submit=self.submit_directory)
         self.jobs = []
         self.results_pages = dict()
-        self.create_jobs()
+        self.create_generate_data_job()
+        self.create_analyse_data_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
+
+    @property
+    def generate_data_executable(self):
+        return 'bilby_pipe_generate_data'
+
+    @property
+    def analyse_data_executable(self):
+        return 'bilby_pipe_analyse_data'
 
     @property
     def submit_directory(self):
         return os.path.join(self.inputs.outdir, 'submit')
 
-    def create_jobs(self):
+    def create_generate_data_job(self):
+        """ Create a job to generate the data """
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
+        error = job_logs_path
+        log = job_logs_path
+        output = job_logs_path
+        submit = self.submit_directory
+        extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
+        arguments = '--ini {}'.format(self.inputs.ini)
+        job_label = self.inputs.label + '_generate_data'
+
+        arguments += ' --cluster $(Cluster)'
+        arguments += ' --process $(Process)'
+        arguments += ' ' + ' '.join(self.inputs.unknown_args)
+        self.generate_data_job = pycondor.Job(
+            name=job_label, executable=self.generate_data_executable,
+            error=error, log=log, output=output, submit=submit,
+            request_memory=self.request_memory, request_disk=self.request_disk,
+            request_cpus=self.request_cpus, getenv=self.getenv,
+            universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
+
+        logger.debug('Adding job: {}'.format(job_label))
+
+    def create_analyse_data_jobs(self):
         """ Create all the condor jobs and add them to the dag """
-        for job_input in self.jobs_inputs:
-            self.jobs.append(self._create_job(**job_input))
+        for job_input in self.create_analyse_data_jobs_inputs:
+            self.jobs.append(self._create_analyse_data_job(**job_input))
 
     @property
-    def jobs_inputs(self):
+    def create_analyse_data_jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
 
         This contains the logic of generating multiple parallel running jobs
@@ -353,7 +389,7 @@ class Dag(object):
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
 
-    def _create_job(self, detectors, sampler):
+    def _create_analyse_data_job(self, detectors, sampler):
         """ Create a condor job and add it to the dag
 
         Parameters
@@ -385,15 +421,16 @@ class Dag(object):
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         job = pycondor.Job(
-            name=run_label, executable='fixme', error=error, log=log,
-            output=output, submit=submit, request_memory=self.request_memory,
-            request_disk=self.request_disk, request_cpus=self.request_cpus,
-            getenv=self.getenv, universe=self.universe,
-            initialdir=self.initialdir, notification=self.notification,
-            requirements=self.requirements, queue=self.inputs.queue,
-            extra_lines=extra_lines, dag=self.dag, arguments=arguments,
-            retry=self.retry, verbose=self.verbose)
+            name=run_label, executable=self.analyse_data_executable,
+            error=error, log=log, output=output, submit=submit,
+            request_memory=self.request_memory, request_disk=self.request_disk,
+            request_cpus=self.request_cpus, getenv=self.getenv,
+            universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
 
+        job.add_parent(self.generate_data_job)
         logger.debug('Adding job: {}'.format(run_label))
         self.results_pages[run_label] = '{}.html'.format(run_label)
         return job
