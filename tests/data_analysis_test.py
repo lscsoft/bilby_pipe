@@ -1,4 +1,5 @@
 import unittest
+import shutil
 
 from bilby_pipe.main import parse_args
 from bilby_pipe.data_analysis import (
@@ -8,7 +9,9 @@ from bilby_pipe.data_analysis import (
 class TestDataAnalysisInput(unittest.TestCase):
 
     def setUp(self):
-        self.default_args_list = ['--ini', 'tests/test_data_analysis.ini']
+        self.outdir = 'test_outdir'
+        self.default_args_list = ['--ini', 'tests/test_data_analysis.ini',
+                                  '--outdir', self.outdir]
         self.parser = create_parser()
         self.inputs = DataAnalysisInput(
             *parse_args(self.default_args_list, self.parser))
@@ -17,6 +20,7 @@ class TestDataAnalysisInput(unittest.TestCase):
         del self.default_args_list
         del self.parser
         del self.inputs
+        shutil.rmtree(self.outdir)
 
     def test_run_label(self):
         self.assertEqual(
