@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to create the stored interferometer list
+Module containing the tools for data generation
 """
 from __future__ import division, print_function
 

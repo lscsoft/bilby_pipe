@@ -1,5 +1,5 @@
 ====
-main
+Main
 ====
 
 .. automodule:: bilby_pipe.main
@@ -22,21 +22,30 @@ Main function
 Functionally, this command line tool is
 calling the function :code:`bilby_pipe.main.main()`, which is transcribed here:
 
-.. literalinclude:: ../bilby_pipe/main.py
-   :lines: 379-
+.. code-block:: python
+
+   def main():
+       """ Top-level interface for bilby_pipe """
+       args, unknown_args = parse_args(sys.argv[1:], create_parser())
+       inputs = MainInput(args, unknown_args)
+       # Create a Directed Acyclic Graph (DAG) of the workflow
+       dag = Dag(inputs)
+       # If requested, create a summary page at the DAG-level
+       if inputs.create_summary:
+           webpages.create_summary_page(dag)
 
 As you can see, there 3 steps. First the command line arguments are parsed, the
 :code:`args` object stores the user inputs and any defaults (see `Command line
 interface`_) while :code:`unknown_args` is a list of any unknown arguments.
 
 The logic of handling the user input (in the form of the :code:`args` object)
-is handled by the Input_ object. Following this, the logic of generated a DAG
+is handled by the `Main Input`_ object. Following this, the logic of generated a DAG
 given that user input is handled by the Dag_ object.
 
-Input
------
+Main Input
+----------
 
-.. autoclass:: bilby_pipe.main.Input
+.. autoclass:: bilby_pipe.main.MainInput
 
 Dag
 ---

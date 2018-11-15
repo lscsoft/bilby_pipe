@@ -7,6 +7,6 @@
    :maxdepth: 3
    :caption: Contents:
 
+   installation
    structure
    ini_file
-   installation
