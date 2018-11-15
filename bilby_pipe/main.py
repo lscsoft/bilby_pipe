@@ -327,8 +327,8 @@ class Dag(object):
             submit=self.submit_directory)
         self.jobs = []
         self.results_pages = dict()
-        self.create_generate_data_job()
-        self.create_analyse_data_jobs()
+        self.create_generation_job()
+        self.create_analysis_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
 
@@ -342,18 +342,18 @@ class Dag(object):
                           .format(exe_name))
 
     @property
-    def generate_data_executable(self):
+    def generation_executable(self):
         return self._get_executable_path('bilby_pipe_generation')
 
     @property
-    def analyse_data_executable(self):
+    def analysis_executable(self):
         return self._get_executable_path('bilby_pipe_analysis')
 
     @property
     def submit_directory(self):
         return os.path.join(self.inputs.outdir, 'submit')
 
-    def create_generate_data_job(self):
+    def create_generation_job(self):
         """ Create a job to generate the data """
         job_logs_path = os.path.join(self.inputs.outdir, 'logs')
         error = job_logs_path
@@ -363,13 +363,13 @@ class Dag(object):
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
-        job_label = self.inputs.label + '_generate_data'
+        job_label = self.inputs.label + '_generation'
 
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
-        self.generate_data_job = pycondor.Job(
-            name=job_label, executable=self.generate_data_executable,
+        self.generation_job = pycondor.Job(
+            name=job_label, executable=self.generation_executable,
             error=error, log=log, output=output, submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
@@ -380,13 +380,13 @@ class Dag(object):
 
         logger.debug('Adding job: {}'.format(job_label))
 
-    def create_analyse_data_jobs(self):
+    def create_analysis_jobs(self):
         """ Create all the condor jobs and add them to the dag """
-        for job_input in self.analyse_data_jobs_inputs:
-            self.jobs.append(self._create_analyse_data_job(**job_input))
+        for job_input in self.analysis_jobs_inputs:
+            self.jobs.append(self._create_analysis_job(**job_input))
 
     @property
-    def analyse_data_jobs_inputs(self):
+    def analysis_jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
 
         This contains the logic of generating multiple parallel running jobs
@@ -411,7 +411,7 @@ class Dag(object):
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
 
-    def _create_analyse_data_job(self, detectors, sampler):
+    def _create_analysis_job(self, detectors, sampler):
         """ Create a condor job and add it to the dag
 
         Parameters
@@ -443,7 +443,7 @@ class Dag(object):
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         job = pycondor.Job(
-            name=run_label, executable=self.analyse_data_executable,
+            name=run_label, executable=self.analysis_executable,
             error=error, log=log, output=output, submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
@@ -452,7 +452,7 @@ class Dag(object):
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments, retry=self.retry, verbose=self.verbose)
 
-        job.add_parent(self.generate_data_job)
+        job.add_parent(self.generation_job)
         logger.debug('Adding job: {}'.format(run_label))
         self.results_pages[run_label] = '{}.html'.format(run_label)
         return job
