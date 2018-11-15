@@ -8,7 +8,6 @@ At the top-level, the :code:`bilby_pipe` module can be described as follows:
 
    digraph {
          "bilby_pipe" -> "main";
-         "bilby_pipe" -> "script_helper";
          "bilby_pipe" -> "webpages";
          "bilby_pipe" -> "utils";
             }
@@ -58,6 +57,5 @@ Submodules API
    :maxdepth: 3
 
    main
-   script_helper
    webpages
    utils
