@@ -332,13 +332,22 @@ class Dag(object):
         self.create_postprocessing_jobs()
         self.build_submit()
 
+    @staticmethod
+    def _get_executable_path(exe_name):
+        exe = shutil.which(exe_name)
+        if exe is not None:
+            return exe
+        else:
+            raise OSError("{} not installed on this system, unable to proceed"
+                          .format(exe_name))
+
     @property
     def generate_data_executable(self):
-        return shutil.which('bilby_pipe_generate_data')
+        return self._get_executable_path('bilby_pipe_generation')
 
     @property
     def analyse_data_executable(self):
-        return shutil.which('bilby_pipe_analyse_data')
+        return self._get_executable_path('bilby_pipe_analysis')
 
     @property
     def submit_directory(self):
