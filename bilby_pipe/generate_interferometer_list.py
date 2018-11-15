@@ -72,6 +72,9 @@ class GenerateInterferometerListInput(Input):
         if args_list is None:
             args_list = sys.argv[1:]
 
+        if len(args_list) == 0:
+            raise ValueError("No command line arguments provided")
+
         args, unknown_args = parser.parse_known_args(args_list)
         self.meta_data = dict(command_line_args=args,
                               unknown_command_line_args=unknown_args)
