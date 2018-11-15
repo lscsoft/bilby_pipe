@@ -11,7 +11,7 @@ class TestDag(unittest.TestCase):
     def setUp(self):
         self.directory = os.path.abspath(os.path.dirname(__file__))
         self.test_args = Namespace(
-            ini='file.ini', submit=False, outdir='outdir', label='label',
+            ini='tests/test_dag_ini_file.ini', submit=False, outdir='outdir', label='label',
             accounting='accounting.group', detectors='H1',
             coherence_test=False, X509=os.path.join(self.directory, 'X509.txt'),
             queue=1, create_summary=False, sampler=['nestle'])
@@ -31,7 +31,7 @@ class TestDag(unittest.TestCase):
         expected_jobs = [dict(detectors=['H1', 'L1'], sampler='nestle'),
                          dict(detectors=['H1'], sampler='nestle'),
                          dict(detectors=['L1'], sampler='nestle')]
-        self.assertEqual(dag.jobs_inputs, expected_jobs)
+        self.assertEqual(dag.analyse_data_jobs_inputs, expected_jobs)
 
     # def test_build_submit(self):
     #     test_args = copy.copy(self.test_args)

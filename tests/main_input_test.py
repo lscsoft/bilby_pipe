@@ -27,7 +27,7 @@ class TestMainInput(unittest.TestCase):
         del self.inputs
 
     def test_ini(self):
-        self.assertEqual(self.inputs.ini, self.args.ini)
+        self.assertEqual(self.inputs.ini, os.path.abspath(self.args.ini))
 
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)

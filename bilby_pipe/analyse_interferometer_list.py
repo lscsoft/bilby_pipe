@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to analyse the stored interferometer list
+Script to analyse the stored data
 """
 from __future__ import division, print_function
 
@@ -13,10 +13,10 @@ import bilby
 
 from bilby_pipe.utils import logger
 from bilby_pipe import webpages
-from bilby_pipe.main import Input
+from bilby_pipe.main import Input, DataDump
 
 
-def create_analyse_interferometer_list_parser():
+def create_parser():
     """ Generate a parser for the analyse_interferometer_list.py script
 
     Additional options can be added to the returned parser beforing calling
@@ -65,7 +65,7 @@ def create_analyse_interferometer_list_parser():
 
 
 class AnalyseInterferometerListInput(Input):
-    """ Handles user-input and creation of intermediate ifo list
+    """ Handles user-input and analysis of intermediate ifo list
 
     Parameters
     ----------
@@ -81,8 +81,6 @@ class AnalyseInterferometerListInput(Input):
             args_list = sys.argv[1:]
 
         args, unknown_args = parser.parse_known_args(args_list)
-        self.meta_data = dict(command_line_args=args,
-                              unknown_command_line_args=unknown_args)
         logger.info('Command line arguments: {}'.format(args))
 
         self.ini = args.ini
@@ -142,14 +140,24 @@ class AnalyseInterferometerListInput(Input):
 
     @property
     def interferometers(self):
-        try:
-            return self._interferometers
-        except AttributeError:
-            pass
+        return self.data_dump.interferometers
 
-        filename = os.path.join(self.outdir, self.label + ''.join(self.detectors))
-        self._interferometers = bilby.gw.detector.InterferometerList.from_hdf5(filename)
-        return self._interferometers
+    @property
+    def meta_data(self):
+        return self.data_dump.meta_data
+
+    @property
+    def trigger_time(self):
+        return self.data_dump.trigger_time
+
+    @property
+    def data_dump(self):
+        try:
+            return self._data_dump
+        except AttributeError:
+            filename = os.path.join(self.outdir, self.label + '_data_dump.h5')
+            self._data_dump = DataDump.from_hdf5(filename)
+            return self._data_dump
 
     @property
     def run_label(self):
@@ -174,7 +182,8 @@ class AnalyseInterferometerListInput(Input):
     @property
     def waveform_generator(self):
         waveform_generator = bilby.gw.WaveformGenerator(
-            sampling_frequency=self.sampling_frequency, duration=self.duration,
+            sampling_frequency=self.interferometers.sampling_frequency,
+            duration=self.interferometers.duration,
             frequency_domain_source_model=self.frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             waveform_arguments=self.waveform_arguments)
@@ -185,7 +194,7 @@ class AnalyseInterferometerListInput(Input):
         return dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
-            minimum_frequency=self.minimum_frequency)
+            minimum_frequency=self.interferometers[0].minimum_frequency)  # FIXME
 
     @property
     def likelihood(self):
@@ -209,6 +218,7 @@ class AnalyseInterferometerListInput(Input):
 
 
 def main():
-    parser = create_analyse_interferometer_list_parser()
+    parser = create_parser()
     analysis = AnalyseInterferometerListInput(parser)
+    analysis.run_sampler()
     webpages.create_run_output(analysis.result)

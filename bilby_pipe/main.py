@@ -10,6 +10,7 @@ import itertools
 
 import configargparse
 import pycondor
+import deepdish
 
 from .utils import logger
 from . import utils
@@ -370,11 +371,11 @@ class Dag(object):
 
     def create_analyse_data_jobs(self):
         """ Create all the condor jobs and add them to the dag """
-        for job_input in self.create_analyse_data_jobs_inputs:
+        for job_input in self.analyse_data_jobs_inputs:
             self.jobs.append(self._create_analyse_data_job(**job_input))
 
     @property
-    def create_analyse_data_jobs_inputs(self):
+    def analyse_data_jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
 
         This contains the logic of generating multiple parallel running jobs
@@ -455,6 +456,39 @@ class Dag(object):
             self.dag.build_submit()
         else:
             self.dag.build()
+
+
+class DataDump():
+    def __init__(self, label, outdir, trigger_time, interferometers, meta_data):
+        self.trigger_time = trigger_time
+        self.label = label
+        self.outdir = outdir
+        self.interferometers = interferometers
+        self.meta_data = meta_data
+
+    @property
+    def filename(self):
+        return os.path.join(self.outdir, self.label + '_data_dump.h5')
+
+    def to_hdf5(self):
+        deepdish.io.save(self.filename, self)
+
+    @classmethod
+    def from_hdf5(cls, filename=None):
+        """ Loads in a data dump
+
+        Parameters
+        ----------
+        filename: str
+            If given, try to load from this filename
+
+        """
+        res = deepdish.io.load(filename)
+        if res.__class__ == list:
+            res = cls(res)
+        if res.__class__ != cls:
+            raise TypeError('The loaded object is not a DataDump')
+        return res
 
 
 def main():

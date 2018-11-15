@@ -10,7 +10,7 @@ import configargparse
 import bilby
 
 from bilby_pipe.utils import logger
-from bilby_pipe.main import Input
+from bilby_pipe.main import Input, DataDump
 
 
 def create_parser():
@@ -203,7 +203,11 @@ class GenerateInterferometerListInput(Input):
         self._interferometers = interferometers
 
     def save_interferometer_list(self):
-        self.interferometers.to_hdf5(outdir=self.outdir, label=self.label)
+        data_dump = DataDump(outdir=self.outdir, label=self.label,
+                             trigger_time=self.trigger_time,
+                             interferometers=self.interferometers,
+                             meta_data=self.meta_data)
+        data_dump.to_hdf5()
 
 
 def main():

@@ -10,7 +10,7 @@ class TestDag(unittest.TestCase):
     def setUp(self):
         self.directory = os.path.abspath(os.path.dirname(__file__))
         self.test_args = Namespace(
-            ini='file.ini', submit=False, outdir='outdir', label='label',
+            ini='tests/test_main_input.ini', submit=False, outdir='outdir', label='label',
             accounting='accounting.group', detectors='H1',
             coherence_test=False,
             X509=os.path.join(self.directory, 'X509.txt'),
