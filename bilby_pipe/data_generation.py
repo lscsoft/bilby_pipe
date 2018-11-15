@@ -31,29 +31,32 @@ def create_parser():
                help='The condor cluster ID', default=None)
     parser.add('--process', type=int,
                help='The condor process ID', default=None)
-    parser.add(
+    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--label', default='label', help='Output label')
+
+    det_parser = parser.add_argument_group(title='Detector arguments')
+    det_parser.add(
         '--detectors', action='append',
         help=('The names of detectors to include. If given in the ini file, '
               'multiple detectors are specified by `detectors=[H1, L1]`. If '
               'given at the command line, as `--detectors H1 --detectors L1`'))
-    parser.add('--calibration', type=int, default=2,
-               help='Which calibration to use')
-    parser.add('--duration', type=int, default=4,
-               help='The duration of data around the event to use')
-    parser.add("--trigger-time", default=None, type=float,
-               help="The trigger time")
-    parser.add("--sampling-frequency", default=4096, type=int)
-    parser.add("--channel-names", default=None, nargs="*",
-               help="Channel names to use, if not provided known "
-               "channel names will be tested.")
-    parser.add('--psd-duration', default=500, type=int,
-               help='Time used to generate the PSD, default is 500.')
-    parser.add('--minimum-frequency', default=20, type=float)
-    parser.add('--outdir', default='outdir', help='Output directory')
-    parser.add('--label', default='label', help='Output label')
+    det_parser.add('--calibration', type=int, default=2,
+                   help='Which calibration to use')
+    det_parser.add('--duration', type=int, default=4,
+                   help='The duration of data around the event to use')
+    det_parser.add("--trigger-time", default=None, type=float,
+                   help="The trigger time")
+    det_parser.add("--sampling-frequency", default=4096, type=int)
+    det_parser.add("--channel-names", default=None, nargs="*",
+                   help="Channel names to use, if not provided known "
+                   "channel names will be tested.")
+    det_parser.add('--psd-duration', default=500, type=int,
+                   help='Time used to generate the PSD, default is 500.')
+    det_parser.add('--minimum-frequency', default=20, type=float)
 
     # Method specific options below here
-    parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
+    data_parser = parser.add_argument_group(title='Data setting methods')
+    data_parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
     return parser
 
 

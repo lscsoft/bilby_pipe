@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
-This module contains the logic for intepretting user input, creating DAG files
-and submitting jobs.
+bilby_pipe is a command line tools for taking user input (as command line or
+an ini file) and creating DAG files for submitting bilby parameter estimation
+jobs.
 """
 import os
 import sys
@@ -44,8 +45,8 @@ def parse_args(input_args, parser):
 def create_parser():
     """ Creates the configargparse.ArgParser for bilby_pipe """
     parser = configargparse.ArgParser(
-        usage='Generate submission scripts for the job',
-        ignore_unknown_config_file_keys=True, allow_abbrev=False)
+        usage=__doc__, ignore_unknown_config_file_keys=True,
+        allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
     parser.add('--submit', action='store_true',
                help='If given, build and submit')
