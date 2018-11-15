@@ -206,6 +206,16 @@ class MainInput(Input):
                           'sampler', 'accounting']
 
     @property
+    def ini(self):
+        return self._ini
+
+    @ini.setter
+    def ini(self, ini):
+        if os.path.isfile(ini) is False:
+            raise ValueError('ini file is not a file')
+        self._ini = os.path.abspath(ini)
+
+    @property
     def x509userproxy(self):
         """ A path to the users X509 certificate used for authentication """
         try:
