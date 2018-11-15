@@ -1,16 +1,16 @@
 import unittest
 
 from bilby_pipe.main import parse_args
-from bilby_pipe.generate_interferometer_list import (
-    GenerateInterferometerListInput, create_parser)
+from bilby_pipe.data_generation import (
+    DataGenerationInput, create_parser)
 
 
-class TestGenerateInterferometerListInput(unittest.TestCase):
+class TestDataGenerationInput(unittest.TestCase):
 
     def setUp(self):
-        self.default_args_list = ['--ini', 'tests/test_generate_interferometer_list.ini']
+        self.default_args_list = ['--ini', 'tests/test_data_generation.ini']
         self.parser = create_parser()
-        self.inputs = GenerateInterferometerListInput(
+        self.inputs = DataGenerationInput(
             *parse_args(self.default_args_list, self.parser))
 
     def tearDown(self):
@@ -36,36 +36,36 @@ class TestGenerateInterferometerListInput(unittest.TestCase):
 
     def test_script_inputs_detectors_from_command_line(self):
         args_list = self.default_args_list + ['--detectors', 'H1', '--detectors', 'L1']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
         args_list = self.default_args_list + ['--detectors', 'H1 L1']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
         args_list = self.default_args_list + ['--detectors', 'L1 H1']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
         args_list = self.default_args_list + ['--detectors', '[L1, H1]']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
 
         args_list = self.default_args_list + ['--detectors', '[L1 H1]']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
         args_list = self.default_args_list + ['--detectors', '["L1", "H1"]']
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 
         args_list = self.default_args_list + ['--detectors', "['L1', 'H1']"]
-        inputs = GenerateInterferometerListInput(
+        inputs = DataGenerationInput(
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.detectors, ['H1', 'L1'])
 

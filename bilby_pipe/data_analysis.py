@@ -17,7 +17,7 @@ from bilby_pipe.main import Input, DataDump, parse_args
 
 
 def create_parser():
-    """ Generate a parser for the analyse_interferometer_list.py script
+    """ Generate a parser for the data_analysis.py script
 
     Additional options can be added to the returned parser beforing calling
     `parser.parse_args` to generate the arguments`
@@ -64,7 +64,7 @@ def create_parser():
     return parser
 
 
-class AnalyseInterferometerListInput(Input):
+class DataAnalysisInput(Input):
     """ Handles user-input and analysis of intermediate ifo list
 
     Parameters
@@ -216,6 +216,6 @@ class AnalyseInterferometerListInput(Input):
 
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
-    analysis = AnalyseInterferometerListInput(args, unknown_args)
+    analysis = DataAnalysisInput(args, unknown_args)
     analysis.run_sampler()
     webpages.create_run_output(analysis.result)

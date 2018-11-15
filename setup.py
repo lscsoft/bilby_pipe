@@ -68,8 +68,8 @@ setup(name='bilby_pipe',
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
-              'bilby_pipe_generate_data=bilby_pipe.generate_interferometer_list:main',
-              'bilby_pipe_analyse_data=bilby_pipe.analyse_interferometer_list:main']},
+              'bilby_pipe_generation=bilby_pipe.data_generation:main',
+              'bilby_pipe_analysis=bilby_pipe.data_analysis:main']},
       classifiers=[
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",
