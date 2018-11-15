@@ -6,6 +6,66 @@ import shutil
 import bilby_pipe
 
 
+class TestInput(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_known_detectors(self):
+        inputs = bilby_pipe.main.Input()
+        self.assertEqual(inputs.known_detectors, ['H1', 'L1', 'V1'])
+
+    def test_set_known_detectors_list(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.known_detectors = ['G1']
+        self.assertEqual(inputs.known_detectors, ['G1'])
+
+    def test_set_known_detectors_string(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.known_detectors = 'G1 H1'
+        self.assertEqual(inputs.known_detectors, ['G1', 'H1'])
+
+    def test_detectors(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(AttributeError):
+            inputs.detectors
+
+    def test_set_detectors_list(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = ['H1']
+        self.assertEqual(inputs.detectors, ['H1'])
+
+    def test_set_detectors_string(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = 'H1 L1'
+        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+
+    def test_set_detectors_ordering(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = 'L1 H1'
+        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+
+    def test_unknown_detector(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(ValueError):
+            inputs.detectors = 'G1'
+
+        with self.assertRaises(ValueError):
+            inputs.detectors = ['G1', 'L1']
+
+        inputs.known_detectors = inputs.known_detectors + ['G1']
+        inputs.detectors = ['G1', 'L1']
+        self.assertEqual(inputs.detectors, ['G1', 'L1'])
+
+    def test_convert_string_to_list(self):
+        for string in ['H1 L1', '[H1, L1]', 'H1, L1', '["H1", "L1"]',
+                       "'H1' 'L1'", '"H1", "L1"']:
+            self.assertEqual(bilby_pipe.main.Input._convert_string_to_list(string),
+                             ['H1', 'L1'])
+
+
 class TestMainInput(unittest.TestCase):
 
     def setUp(self):
