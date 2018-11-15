@@ -1,18 +1,23 @@
 #!/usr/bin/env python
 """
-A collection of classes and functions useful for generating scripts
+Script to analyse the stored data
 """
+from __future__ import division, print_function
+
+import sys
+import os
 
 import numpy as np
 import configargparse
-import sys
-
-from bilby.core.utils import logger
 import bilby
 
+from bilby_pipe.utils import logger
+from bilby_pipe import webpages
+from bilby_pipe.main import Input, DataDump
 
-def create_default_parser():
-    """ Generate a parser with typical command line arguments
+
+def create_parser():
+    """ Generate a parser for the analyse_interferometer_list.py script
 
     Additional options can be added to the returned parser beforing calling
     `parser.parse_args` to generate the arguments`
@@ -31,22 +36,9 @@ def create_default_parser():
                help='The condor process ID', default=None)
     parser.add(
         '--detectors', action='append',
-        help=('The names of detectors to include. If given in the ini file, '
+        help=('The names of detectors to analyse. If given in the ini file, '
               'multiple detectors are specified by `detectors=[H1, L1]`. If '
               'given at the command line, as `--detectors H1 --detectors L1`'))
-    parser.add('--calibration', type=int, default=2,
-               help='Which calibration to use')
-    parser.add('--duration', type=int, default=4,
-               help='The duration of data around the event to use')
-    parser.add("--trigger-time", default=None, type=float,
-               help="The trigger time")
-    parser.add("--sampling-frequency", default=4096, type=int)
-    parser.add("--channel-names", default=None, nargs="*",
-               help="Channel names to use, if not provided known "
-               "channel names will be tested.")
-    parser.add('--psd-duration', default=500, type=int,
-               help='Time used to generate the PSD, default is 500.')
-    parser.add('--minimum-frequency', default=20, type=float)
     parser.add("--prior-file", default=None, help="prior file")
     parser.add("--deltaT", type=float, default=0.1,
                help=("The symmetric width (in s) around the trigger time to"
@@ -72,46 +64,40 @@ def create_default_parser():
     return parser
 
 
-class ScriptInput(object):
-    def __init__(self, parser=None, args_list=None):
-        """ An object to hold all the inputs to the script
+class AnalyseInterferometerListInput(Input):
+    """ Handles user-input and analysis of intermediate ifo list
 
-        Parameters
-        ----------
-        parser: configargparse.ArgParser, optional
-            The parser containing the command line / ini file inputs. If not
-            given, then `bilby_pipe.script_helper.create_default_parser()` is
-            used.
+    Parameters
+    ----------
+    parser: configargparse.ArgParser, optional
+        The parser containing the command line / ini file inputs
+    args_list: list, optional
+        A list of the arguments to parse. Defauts to `sys.argv[1:]`
 
-        """
+    """
 
+    def __init__(self, parser, args_list=None):
         if args_list is None:
             args_list = sys.argv[1:]
 
-        if parser is None:
-            parser = create_default_parser()
-
         args, unknown_args = parser.parse_known_args(args_list)
-
         logger.info('Command line arguments: {}'.format(args))
 
-        self.unknown_args = unknown_args
-        args_dict = vars(args)
-        for key, value in args_dict.items():
-            setattr(self, key, value)
-
-    @property
-    def frequency_domain_source_model(self):
-        raise NotImplementedError(
-            "The ScriptInput child must define the frequency_domain_source_model")
-
-    @property
-    def minimum_frequency(self):
-        return self._minimum_frequency
-
-    @minimum_frequency.setter
-    def minimum_frequency(self, minimum_frequency):
-        self._minimum_frequency = float(minimum_frequency)
+        self.ini = args.ini
+        self.cluster = args.cluster
+        self.process = args.process
+        self.detectors = args.detectors
+        self.prior_file = args.prior_file
+        self.deltaT = args.deltaT
+        self.reference_frequency = args.reference_frequency
+        self.waveform_approximant = args.waveform_approximant
+        self.distance_marginalization = args.distance_marginalization
+        self.phase_marginalization = args.phase_marginalization
+        self.time_marginalization = args.time_marginalization
+        self.sampler = args.sampler
+        self.sampler_kwargs = args.sampler_kwargs
+        self.outdir = args.outdir
+        self.label = args.label
 
     @property
     def reference_frequency(self):
@@ -120,38 +106,6 @@ class ScriptInput(object):
     @reference_frequency.setter
     def reference_frequency(self, reference_frequency):
         self._reference_frequency = float(reference_frequency)
-
-    @staticmethod
-    def _convert_string_to_list(string):
-        """ Converts various strings to a list """
-        string = string.replace(',', ' ')
-        string = string.replace('[', '')
-        string = string.replace(']', '')
-        string = string.replace('"', '')
-        string = string.replace("'", '')
-        string_list = string.split()
-        return string_list
-
-    @property
-    def detectors(self):
-        """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
-        return self._detectors
-
-    @detectors.setter
-    def detectors(self, detectors):
-        """ Handles various types of user input """
-        if isinstance(detectors, list):
-            if len(detectors) == 1:
-                det_list = self._convert_string_to_list(detectors[0])
-            else:
-                det_list = detectors
-        else:
-            raise ValueError('Input `detectors` = {} not understood'
-                             .format(detectors))
-
-        det_list.sort()
-        det_list = [det.upper() for det in det_list]
-        self._detectors = det_list
 
     @property
     def sampling_seed(self):
@@ -186,16 +140,24 @@ class ScriptInput(object):
 
     @property
     def interferometers(self):
-        try:
-            return self._interferometers
-        except AttributeError as e:
-            raise ValueError(
-                "Interferometer data not set, either set this directly or "
-                "define it as a property when subclassing ScriptInput")
+        return self.data_dump.interferometers
 
-    @interferometers.setter
-    def interferometers(self, interferometers):
-        self._interferometers = interferometers
+    @property
+    def meta_data(self):
+        return self.data_dump.meta_data
+
+    @property
+    def trigger_time(self):
+        return self.data_dump.trigger_time
+
+    @property
+    def data_dump(self):
+        try:
+            return self._data_dump
+        except AttributeError:
+            filename = os.path.join(self.outdir, self.label + '_data_dump.h5')
+            self._data_dump = DataDump.from_hdf5(filename)
+            return self._data_dump
 
     @property
     def run_label(self):
@@ -220,7 +182,8 @@ class ScriptInput(object):
     @property
     def waveform_generator(self):
         waveform_generator = bilby.gw.WaveformGenerator(
-            sampling_frequency=self.sampling_frequency, duration=self.duration,
+            sampling_frequency=self.interferometers.sampling_frequency,
+            duration=self.interferometers.duration,
             frequency_domain_source_model=self.frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             waveform_arguments=self.waveform_arguments)
@@ -231,7 +194,7 @@ class ScriptInput(object):
         return dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
-            minimum_frequency=self.minimum_frequency)
+            minimum_frequency=self.interferometers[0].minimum_frequency)  # FIXME
 
     @property
     def likelihood(self):
@@ -241,3 +204,21 @@ class ScriptInput(object):
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             time_marginalization=self.time_marginalization)
+
+    @property
+    def frequency_domain_source_model(self):
+        return bilby.gw.source.lal_binary_black_hole
+
+    def run_sampler(self):
+        self.result = bilby.run_sampler(
+            likelihood=self.likelihood, priors=self.priors,
+            sampler=self.sampler, label=self.run_label, outdir=self.outdir,
+            conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            **self.sampler_kwargs)
+
+
+def main():
+    parser = create_parser()
+    analysis = AnalyseInterferometerListInput(parser)
+    analysis.run_sampler()
+    webpages.create_run_output(analysis.result)
