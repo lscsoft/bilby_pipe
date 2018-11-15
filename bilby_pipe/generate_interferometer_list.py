@@ -10,7 +10,7 @@ import configargparse
 import bilby
 
 from bilby_pipe.utils import logger
-from bilby_pipe.main import Input, DataDump
+from bilby_pipe.main import Input, DataDump, parse_args
 
 
 def create_parser():
@@ -68,18 +68,11 @@ class GenerateInterferometerListInput(Input):
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
 
     """
-    def __init__(self, parser, args_list=None):
-        if args_list is None:
-            args_list = sys.argv[1:]
+    def __init__(self, args, unknown_args):
 
-        if len(args_list) == 0:
-            raise ValueError("No command line arguments provided")
-
-        args, unknown_args = parser.parse_known_args(args_list)
+        logger.info('Command line arguments: {}'.format(args))
         self.meta_data = dict(command_line_args=args,
                               unknown_command_line_args=unknown_args)
-        logger.info('Command line arguments: {}'.format(args))
-
         self.ini = args.ini
         self.cluster = args.cluster
         self.process = args.process
@@ -211,6 +204,6 @@ class GenerateInterferometerListInput(Input):
 
 
 def main():
-    parser = create_parser()
-    data = GenerateInterferometerListInput(parser)
+    args, unknown_args = parse_args(sys.argv[1:], create_parser())
+    data = GenerateInterferometerListInput(args, unknown_args)
     data.save_interferometer_list()

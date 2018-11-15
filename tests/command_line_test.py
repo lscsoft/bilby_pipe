@@ -7,6 +7,7 @@ class TestDagCommandLine(unittest.TestCase):
 
     def setUp(self):
         self.default_args = ['tests/test_dag_ini_file.ini']
+        self.parser = bilby_pipe.main.create_parser()
 
     def tearDown(self):
         pass
@@ -14,21 +15,21 @@ class TestDagCommandLine(unittest.TestCase):
     def test_ini_fail(self):
         args = ['not_a_file']
         with self.assertRaises(SystemExit):
-            bilby_pipe.main.parse_args(args)
+            bilby_pipe.main.parse_args(args, self.parser)
 
     def test_ini(self):
-        args, unknown_args = bilby_pipe.main.parse_args(self.default_args)
+        args, unknown_args = bilby_pipe.main.parse_args(self.default_args, self.parser)
         self.assertEqual(args.ini, self.default_args[0])
         self.assertEqual(args.accounting, 'test.test')
 
     def test_empty_unknown_args(self):
-        args, unknown_args = bilby_pipe.main.parse_args(self.default_args)
+        args, unknown_args = bilby_pipe.main.parse_args(self.default_args, self.parser)
         self.assertEqual(unknown_args, [])
 
     def test_unknown_args(self):
         expected_unknown_args = ['--other', 'thing']
         args = self.default_args + expected_unknown_args
-        args, unknown_args = bilby_pipe.main.parse_args(args)
+        args, unknown_args = bilby_pipe.main.parse_args(args, self.parser)
         self.assertEqual(unknown_args, expected_unknown_args)
 
 

@@ -13,7 +13,7 @@ import bilby
 
 from bilby_pipe.utils import logger
 from bilby_pipe import webpages
-from bilby_pipe.main import Input, DataDump
+from bilby_pipe.main import Input, DataDump, parse_args
 
 
 def create_parser():
@@ -76,11 +76,7 @@ class AnalyseInterferometerListInput(Input):
 
     """
 
-    def __init__(self, parser, args_list=None):
-        if args_list is None:
-            args_list = sys.argv[1:]
-
-        args, unknown_args = parser.parse_known_args(args_list)
+    def __init__(self, args, unknown_args):
         logger.info('Command line arguments: {}'.format(args))
 
         self.ini = args.ini
@@ -94,6 +90,7 @@ class AnalyseInterferometerListInput(Input):
         self.distance_marginalization = args.distance_marginalization
         self.phase_marginalization = args.phase_marginalization
         self.time_marginalization = args.time_marginalization
+        self.sampling_seed = args.sampling_seed
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
@@ -218,7 +215,7 @@ class AnalyseInterferometerListInput(Input):
 
 
 def main():
-    parser = create_parser()
-    analysis = AnalyseInterferometerListInput(parser)
+    args, unknown_args = parse_args(sys.argv[1:], create_parser())
+    analysis = AnalyseInterferometerListInput(args, unknown_args)
     analysis.run_sampler()
     webpages.create_run_output(analysis.result)
