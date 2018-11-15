@@ -8,6 +8,7 @@ import sys
 
 import configargparse
 import bilby
+import deepdish
 
 from bilby_pipe.utils import logger
 from bilby_pipe.main import Input, DataDump, parse_args
@@ -57,6 +58,12 @@ def create_parser():
     # Method specific options below here
     data_parser = parser.add_argument_group(title='Data setting methods')
     data_parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
+    data_parser.add('--injection', action='store_true', default=False,
+                    help='Create data from an injection file')
+    data_parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
+                    help="Name of the waveform approximant for injection")
+    data_parser.add('--reference-frequency', default=20, type=float,
+                    help="The reference frequency")
     return parser
 
 
@@ -91,6 +98,10 @@ class DataGenerationInput(Input):
         self.label = args.label
 
         self.gracedb = args.gracedb
+
+        self.waveform_approximant = args.waveform_approximant
+        self.reference_frequency = args.reference_frequency
+        self.injection = args.injection
 
     @property
     def minimum_frequency(self):
@@ -185,6 +196,42 @@ class DataGenerationInput(Input):
             interferometer.minimum_frequency = self.minimum_frequency
             interferometers.append(interferometer)
         self.interferometers = interferometers
+
+    @property
+    def injection(self):
+        return self._injection
+
+    @injection.setter
+    def injection(self, injection):
+        self._injection = injection
+        if injection is True:
+            injection_filename = '{}/{}_injection_file.h5'.format(self.outdir, self.label)
+            injection_dict = deepdish.io.load(injection_filename)
+            self.injection_parameters = injection_dict['injections'][self.process]
+
+            self._set_interferometers_from_simulation()
+
+    def _set_interferometers_from_simulation(self):
+        waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
+                                  reference_frequency=self.reference_frequency,
+                                  minimum_frequency=self.minimum_frequency)
+
+        waveform_generator = bilby.gw.WaveformGenerator(
+            duration=self.duration, sampling_frequency=self.sampling_frequency,
+            frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
+            waveform_arguments=waveform_arguments)
+
+        ifos = bilby.gw.detector.InterferometerList(self.detectors)
+        ifos.set_strain_data_from_power_spectral_densities(
+            sampling_frequency=self.sampling_frequency, duration=self.duration,
+            start_time=self.trigger_time - self.duration / 2)
+        try:
+            ifos.inject_signal(waveform_generator=waveform_generator,
+                               parameters=self.injection_parameters)
+        except AttributeError:
+            pass
+
+        self.interferometers = ifos
 
     @property
     def interferometers(self):
