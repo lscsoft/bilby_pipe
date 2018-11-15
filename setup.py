@@ -69,7 +69,8 @@ setup(name='bilby_pipe',
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
               'bilby_pipe_generation=bilby_pipe.data_generation:main',
-              'bilby_pipe_analysis=bilby_pipe.data_analysis:main']},
+              'bilby_pipe_analysis=bilby_pipe.data_analysis:main',
+              'bilby_pipe_create_injection_file=bilby_pipe.create_injections:main']},
       classifiers=[
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",
