@@ -9,4 +9,6 @@
 
    installation
    structure
+   running
+   injections
    ini_file

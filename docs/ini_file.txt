@@ -1,6 +1,6 @@
-========
-ini file
-========
+============
+The ini file
+============
 
 The primary user-inputs to :code:bilby_pipe are command-line arguments, or ini
 files which can be thought of as a set of command-line arguments stored in a
