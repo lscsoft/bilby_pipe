@@ -70,6 +70,16 @@ def create_parser():
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
     parser.add('-v', '--verbose', action='store_true', help='verbose')
+
+    injection_parser = parser.add_argument_group(title='Injection arguments')
+    injection_parser.add(
+        '--injection', action='store_true', default=False,
+        help='Create data from an injection file')
+    injection_parser.add(
+        '--injection-file', type=str, default=None,
+        help='If given, an injection file')
+    injection_parser.add_arg(
+        '--n-injection', type=int, help='The number of injections to generate')
     return parser
 
 
@@ -204,6 +214,10 @@ class MainInput(Input):
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
 
+        self.injection = args.injection
+        self.injection_file = args.injection_file
+        self.n_injection = args.n_injection
+
         # These keys are used in the webpages summary
         self.meta_keys = ['label', 'outdir', 'ini',
                           'detectors', 'coherence_test',
@@ -218,6 +232,17 @@ class MainInput(Input):
         if os.path.isfile(ini) is False:
             raise ValueError('ini file is not a file')
         self._ini = os.path.abspath(ini)
+
+    @property
+    def n_injection(self):
+        return self._n_injection
+
+    @n_injection.setter
+    def n_injection(self, n_injection):
+        if n_injection is not None:
+            logger.info(
+                "n_injection={}, overwriting queue input".format(n_injection))
+            self.queue = n_injection
 
     @property
     def x509userproxy(self):
@@ -328,6 +353,7 @@ class Dag(object):
             submit=self.submit_directory)
         self.jobs = []
         self.results_pages = dict()
+        self.check_injection()
         self.create_generation_job()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
@@ -353,6 +379,23 @@ class Dag(object):
     @property
     def submit_directory(self):
         return os.path.join(self.inputs.outdir, 'submit')
+
+    def check_injection(self):
+        """ If injections are requested, create an injection file """
+        default_injection_file_name = '{}/{}_injection_file.h5'.format(
+            self.inputs.outdir, self.inputs.label)
+        if self.inputs.injection_file is not None:
+            logger.info("Using injection file {}".format(self.inputs.injection_file))
+        elif os.path.isfile(default_injection_file_name):
+            logger.info("Using injection file {}".format(default_injection_file_name))
+        else:
+            logger.info("No injection file found, generating one now")
+            import bilby_pipe.create_injections
+            inj_args, inj_unknown_args = parse_args(
+                sys.argv[1:], bilby_pipe.create_injections.create_parser())
+            inj_inputs = bilby_pipe.create_injections.CreateInjectionInput(
+                inj_args, inj_unknown_args)
+            inj_inputs.create_injection_file()
 
     def create_generation_job(self):
         """ Create a job to generate the data """
