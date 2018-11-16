@@ -421,7 +421,8 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments, retry=self.retry, verbose=self.verbose,
+            add_cluster_job_numbers=True)
 
         logger.debug('Adding job: {}'.format(job_label))
 
@@ -479,8 +480,7 @@ class Dag(object):
         extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
-        run_label = '{}_{}_{}'.format(self.inputs.label, ''.join(detectors),
-                                      sampler)
+        run_label = '_'.join([self.inputs.label, ''.join(detectors), sampler])
         for detector in detectors:
             arguments += ' --detectors {}'.format(detector)
         arguments += ' --sampler {}'.format(sampler)
@@ -495,7 +495,8 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments, retry=self.retry, verbose=self.verbose,
+            add_cluster_job_numbers=True)
 
         job.add_parent(self.generation_job)
         logger.debug('Adding job: {}'.format(run_label))
@@ -515,16 +516,19 @@ class Dag(object):
 
 
 class DataDump():
-    def __init__(self, label, outdir, trigger_time, interferometers, meta_data):
+    def __init__(self, label, outdir, trigger_time, interferometers, meta_data,
+                 process):
         self.trigger_time = trigger_time
         self.label = label
         self.outdir = outdir
         self.interferometers = interferometers
         self.meta_data = meta_data
+        self.process = process
 
     @property
     def filename(self):
-        return os.path.join(self.outdir, self.label + '_data_dump.h5')
+        return os.path.join(
+            self.outdir, '_'.join([self.label, str(self.process), 'data_dump.h5']))
 
     def to_hdf5(self):
         deepdish.io.save(self.filename, self)

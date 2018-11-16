@@ -152,7 +152,8 @@ class DataAnalysisInput(Input):
         try:
             return self._data_dump
         except AttributeError:
-            filename = os.path.join(self.outdir, self.label + '_data_dump.h5')
+            filename = os.path.join(
+                self.outdir, '_'.join([self.label, str(self.process), 'data_dump.h5']))
             self._data_dump = DataDump.from_hdf5(filename)
             return self._data_dump
 

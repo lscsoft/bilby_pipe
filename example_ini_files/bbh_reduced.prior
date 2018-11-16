@@ -1,5 +1,5 @@
-mass_1 = Uniform(name='mass_1', minimum=5, maximum=100, unit='$M_{\\odot}$')
-mass_2 = Uniform(name='mass_2', minimum=5, maximum=100, unit='$M_{\\odot}$')
+mass_1 = 50
+mass_2 = 45
 a_1 = 0
 a_2 = 0
 tilt_1 = 0
@@ -12,3 +12,4 @@ ra = 1.4
 iota = Sine(name='iota')
 psi = 0
 phase = 0
+geocent_time = 0

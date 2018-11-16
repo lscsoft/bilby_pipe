@@ -207,8 +207,8 @@ class DataGenerationInput(Input):
         if injection is True:
             injection_filename = '{}/{}_injection_file.h5'.format(self.outdir, self.label)
             injection_dict = deepdish.io.load(injection_filename)
-            self.injection_parameters = injection_dict['injections'][self.process]
-
+            injection_df = injection_dict['injections']
+            self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
             self._set_interferometers_from_simulation()
 
     def _set_interferometers_from_simulation(self):
@@ -247,6 +247,7 @@ class DataGenerationInput(Input):
 
     def save_interferometer_list(self):
         data_dump = DataDump(outdir=self.outdir, label=self.label,
+                             process=self.process,
                              trigger_time=self.trigger_time,
                              interferometers=self.interferometers,
                              meta_data=self.meta_data)
