@@ -353,7 +353,8 @@ class Dag(object):
             submit=self.submit_directory)
         self.jobs = []
         self.results_pages = dict()
-        self.check_injection()
+        if self.inputs.injection:
+            self.check_injection()
         self.create_generation_job()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()

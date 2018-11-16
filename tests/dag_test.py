@@ -15,7 +15,8 @@ class TestDag(unittest.TestCase):
         self.test_args = Namespace(
             ini='tests/test_dag_ini_file.ini', submit=False,
             outdir=self.outdir, label='label', accounting='accounting.group',
-            detectors='H1', coherence_test=False,
+            detectors='H1', coherence_test=False, injection=False,
+            injection_file=None, n_injection=None,
             X509=os.path.join(self.directory, 'X509.txt'),
             queue=1, create_summary=False, sampler=['nestle'])
         self.test_unknown_args = ['--argument', 'value']
