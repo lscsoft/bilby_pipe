@@ -413,16 +413,28 @@ class Dag(object):
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
-        self.generation_job = pycondor.Job(
-            name=job_label, executable=self.generation_executable,
-            error=error, log=log, output=output, submit=submit,
-            request_memory=self.request_memory, request_disk=self.request_disk,
-            request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose,
-            add_cluster_job_numbers=True)
+        # This is a temporary hack while add_cluster_job_numbers is added to pycondor
+        try:
+            self.generation_job = pycondor.Job(
+                name=job_label, executable=self.generation_executable,
+                error=error, log=log, output=output, submit=submit,
+                request_memory=self.request_memory, request_disk=self.request_disk,
+                request_cpus=self.request_cpus, getenv=self.getenv,
+                universe=self.universe, initialdir=self.initialdir,
+                notification=self.notification, requirements=self.requirements,
+                queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+                arguments=arguments, retry=self.retry, verbose=self.verbose,
+                add_cluster_job_numbers=True)
+        except TypeError:
+            self.generation_job = pycondor.Job(
+                name=job_label, executable=self.generation_executable,
+                error=error, log=log, output=output, submit=submit,
+                request_memory=self.request_memory, request_disk=self.request_disk,
+                request_cpus=self.request_cpus, getenv=self.getenv,
+                universe=self.universe, initialdir=self.initialdir,
+                notification=self.notification, requirements=self.requirements,
+                queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+                arguments=arguments, retry=self.retry, verbose=self.verbose)
 
         logger.debug('Adding job: {}'.format(job_label))
 
@@ -487,16 +499,28 @@ class Dag(object):
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
-        job = pycondor.Job(
-            name=run_label, executable=self.analysis_executable,
-            error=error, log=log, output=output, submit=submit,
-            request_memory=self.request_memory, request_disk=self.request_disk,
-            request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose,
-            add_cluster_job_numbers=True)
+        # This is a temporary hack while add_cluster_job_numbers is added to pycondor
+        try:
+            job = pycondor.Job(
+                name=run_label, executable=self.analysis_executable,
+                error=error, log=log, output=output, submit=submit,
+                request_memory=self.request_memory, request_disk=self.request_disk,
+                request_cpus=self.request_cpus, getenv=self.getenv,
+                universe=self.universe, initialdir=self.initialdir,
+                notification=self.notification, requirements=self.requirements,
+                queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+                arguments=arguments, retry=self.retry, verbose=self.verbose,
+                add_cluster_job_numbers=True)
+        except TypeError:
+            job = pycondor.Job(
+                name=run_label, executable=self.analysis_executable,
+                error=error, log=log, output=output, submit=submit,
+                request_memory=self.request_memory, request_disk=self.request_disk,
+                request_cpus=self.request_cpus, getenv=self.getenv,
+                universe=self.universe, initialdir=self.initialdir,
+                notification=self.notification, requirements=self.requirements,
+                queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+                arguments=arguments, retry=self.retry, verbose=self.verbose)
 
         job.add_parent(self.generation_job)
         logger.debug('Adding job: {}'.format(run_label))
