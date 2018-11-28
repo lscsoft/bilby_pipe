@@ -198,7 +198,7 @@ class DataAnalysisInput(Input):
     def likelihood(self):
         return bilby.gw.likelihood.GravitationalWaveTransient(
             interferometers=self.interferometers,
-            waveform_generator=self.waveform_generator, prior=self.priors,
+            waveform_generator=self.waveform_generator, priors=self.priors,
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             time_marginalization=self.time_marginalization)
