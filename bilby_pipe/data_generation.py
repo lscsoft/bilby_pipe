@@ -199,6 +199,11 @@ class DataGenerationInput(Input):
         self.interferometers = interferometers
 
     @property
+    def parameter_conversion(self):
+        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+
+
+    @property
     def injection(self):
         return self._injection
 
@@ -210,8 +215,10 @@ class DataGenerationInput(Input):
             injection_dict = deepdish.io.load(injection_filename)
             injection_df = injection_dict['injections']
             self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
-            self._set_interferometers_from_simulation()
             self.meta_data['injection_parameters'] = self.injection_parameters
+            if self.trigger_time is None:
+                self.trigger_time = self.injection_parameters['geocent_time']
+            self._set_interferometers_from_simulation()
 
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
@@ -221,6 +228,7 @@ class DataGenerationInput(Input):
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration, sampling_frequency=self.sampling_frequency,
             frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
+            parameter_conversion=self.parameter_conversion,
             waveform_arguments=waveform_arguments)
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
