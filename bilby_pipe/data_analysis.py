@@ -94,6 +94,7 @@ class DataAnalysisInput(Input):
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
+        self.resultdir = os.path.join(args.outdir, 'result')
         self.label = args.label
 
     @property
@@ -159,8 +160,8 @@ class DataAnalysisInput(Input):
 
     @property
     def run_label(self):
-        label = '{}_{}_{}'.format(
-            self.label, ''.join(self.detectors), self.sampler)
+        label = '{}_{}_{}_{}'.format(
+            self.label, ''.join(self.detectors), self.sampler, self.process)
         return label
 
     @property
@@ -210,8 +211,9 @@ class DataAnalysisInput(Input):
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
-            sampler=self.sampler, label=self.run_label, outdir=self.outdir,
+            sampler=self.sampler, label=self.run_label, outdir=self.resultdir,
             conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
 
 

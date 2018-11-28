@@ -82,7 +82,8 @@ class DataGenerationInput(Input):
 
         logger.info('Command line arguments: {}'.format(args))
         self.meta_data = dict(command_line_args=args,
-                              unknown_command_line_args=unknown_args)
+                              unknown_command_line_args=unknown_args,
+                              injection_parameters=None)
         self.ini = args.ini
         self.cluster = args.cluster
         self.process = args.process
@@ -210,6 +211,7 @@ class DataGenerationInput(Input):
             injection_df = injection_dict['injections']
             self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
             self._set_interferometers_from_simulation()
+            self.meta_data['injection_parameters'] = self.injection_parameters
 
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
