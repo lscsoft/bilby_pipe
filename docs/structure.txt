@@ -5,16 +5,21 @@ Code overview
 User interface
 --------------
 
-Installing the :code:`bilby_pipe` module provides the user with three command
-line programs. `bilby_pipe <main.txt>`_, `bilby_pipe_generation
-<data_generation.txt>`_, and `bilby_pipe_analysis <data_analysis.txt>`_.
+`Installing <installation.txt>`_ the :code:`bilby_pipe` module provides the
+user with four command line programs:
+
+1. `bilby_pipe <main.txt>`_
+2. `bilby_pipe_generation <data_generation.txt>`_
+3. `bilby_pipe_analysis <data_analysis.txt>`_
+4. `bilby_pipe_create_injection_file <create_injections.txt>`_
+
 For most users, only the first of these will be used in practise.
 
 Modules
 -------
 
-At the top-level, the :code:`bilby_pipe` python package provides several modules
-as visualised here:
+At the top-level, the :code:`bilby_pipe` python package provides several
+sub-modules as visualised here:
 
 .. graphviz::
 
@@ -22,6 +27,7 @@ as visualised here:
          "bilby_pipe" -> ".main";
          "bilby_pipe" -> ".data_generation";
          "bilby_pipe" -> ".data_analysis";
+         "bilby_pipe" -> ".create_injections";
          "bilby_pipe" -> ".webpages";
          "bilby_pipe" -> ".utils";
             }
@@ -89,5 +95,6 @@ Submodules API
    main
    data_generation
    data_analysis
+   create_injections
    webpages
    utils
