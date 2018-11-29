@@ -202,7 +202,6 @@ class DataGenerationInput(Input):
     def parameter_conversion(self):
         return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 
-
     @property
     def injection(self):
         return self._injection
