@@ -84,6 +84,7 @@ class DataAnalysisInput(Input):
         self.process = args.process
         self.detectors = args.detectors
         self.prior_file = args.prior_file
+        self._priors = None
         self.deltaT = args.deltaT
         self.reference_frequency = args.reference_frequency
         self.waveform_approximant = args.waveform_approximant
@@ -94,6 +95,7 @@ class DataAnalysisInput(Input):
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
+        self.resultdir = os.path.join(args.outdir, 'result')
         self.label = args.label
 
     @property
@@ -159,19 +161,20 @@ class DataAnalysisInput(Input):
 
     @property
     def run_label(self):
-        label = '{}_{}_{}'.format(
-            self.label, ''.join(self.detectors), self.sampler)
+        label = '{}_{}_{}_{}'.format(
+            self.label, ''.join(self.detectors), self.sampler, self.process)
         return label
 
     @property
     def priors(self):
-        priors = bilby.gw.prior.BBHPriorDict(
-            filename=self.prior_file)
-        priors['geocent_time'] = bilby.core.prior.Uniform(
-            minimum=self.trigger_time - self.deltaT / 2,
-            maximum=self.trigger_time + self.deltaT / 2,
-            name='geocent_time', latex_label='$t_c$', unit='$s$')
-        return priors
+        if self._priors is None:
+            self._priors = bilby.gw.prior.BBHPriorDict(
+                filename=self.prior_file)
+            self._priors['geocent_time'] = bilby.core.prior.Uniform(
+                minimum=self.trigger_time - self.deltaT / 2,
+                maximum=self.trigger_time + self.deltaT / 2,
+                name='geocent_time', latex_label='$t_c$', unit='$s$')
+        return self._priors
 
     @property
     def parameter_conversion(self):
@@ -184,6 +187,7 @@ class DataAnalysisInput(Input):
             duration=self.interferometers.duration,
             frequency_domain_source_model=self.frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
+            start_time=self.interferometers.start_time,
             waveform_arguments=self.waveform_arguments)
         return waveform_generator
 
@@ -198,7 +202,7 @@ class DataAnalysisInput(Input):
     def likelihood(self):
         return bilby.gw.likelihood.GravitationalWaveTransient(
             interferometers=self.interferometers,
-            waveform_generator=self.waveform_generator, prior=self.priors,
+            waveform_generator=self.waveform_generator, priors=self.priors,
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             time_marginalization=self.time_marginalization)
@@ -210,8 +214,9 @@ class DataAnalysisInput(Input):
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
-            sampler=self.sampler, label=self.run_label, outdir=self.outdir,
+            sampler=self.sampler, label=self.run_label, outdir=self.resultdir,
             conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
 
 

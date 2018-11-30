@@ -400,23 +400,26 @@ class Dag(object):
 
     def create_generation_job(self):
         """ Create a job to generate the data """
-        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
-        error = job_logs_path
-        log = job_logs_path
-        output = job_logs_path
-        submit = self.submit_directory
-        extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
-        extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
         job_label = self.inputs.label + '_generation'
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
+        utils.check_directory_exists_and_if_not_mkdir(job_logs_path)
+        job_logs_base = os.path.join(job_logs_path, job_label)
+        submit = self.submit_directory
+        extra_lines = ''
+        for arg in ['error', 'log', 'output']:
+            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
+                arg, job_logs_base, arg[:3])
+        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        arguments = '--ini {}'.format(self.inputs.ini)
 
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         self.generation_job = pycondor.Job(
-            name=job_label + '_$(Cluster)_$(Process)',
+            name=job_label,
             executable=self.generation_executable,
-            error=error, log=log, output=output, submit=submit,
+            submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
             universe=self.universe, initialdir=self.initialdir,
@@ -471,15 +474,19 @@ class Dag(object):
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
-        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
-        error = job_logs_path
-        log = job_logs_path
-        output = job_logs_path
-        submit = self.submit_directory
-        extra_lines = 'accounting_group={}'.format(self.inputs.accounting)
-        extra_lines += '\nx509userproxy={}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
         run_label = '_'.join([self.inputs.label, ''.join(detectors), sampler])
+        job_name = run_label
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
+        utils.check_directory_exists_and_if_not_mkdir(job_logs_path)
+        job_logs_base = os.path.join(job_logs_path, job_name)
+        submit = self.submit_directory
+        extra_lines = ''
+        for arg in ['error', 'log', 'output']:
+            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
+                arg, job_logs_base, arg[:3])
+        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        arguments = '--ini {}'.format(self.inputs.ini)
         for detector in detectors:
             arguments += ' --detectors {}'.format(detector)
         arguments += ' --sampler {}'.format(sampler)
@@ -487,9 +494,9 @@ class Dag(object):
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         job = pycondor.Job(
-            name=run_label + '_$(Cluster)_$(Process)',
+            name=job_name,
             executable=self.analysis_executable,
-            error=error, log=log, output=output, submit=submit,
+            submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
             universe=self.universe, initialdir=self.initialdir,
