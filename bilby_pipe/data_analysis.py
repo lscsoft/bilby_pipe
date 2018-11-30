@@ -178,7 +178,8 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        return None,
+        #  return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 
     @property
     def waveform_generator(self):
