@@ -19,7 +19,7 @@ from bilby_pipe.main import Input, DataDump, parse_args
 def create_parser():
     """ Generate a parser for the data_analysis.py script
 
-    Additional options can be added to the returned parser beforing calling
+    Additional options can be added to the returned parser before calling
     `parser.parse_args` to generate the arguments`
 
     Returns
@@ -168,7 +168,7 @@ class DataAnalysisInput(Input):
     @property
     def priors(self):
         if self._priors is None:
-            self._priors = bilby.gw.prior.BBHPriorSet(
+            self._priors = bilby.gw.prior.BBHPriorDict(
                 filename=self.prior_file)
             self._priors['geocent_time'] = bilby.core.prior.Uniform(
                 minimum=self.trigger_time - self.deltaT / 2,
