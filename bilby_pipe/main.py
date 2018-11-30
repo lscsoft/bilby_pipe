@@ -12,6 +12,7 @@ import itertools
 import configargparse
 import pycondor
 import deepdish
+import numpy as np
 
 from .utils import logger
 from . import utils
@@ -70,6 +71,8 @@ def create_parser():
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
     parser.add('-v', '--verbose', action='store_true', help='verbose')
+    parser.add('--bayeswave-executable', type=str, default=None)
+    parser.add('--minimum-frequency', type=float, default=20.0)
 
     injection_parser = parser.add_argument_group(title='Injection arguments')
     injection_parser.add(
@@ -213,6 +216,8 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+        self.bayeswave_executable = args.bayeswave_executable
+        self.minimum_frequency = args.minimum_frequency
 
         self.injection = args.injection
         self.injection_file = args.injection_file
@@ -355,6 +360,11 @@ class Dag(object):
         self.results_pages = dict()
         if self.inputs.injection:
             self.check_injection()
+        print('Hello')
+        print(self.inputs.unknown_args)
+        if self.inputs.bayeswave_executable is not None:
+            self.create_bayeswave_jobs()
+        print(self.inputs.bayeswave_executable)
         self.create_generation_job()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
@@ -511,6 +521,59 @@ class Dag(object):
     def create_postprocessing_jobs(self):
         """ Generate postprocessing job """
         pass
+
+    def _create_bayeswave_job(self, detector):
+        """ Create a job to generate the data """
+        job_label = self.inputs.label + '_bayesline_{}'.format(detector)
+        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
+        utils.check_directory_exists_and_if_not_mkdir(job_logs_path)
+        job_logs_base = os.path.join(job_logs_path, job_label)
+        submit = self.submit_directory
+        extra_lines = ''
+        for arg in ['error', 'log', 'output']:
+            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
+                arg, job_logs_base, arg[:3])
+        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        arguments = '--ini {}'.format(self.inputs.ini)
+
+        bw_minimum_frequency = 2 ** int(np.log2(self.inputs.minimum_frequency))
+        arguments += '--ifo {}'.format(detector)
+        arguments += ' --{}-flow {}'.format(detector, bw_minimum_frequency)
+        self.inputs.sampling_frequency = 4096
+        self.inputs.cachefiles = {detector: 'test'}
+        self.inputs.channel_names = {detector: 'test'}
+        self.inputs.trigger_time = 0
+        self.inputs.duration = 0
+        arguments += ' --{}-srate {}'.format(
+            detector, self.inputs.sampling_frequency)
+        arguments += ' --{}-cache {}'.format(
+            detector, self.inputs.cachefiles[detector])
+        arguments += '  --{}-channel {}'.format(
+            detector, self.inputs.channel_names[detector])
+        arguments += ' --trigtime {}'.format(self.inputs.trigger_time)
+        arguments += ' --seglen {}'.format(self.inputs.duration)
+        arguments += ' --PSDstart {}'.format(self.inputs.trigger_time)
+        arguments += ' --PSDlength {}'.format(self.inputs.duration)
+        arguments += ' --cluster $(Cluster)'
+        arguments += ' --process $(Process)'
+        arguments += ' --bayesLine --cleanOnly'
+        # arguments += ' ' + ' '.join(self.inputs.unknown_args)
+        self.generation_job = pycondor.Job(
+            name=job_label,
+            executable=self.inputs.bayeswave_executable,
+            submit=submit,
+            request_memory=self.request_memory, request_disk=self.request_disk,
+            request_cpus=self.request_cpus, getenv=self.getenv,
+            universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
+        logger.debug('Adding job: {}'.format(job_label))
+
+    def create_bayeswave_jobs(self):
+        for detector in self.inputs.detectors:
+            self._create_bayeswave_job(detector)
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
