@@ -7,13 +7,8 @@ import sys
 
 # check that python version is 3.5 or above
 python_version = sys.version_info
-print(
-        'Running Python version '
-        + str(python_version.major) + '.'
-        + str(python_version.minor) + '.'
-        + str(python_version.micro)
-)
-if python_version < (3,5):
+print('Running Python version %s.%s.%s' % python_version[:3])
+if python_version < (3, 5):
     sys.exit('Python < 3.5 is not supported, aborting setup')
 else:
     print('Confirmed Python version 3.5.0 or above')
