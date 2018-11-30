@@ -3,6 +3,15 @@
 from setuptools import setup
 import subprocess
 from os import path
+import sys
+
+# check that python version is 3.5 or above
+python_version = sys.version_info
+print('Running Python version %s.%s.%s' % python_version[:3])
+if python_version < (3, 5):
+    sys.exit('Python < 3.5 is not supported, aborting setup')
+else:
+    print('Confirmed Python version 3.5.0 or above')
 
 
 def write_version_file(version):
@@ -64,7 +73,13 @@ setup(name='bilby_pipe',
       version=version,
       package_data={'bilby_pipe': [version_file, 'templates/*html']},
       packages=['bilby_pipe'],
-      install_requires=['future', 'pycondor>=0.5', 'configargparse', 'jinja2'],
+      install_requires=[
+          'future',
+          'pycondor>=0.5',
+          'configargparse',
+          'jinja2',
+          'ligo-gracedb',
+          'gwdatafind'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
