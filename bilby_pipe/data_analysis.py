@@ -162,7 +162,7 @@ class DataAnalysisInput(Input):
     @property
     def run_label(self):
         label = '{}_{}_{}_{}'.format(
-            self.label, ''.join(self.detectors), self.sampler, self.processß)
+            self.label, ''.join(self.detectors), self.sampler, self.process)
         return label
 
     @property
