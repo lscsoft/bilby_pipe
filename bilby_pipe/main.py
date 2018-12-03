@@ -79,7 +79,7 @@ def create_parser():
         '--injection-file', type=str, default=None,
         help='If given, an injection file')
     injection_parser.add_arg(
-        '--n-injection', type=int, help='The number of injections to generate'
+        '--n-injection', type=int, help='The number of injections to generate')
     return parser
 
 
