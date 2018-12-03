@@ -79,7 +79,7 @@ def create_parser():
         '--injection-file', type=str, default=None,
         help='If given, an injection file')
     injection_parser.add_arg(
-        '--n-injection', type=int, help='The number of injections to generate')
+        '--n-injection', type=int, help='The number of injections to generate'
     return parser
 
 
@@ -505,8 +505,7 @@ class Dag(object):
             arguments=arguments, retry=self.retry, verbose=self.verbose)
         job.add_parent(self.generation_job)
         logger.debug('Adding job: {}'.format(run_label))
-        self.results_pages[run_label] = 'result/{}_{}.html'.format(
-            run_label, self.inputs.process)
+        self.results_pages[run_label] = 'result/{}.html'.format(run_label)
         return job
 
     def create_postprocessing_jobs(self):
