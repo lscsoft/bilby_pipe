@@ -505,7 +505,7 @@ class Dag(object):
             arguments=arguments, retry=self.retry, verbose=self.verbose)
         job.add_parent(self.generation_job)
         logger.debug('Adding job: {}'.format(run_label))
-        self.results_pages[run_label] = '{}.html'.format(run_label)
+        self.results_pages[run_label] = 'result/{}.html'.format(run_label)
         return job
 
     def create_postprocessing_jobs(self):
