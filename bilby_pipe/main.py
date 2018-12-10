@@ -8,14 +8,14 @@ import os
 import sys
 import shutil
 import itertools
-
-import configargparse
 import pycondor
 import deepdish
 
 from .utils import logger
 from . import utils
 from . import webpages
+
+from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
 def parse_args(input_args, parser):
@@ -43,8 +43,8 @@ def parse_args(input_args, parser):
 
 
 def create_parser():
-    """ Creates the configargparse.ArgParser for bilby_pipe """
-    parser = configargparse.ArgParser(
+    """ Creates the BilbyArgParser for bilby_pipe """
+    parser = BilbyArgParser(
         usage=__doc__, ignore_unknown_config_file_keys=True,
         allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
@@ -163,7 +163,7 @@ class MainInput(Input):
 
     Parameters
     ----------
-    parser: configargparse.ArgParser, optional
+    parser: BilbyArgParser, optional
         The parser containing the command line / ini file inputs
     args_list: list, optional
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
