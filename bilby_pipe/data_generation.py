@@ -6,12 +6,12 @@ from __future__ import division, print_function
 
 import sys
 
-import configargparse
 import bilby
 import deepdish
 
 from bilby_pipe.utils import logger
 from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
 def create_parser():
@@ -22,11 +22,11 @@ def create_parser():
 
     Returns
     -------
-    parser: configargparse.ArgParser
+    parser: BilbyArgParser
         A parser with all the default options already added
 
     """
-    parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
+    parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
     parser.add('--cluster', type=int,
                help='The condor cluster ID', default=None)

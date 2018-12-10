@@ -8,12 +8,12 @@ import sys
 import os
 
 import numpy as np
-import configargparse
 import bilby
 
 from bilby_pipe.utils import logger
 from bilby_pipe import webpages
 from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
 def create_parser():
@@ -24,11 +24,11 @@ def create_parser():
 
     Returns
     -------
-    parser: configargparse.ArgParser
+    parser: BilbyArgParser
         A parser with all the default options already added
 
     """
-    parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
+    parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
     parser.add('--cluster', type=int,
                help='The condor cluster ID', default=None)
@@ -69,7 +69,7 @@ class DataAnalysisInput(Input):
 
     Parameters
     ----------
-    parser: configargparse.ArgParser, optional
+    parser: BilbyArgParser, optional
         The parser containing the command line / ini file inputs
     args_list: list, optional
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
