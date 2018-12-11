@@ -189,8 +189,8 @@ class DataGenerationInput(Input):
         """
         interferometers = bilby.gw.detector.InterferometerList([])
         if self.channel_names is None:
-            channel_names_none = [None] * len(frame_caches)
-        for cache_file, channel_name in zip(frame_caches, channel_names_none):
+            self.channel_names = [None] * len(frame_caches)
+        for cache_file, channel_name in zip(frame_caches, self.channel_names):
             interferometer = bilby.gw.detector.load_data_from_cache_file(
                 cache_file, self.trigger_time, self.duration,
                 self.psd_duration, channel_name)
