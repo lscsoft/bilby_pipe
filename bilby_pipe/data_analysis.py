@@ -172,11 +172,11 @@ class DataAnalysisInput(Input):
     @property
     def priors(self):
         if self._priors is None:
-            if self.default_prior in bilby.core.prior.__dict__:
+            if self.default_prior in bilby.core.prior.__dict__.keys():
                 self._priors = bilby.core.prior.__dict__[self.default_prior](
                     filename=self.prior_file
                 )
-            elif self.default_prior in bilby.gw.prior.__dict__:
+            elif self.default_prior in bilby.gw.prior.__dict__.keys():
                 self._priors = bilby.gw.prior.__dict__[self.default_prior](
                     filename=self.prior_file
                 )
