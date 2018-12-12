@@ -47,6 +47,8 @@ def create_parser():
                help="The reference frequency")
     parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
                help="Name of the waveform approximant")
+    parser.add('--default-prior', default='BBHPriorDict', type=str,
+               help="Name of the prior set to base our prior on")
     parser.add(
         '--distance-marginalization', action='store_true', default=False,
         help='If true, use a distance-marginalized likelihood')
@@ -97,6 +99,8 @@ class DataAnalysisInput(Input):
         self.outdir = args.outdir
         self.resultdir = os.path.join(args.outdir, 'result')
         self.label = args.label
+        self.default_prior = args.default_prior
+        self.result = None
 
     @property
     def reference_frequency(self):
@@ -168,12 +172,23 @@ class DataAnalysisInput(Input):
     @property
     def priors(self):
         if self._priors is None:
-            self._priors = bilby.gw.prior.BBHPriorDict(
-                filename=self.prior_file)
-            self._priors['geocent_time'] = bilby.core.prior.Uniform(
-                minimum=self.trigger_time - self.deltaT / 2,
-                maximum=self.trigger_time + self.deltaT / 2,
-                name='geocent_time', latex_label='$t_c$', unit='$s$')
+            if self.default_prior in bilby.core.prior.__dict__:
+                self._priors = bilby.core.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            elif self.default_prior in bilby.gw.prior.__dict__:
+                self._priors = bilby.gw.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            else:
+                self._priors = bilby.gw.prior.BBHPriorDict(
+                    filename=self.prior_file
+                )
+            if type(self._priors) is bilby.gw.prior.BBHPriorDict:
+                self._priors['geocent_time'] = bilby.core.prior.Uniform(
+                    minimum=self.trigger_time - self.deltaT / 2,
+                    maximum=self.trigger_time + self.deltaT / 2,
+                    name='geocent_time', latex_label='$t_c$', unit='$s$')
         return self._priors
 
     @property
