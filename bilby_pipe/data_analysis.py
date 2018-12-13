@@ -192,7 +192,6 @@ class DataAnalysisInput(Input):
                     minimum=self.trigger_time - self.deltaT / 2,
                     maximum=self.trigger_time + self.deltaT / 2,
                     name='geocent_time', latex_label='$t_c$', unit='$s$')
-        logger.info('_priors: ' + str(self._priors))
         return self._priors
 
     @property
