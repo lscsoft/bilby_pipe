@@ -233,8 +233,8 @@ class DataAnalysisInput(Input):
                 "no frequency domain source model supplied, defaulting to lal_binary_black_hole")
             return bilby.gw.source.lal_binary_black_hole
         else:
-            if self.__frequency_domain_source_model in bilby.gw.source.__dict__.keys():
-                return bilby.gw.source.__dict__[self.__frequency_domain_source_model]
+            if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
+                return bilby.gw.source.__dict__[self._frequency_domain_source_model]
             else:
                 logger.error(
                     "Not found in bilby.gw.source: {}".format(self._frequency_domain_source_model))
