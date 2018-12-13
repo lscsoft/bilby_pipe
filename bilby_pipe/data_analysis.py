@@ -49,6 +49,8 @@ def create_parser():
                help="Name of the waveform approximant")
     parser.add('--default-prior', default='BBHPriorDict', type=str,
                help="Name of the prior set to base our prior on")
+    parser.add('--frequency-domain-source-model', default=None,
+               type=str, help="Name of the frequency domain source model")
     parser.add(
         '--distance-marginalization', action='store_true', default=False,
         help='If true, use a distance-marginalized likelihood')
@@ -100,6 +102,7 @@ class DataAnalysisInput(Input):
         self.resultdir = os.path.join(args.outdir, 'result')
         self.label = args.label
         self.default_prior = args.default_prior
+        self._frequency_domain_source_model = args.frequency_domain_source_model
         self.result = None
 
     @property
@@ -189,6 +192,7 @@ class DataAnalysisInput(Input):
                     minimum=self.trigger_time - self.deltaT / 2,
                     maximum=self.trigger_time + self.deltaT / 2,
                     name='geocent_time', latex_label='$t_c$', unit='$s$')
+        logger.info('_priors: ' + str(self._priors))
         return self._priors
 
     @property
@@ -224,7 +228,17 @@ class DataAnalysisInput(Input):
 
     @property
     def frequency_domain_source_model(self):
-        return bilby.gw.source.lal_binary_black_hole
+        if self._frequency_domain_source_model is None:
+            logger.info(
+                "no frequency domain source model supplied, defaulting to lal_binary_black_hole")
+            return bilby.gw.source.lal_binary_black_hole
+        else:
+            if self.__frequency_domain_source_model in bilby.gw.source.__dict__.keys():
+                return bilby.gw.source.__dict__[self.__frequency_domain_source_model]
+            else:
+                logger.error(
+                    "Not found in bilby.gw.source: {}".format(self._frequency_domain_source_model))
+                return None
 
     def run_sampler(self):
         self.result = bilby.run_sampler(
