@@ -95,7 +95,6 @@ class DataAnalysisInput(Input):
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
-        self.resultdir = os.path.join(args.outdir, 'result')
         self.label = args.label
 
     @property
@@ -155,7 +154,8 @@ class DataAnalysisInput(Input):
             return self._data_dump
         except AttributeError:
             filename = os.path.join(
-                self.outdir, '_'.join([self.label, str(self.process), 'data_dump.h5']))
+                self.data_directory,
+                '_'.join([self.label, str(self.process), 'data_dump.h5']))
             self._data_dump = DataDump.from_hdf5(filename)
             return self._data_dump
 
@@ -214,7 +214,7 @@ class DataAnalysisInput(Input):
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
-            sampler=self.sampler, label=self.run_label, outdir=self.resultdir,
+            sampler=self.sampler, label=self.run_label, outdir=self.result_directory,
             conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
             injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)

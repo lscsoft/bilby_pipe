@@ -17,7 +17,8 @@ class TestDag(unittest.TestCase):
             coherence_test=False, injection=False, injection_file=None,
             n_injection=None,
             X509=os.path.join(self.directory, 'X509.txt'),
-            queue=1, create_summary=False, sampler=['nestle'])
+            queue=1, create_summary=False, sampler=['nestle'],
+            gps_file=None)
         self.inputs = bilby_pipe.main.MainInput(self.test_args, [])
 
     def tearDown(self):

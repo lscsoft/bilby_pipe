@@ -10,6 +10,7 @@ import shutil
 import itertools
 import pycondor
 import deepdish
+import numpy as np
 
 from .utils import logger
 from . import utils
@@ -80,6 +81,9 @@ def create_parser():
         help='If given, an injection file')
     injection_parser.add_arg(
         '--n-injection', type=int, help='The number of injections to generate')
+
+    data_gen_pars = parser.add_argument_group(title='Data generation arguments')
+    data_gen_pars.add('--gps-file', type=str, help='File containing GPS times')
     return parser
 
 
@@ -154,8 +158,66 @@ class Input(object):
 
     @outdir.setter
     def outdir(self, outdir):
-        utils.check_directory_exists_and_if_not_mkdir(outdir)
         self._outdir = os.path.abspath(outdir)
+        for dr in [outdir, self.submit_directory,
+                   self.data_generation_log_directory,
+                   self.data_analysis_log_directory, self.data_directory,
+                   self.result_directory]:
+            utils.check_directory_exists_and_if_not_mkdir(dr)
+
+    @property
+    def submit_directory(self):
+        """ The path to the directory where submit output will be stored """
+        return os.path.join(self._outdir, 'submit')
+
+    @property
+    def data_generation_log_directory(self):
+        """ The path to the directory where log output will be stored """
+        return os.path.join(self._outdir, 'data_generation_log')
+
+    @property
+    def data_analysis_log_directory(self):
+        """ The path to the directory where log output will be stored """
+        return os.path.join(self._outdir, 'data_analysis_log')
+
+    @property
+    def data_directory(self):
+        """ The path to the directory where data output will be stored """
+        return os.path.join(self._outdir, 'data')
+
+    @property
+    def result_directory(self):
+        """ The path to the directory where result output will be stored """
+        return os.path.join(self._outdir, 'result')
+
+    @property
+    def gps_file(self):
+        """ The gps file containing the list of gps times """
+        return self._gps_file
+
+    @gps_file.setter
+    def gps_file(self, gps_file):
+        """ Set the gps_file
+
+        At setting, will check the file exists, read  the contents, identify
+        which element to generate data for, and set the cache file
+        """
+        if gps_file is None:
+            self._gps_file = None
+            return
+        elif os.path.isfile(gps_file):
+            self._gps_file = os.path.abspath(gps_file)
+        else:
+            raise FileNotFoundError("Input file gps_file={} not understood".format(gps_file))
+
+        try:
+            self._parse_gps_file()
+        except AttributeError:
+            logger.debug("No _parse_gps_file method present")
+
+    def read_gps_file(self):
+        gpstimes = np.loadtxt(self.gps_file)
+        return gpstimes
 
 
 class MainInput(Input):
@@ -213,6 +275,8 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+
+        self.gps_file = args.gps_file
 
         self.injection = args.injection
         self.injection_file = args.injection_file
@@ -277,6 +341,14 @@ class MainInput(Input):
             self._x509userproxy = x509userproxy
         else:
             raise ValueError('Input X509 not a file or not understood')
+
+    def _parse_gps_file(self):
+        gpstimes = self.read_gps_file()
+        n = len(gpstimes)
+        logger.info(
+            "{} times found in gps_file={}, overwriting queue input"
+            .format(n, self.gps_file))
+        self.queue = n
 
 
 class Dag(object):
@@ -350,7 +422,7 @@ class Dag(object):
 
         self.dag = pycondor.Dagman(
             name='dag_' + inputs.label,
-            submit=self.submit_directory)
+            submit=self.inputs.submit_directory)
         self.jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
@@ -377,10 +449,6 @@ class Dag(object):
     def analysis_executable(self):
         return self._get_executable_path('bilby_pipe_analysis')
 
-    @property
-    def submit_directory(self):
-        return os.path.join(self.inputs.outdir, 'submit')
-
     def check_injection(self):
         """ If injections are requested, create an injection file """
         default_injection_file_name = '{}/{}_injection_file.h5'.format(
@@ -401,10 +469,8 @@ class Dag(object):
     def create_generation_job(self):
         """ Create a job to generate the data """
         job_label = self.inputs.label + '_generation'
-        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
-        utils.check_directory_exists_and_if_not_mkdir(job_logs_path)
-        job_logs_base = os.path.join(job_logs_path, job_label)
-        submit = self.submit_directory
+        job_logs_base = os.path.join(self.inputs.data_generation_log_directory, job_label)
+        submit = self.inputs.submit_directory
         extra_lines = ''
         for arg in ['error', 'log', 'output']:
             extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
@@ -476,10 +542,8 @@ class Dag(object):
 
         run_label = '_'.join([self.inputs.label, ''.join(detectors), sampler])
         job_name = run_label
-        job_logs_path = os.path.join(self.inputs.outdir, 'logs')
-        utils.check_directory_exists_and_if_not_mkdir(job_logs_path)
-        job_logs_base = os.path.join(job_logs_path, job_name)
-        submit = self.submit_directory
+        job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
+        submit = self.inputs.submit_directory
         extra_lines = ''
         for arg in ['error', 'log', 'output']:
             extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
