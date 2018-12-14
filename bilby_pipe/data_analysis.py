@@ -54,7 +54,7 @@ def create_parser():
                type=str, help='Name of the conversion function. Can be one of '
                               '[convert_to_lal_binary_black_hole_parameters,'
                               'convert_to_lal_binary_neutron_star_parameters]')
-    parser.add('--frequency-domain-source-model', default=None,
+    parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
                type=str, help="Name of the frequency domain source model. Can be one of"
                               "[lal_binary_black_hole, lal_binary_neutron_star,"
                               "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
@@ -193,6 +193,8 @@ class DataAnalysisInput(Input):
                     filename=self.prior_file
                 )
             else:
+                logger.info("No prior {} found.").format(self.default_prior)
+                logger.info("Defaulting to BBHPriorDict")
                 self._priors = bilby.gw.prior.BBHPriorDict(
                     filename=self.prior_file
                 )
@@ -208,8 +210,8 @@ class DataAnalysisInput(Input):
         if self.conversion in bilby.gw.conversion.__dict__.keys():
             return bilby.gw.conversion.__dict__[self.conversion]
         else:
-            logger.info(
-                "no conversion model supplied, defaulting to convert_to_lal_binary_black_hole_parameters")
+            logger.info("No conversion model {} found.").format(self.conversion)
+            logger.info("Defaulting to convert_to_lal_binary_black_hole_parameters")
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 
     @property
@@ -241,17 +243,13 @@ class DataAnalysisInput(Input):
 
     @property
     def frequency_domain_source_model(self):
-        if self._frequency_domain_source_model is None:
-            logger.info(
-                "no frequency domain source model supplied, defaulting to lal_binary_black_hole")
-            return bilby.gw.source.lal_binary_black_hole
+        if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
+            return bilby.gw.source.__dict__[self._frequency_domain_source_model]
         else:
-            if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
-                return bilby.gw.source.__dict__[self._frequency_domain_source_model]
-            else:
-                logger.error(
-                    "Not found in bilby.gw.source: {}".format(self._frequency_domain_source_model))
-                return None
+            logger.error(
+                "No source model {} found.".format(self._frequency_domain_source_model))
+            logger.error("Defaulting to lal_binary_black_hole")
+            return bilby.gw.source.lal_binary_black_hole
 
     def run_sampler(self):
         self.result = bilby.run_sampler(
