@@ -58,6 +58,7 @@ def create_parser():
     # Method specific options below here
     data_parser = parser.add_argument_group(title='Data setting methods')
     data_parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
+    data_parser.add('--gps-file', type=str, help='File containing GPS times')
     data_parser.add('--injection', action='store_true', default=False,
                     help='Create data from an injection file')
     data_parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
@@ -81,6 +82,7 @@ class DataGenerationInput(Input):
     def __init__(self, args, unknown_args):
 
         logger.info('Command line arguments: {}'.format(args))
+        logger.info('Unknown command line arguments: {}'.format(unknown_args))
         self.meta_data = dict(command_line_args=args,
                               unknown_command_line_args=unknown_args,
                               injection_parameters=None)
@@ -99,6 +101,7 @@ class DataGenerationInput(Input):
         self.label = args.label
 
         self.gracedb = args.gracedb
+        self.gps_file = args.gps_file
 
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
@@ -150,12 +153,26 @@ class DataGenerationInput(Input):
         else:
             logger.info("Setting gracedb id to {}".format(gracedb))
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
-                gracedb, self.outdir, self.duration, self.calibration,
+                gracedb, self.data_directory, self.duration, self.calibration,
                 self.detectors)
             self.meta_data['gracedb_candidate'] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate['gpstime']
             self.frame_caches = frame_caches
+
+    def _parse_gps_file(self):
+        gps_start_times = self.read_gps_file()
+        gps_start_time = gps_start_times[self.process]
+        self.trigger_time = gps_start_time + self.duration / 2.0
+        self.frame_caches = self.generate_frame_cache_list_from_gpstime(gps_start_time)
+
+    def generate_frame_cache_list_from_gpstime(self, gps_start_time):
+        cache_files = []
+        for det in self.detectors:
+            cache_files.append(bilby.gw.utils.gw_data_find(
+                det, gps_start_time=gps_start_time, duration=self.duration,
+                calibration=self.calibration, outdir=self.data_directory))
+        return cache_files
 
     @property
     def frame_caches(self):
@@ -210,7 +227,7 @@ class DataGenerationInput(Input):
     def injection(self, injection):
         self._injection = injection
         if injection is True:
-            injection_filename = '{}/{}_injection_file.h5'.format(self.outdir, self.label)
+            injection_filename = '{}/{}_injection_file.h5'.format(self.data_directory, self.label)
             injection_dict = deepdish.io.load(injection_filename)
             injection_df = injection_dict['injections']
             self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
@@ -255,7 +272,7 @@ class DataGenerationInput(Input):
         self._interferometers = interferometers
 
     def save_interferometer_list(self):
-        data_dump = DataDump(outdir=self.outdir, label=self.label,
+        data_dump = DataDump(outdir=self.data_directory, label=self.label,
                              process=self.process,
                              trigger_time=self.trigger_time,
                              interferometers=self.interferometers,
