@@ -32,7 +32,7 @@ def create_parser():
                help='The condor cluster ID', default=None)
     parser.add('--process', type=int,
                help='The condor process ID', default=None)
-    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
 
     det_parser = parser.add_argument_group(title='Detector arguments')

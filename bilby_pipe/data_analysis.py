@@ -58,7 +58,7 @@ def create_parser():
         help='If true, use a time-marginalized likelihood')
     parser.add('--sampler', default=None)
     parser.add('--sampler-kwargs', default=None)
-    parser.add('--outdir', default='outdir', help='Output directory')
+    parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
     parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
     return parser
