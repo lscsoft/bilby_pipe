@@ -39,23 +39,35 @@ def create_parser():
         help=('The names of detectors to analyse. If given in the ini file, '
               'multiple detectors are specified by `detectors=[H1, L1]`. If '
               'given at the command line, as `--detectors H1 --detectors L1`'))
-    parser.add("--prior-file", default=None, help="prior file")
+    parser.add("--prior-file", default=None, help="The prior file")
     parser.add("--deltaT", type=float, default=0.1,
                help=("The symmetric width (in s) around the trigger time to"
                      " search over the coalesence time"))
     parser.add('--reference-frequency', default=20, type=float,
                help="The reference frequency")
     parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
-               help="Name of the waveform approximant")
+               help="The name of the waveform approximant")
+    parser.add('--default-prior', default='BBHPriorDict', type=str,
+               help="The name of the prior set to base the prior on. Can be one of"
+                    "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]")
+    parser.add('--conversion', default='convert_to_lal_binary_black_hole_parameters',
+               type=str, help='Name of the conversion function. Can be one of '
+                              '[convert_to_lal_binary_black_hole_parameters,'
+                              'convert_to_lal_binary_neutron_star_parameters]')
+    parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
+               type=str, help="Name of the frequency domain source model. Can be one of"
+                              "[lal_binary_black_hole, lal_binary_neutron_star,"
+                              "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
+                              "supernova, supernova_pca_model]")
     parser.add(
         '--distance-marginalization', action='store_true', default=False,
-        help='If true, use a distance-marginalized likelihood')
+        help='Boolean. If true, use a distance-marginalized likelihood')
     parser.add(
         '--phase-marginalization', action='store_true', default=False,
-        help='If true, use a phase-marginalized likelihood')
+        help='Boolean. If true, use a phase-marginalized likelihood')
     parser.add(
         '--time-marginalization', action='store_true', default=False,
-        help='If true, use a time-marginalized likelihood')
+        help='Boolean. If true, use a time-marginalized likelihood')
     parser.add('--sampler', default=None)
     parser.add('--sampler-kwargs', default=None)
     parser.add('--outdir', default='.', help='Output directory')
@@ -96,6 +108,10 @@ class DataAnalysisInput(Input):
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
         self.label = args.label
+        self.default_prior = args.default_prior
+        self._frequency_domain_source_model = args.frequency_domain_source_model
+        self.conversion = args.conversion
+        self.result = None
 
     @property
     def reference_frequency(self):
@@ -168,17 +184,35 @@ class DataAnalysisInput(Input):
     @property
     def priors(self):
         if self._priors is None:
-            self._priors = bilby.gw.prior.BBHPriorDict(
-                filename=self.prior_file)
-            self._priors['geocent_time'] = bilby.core.prior.Uniform(
-                minimum=self.trigger_time - self.deltaT / 2,
-                maximum=self.trigger_time + self.deltaT / 2,
-                name='geocent_time', latex_label='$t_c$', unit='$s$')
+            if self.default_prior in bilby.core.prior.__dict__.keys():
+                self._priors = bilby.core.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            elif self.default_prior in bilby.gw.prior.__dict__.keys():
+                self._priors = bilby.gw.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            else:
+                logger.info("No prior {} found.").format(self.default_prior)
+                logger.info("Defaulting to BBHPriorDict")
+                self._priors = bilby.gw.prior.BBHPriorDict(
+                    filename=self.prior_file
+                )
+            if isinstance(self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)):
+                self._priors['geocent_time'] = bilby.core.prior.Uniform(
+                    minimum=self.trigger_time - self.deltaT / 2,
+                    maximum=self.trigger_time + self.deltaT / 2,
+                    name='geocent_time', latex_label='$t_c$', unit='$s$')
         return self._priors
 
     @property
     def parameter_conversion(self):
-        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        if self.conversion in bilby.gw.conversion.__dict__.keys():
+            return bilby.gw.conversion.__dict__[self.conversion]
+        else:
+            logger.info("No conversion model {} found.").format(self.conversion)
+            logger.info("Defaulting to convert_to_lal_binary_black_hole_parameters")
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 
     @property
     def waveform_generator(self):
@@ -209,7 +243,13 @@ class DataAnalysisInput(Input):
 
     @property
     def frequency_domain_source_model(self):
-        return bilby.gw.source.lal_binary_black_hole
+        if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
+            return bilby.gw.source.__dict__[self._frequency_domain_source_model]
+        else:
+            logger.error(
+                "No source model {} found.".format(self._frequency_domain_source_model))
+            logger.error("Defaulting to lal_binary_black_hole")
+            return bilby.gw.source.lal_binary_black_hole
 
     def run_sampler(self):
         self.result = bilby.run_sampler(

@@ -1,0 +1,13 @@
+# These are the priors for potentially-eccentric BBH systems.
+mass_1 = Uniform(name='mass_1', minimum=5, maximum=60, unit='$M_{\\odot}$', latex_label='$m_1$')
+mass_2 = Uniform(name='mass_2', minimum=5, maximum=60, unit='$M_{\\odot}$', latex_label='$m_2$')
+eccentricity = LogUniform(name='eccentricity', latex_label='$e$', minimum=1e-4, maximum=0.4)
+a_1 =  Uniform(name='a_1', minimum=0, maximum=0.8, latex_label='$a_1$')
+a_2 =  Uniform(name='a_2', minimum=0, maximum=0.8, latex_label='$a_2$')
+luminosity_distance =  bilby.gw.prior.UniformComovingVolume(name='luminosity_distance', minimum=1e2, maximum=5e3, latex_label='$d_L$', unit='Mpc')
+dec =  Cosine(name='dec')
+ra =  Uniform(name='ra', minimum=0, maximum=2 * np.pi)
+iota =  Sine(name='iota', latex_label='$\\iota$')
+psi =  Uniform(name='psi', minimum=0, maximum=np.pi, latex_label='$\\psi$')
+phase =  Uniform(name='phase', minimum=0, maximum=2 * np.pi)
+geocent_time = Uniform(1180002600.9, 1180002601.1, name='geocent_time', unit='s', latex_label='$t_{geo}$')
