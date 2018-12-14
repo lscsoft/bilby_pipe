@@ -58,7 +58,7 @@ def create_parser():
     parser.add('--queue', type=int, default=1)
     parser.add('--label', type=str, default='LABEL',
                help='The output label')
-    parser.add('--outdir', type=str, default='bilby_outdir',
+    parser.add('--outdir', type=str, default='.',
                help='The output directory')
     parser.add('--create-summary', action='store_true',
                help='If true, create a summary page')
@@ -335,7 +335,7 @@ class Dag(object):
     def __init__(self, inputs, request_memory=None, request_disk=None,
                  request_cpus=None, getenv=True, universe='vanilla',
                  initialdir=None, notification='never', requirements=None,
-                 retry=None, verbose=0):
+                 retry=3, verbose=0):
         self.request_memory = request_memory
         self.request_disk = request_disk
         self.request_cpus = request_disk
@@ -349,7 +349,7 @@ class Dag(object):
         self.inputs = inputs
 
         self.dag = pycondor.Dagman(
-            name='main_' + inputs.label,
+            name='dag_' + inputs.label,
             submit=self.submit_directory)
         self.jobs = []
         self.results_pages = dict()
