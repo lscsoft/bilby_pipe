@@ -271,7 +271,7 @@ class DataAnalysisInput(Input):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
             sampler=self.sampler, label=self.run_label, outdir=self.result_directory,
-            conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            conversion_function=self.parameter_conversion,
             injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
 

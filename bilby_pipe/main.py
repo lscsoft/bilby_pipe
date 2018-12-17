@@ -190,6 +190,8 @@ class Input(object):
         """ The path to the directory where result output will be stored """
         return os.path.join(self._outdir, 'result')
 
+
+
     @property
     def gps_file(self):
         """ The gps file containing the list of gps times """
