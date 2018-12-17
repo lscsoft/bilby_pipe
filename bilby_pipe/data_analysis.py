@@ -30,6 +30,7 @@ def create_parser():
     """
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
+    parser.add('--idx', type=int, help="The level A job index", default=0)
     parser.add('--cluster', type=int,
                help='The condor cluster ID', default=None)
     parser.add('--process', type=int,
@@ -93,6 +94,7 @@ class DataAnalysisInput(Input):
         logger.info('Command line arguments: {}'.format(args))
 
         self.ini = args.ini
+        self.idx = args.idx
         self.cluster = args.cluster
         self.process = args.process
         self.detectors = args.detectors
@@ -172,14 +174,14 @@ class DataAnalysisInput(Input):
         except AttributeError:
             filename = os.path.join(
                 self.data_directory,
-                '_'.join([self.label, str(self.process), 'data_dump.h5']))
+                '_'.join([self.label, str(self.idx), 'data_dump.h5']))
             self._data_dump = DataDump.from_hdf5(filename)
             return self._data_dump
 
     @property
     def run_label(self):
         label = '{}_{}_{}_{}'.format(
-            self.label, ''.join(self.detectors), self.sampler, self.process)
+            self.label, ''.join(self.detectors), self.sampler, self.idx)
         return label
 
     @property

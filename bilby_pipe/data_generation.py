@@ -28,6 +28,7 @@ def create_parser():
     """
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
+    parser.add('--idx', type=int, help="The level A job index", default=0)
     parser.add('--cluster', type=int,
                help='The condor cluster ID', default=None)
     parser.add('--process', type=int,
@@ -89,6 +90,7 @@ class DataGenerationInput(Input):
         self.ini = args.ini
         self.cluster = args.cluster
         self.process = args.process
+        self.idx = args.idx
         self.detectors = args.detectors
         self.calibration = args.calibration
         self.channel_names = args.channel_names
@@ -162,7 +164,7 @@ class DataGenerationInput(Input):
 
     def _parse_gps_file(self):
         gps_start_times = self.read_gps_file()
-        gps_start_time = gps_start_times[self.process]
+        gps_start_time = gps_start_times[self.idx]
         self.trigger_time = gps_start_time + self.duration / 2.0
         self.frame_caches = self.generate_frame_cache_list_from_gpstime(gps_start_time)
 
@@ -273,7 +275,7 @@ class DataGenerationInput(Input):
 
     def save_interferometer_list(self):
         data_dump = DataDump(outdir=self.data_directory, label=self.label,
-                             process=self.process,
+                             idx=self.idx,
                              trigger_time=self.trigger_time,
                              interferometers=self.interferometers,
                              meta_data=self.meta_data)
