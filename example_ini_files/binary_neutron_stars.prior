@@ -1,0 +1,16 @@
+# These are some priors we use to determine the source of GW170817.
+# Lines beginning "#" are ignored.
+chirp_mass = Uniform(name='chirp_mass', minimum=0.696, maximum=1.74, unit='$M_{\\odot}$')
+total_mass =  Uniform(name='total_mass', minimum=1.6, maximum=5, unit='$M_{\\odot}$')
+mass_ratio =  Uniform(name='mass_ratio', minimum=0.5, maximum=1)
+symmetric_mass_ratio =  Uniform(name='symmetric_mass_ratio', minimum=0.22, maximum=0.25)
+chi_1 =  bilby.gw.prior.AlignedSpin(a_prior=Uniform(0, 0.05), z_prior=Uniform(-1, 1), name='chi_1', latex_label='$\\chi_1$')
+chi_2 =  bilby.gw.prior.AlignedSpin(a_prior=Uniform(0, 0.05), z_prior=Uniform(-1, 1), name='chi_2', latex_label='$\\chi_2$')
+luminosity_distance =  bilby.gw.prior.UniformComovingVolume(name='luminosity_distance', minimum=10, maximum=100, unit='Mpc')
+dec =  Cosine(name='dec')
+ra =  Uniform(name='ra', minimum=0, maximum=2 * np.pi)
+iota =  Sine(name='iota')
+psi =  Uniform(name='psi', minimum=0, maximum=np.pi)
+phase =  Uniform(name='phase', minimum=0, maximum=2 * np.pi)
+lambda_1 = Uniform(name='lambda_1', minimum=0, maximum=3000 )
+lambda_2 = Uniform(name='lambda_2', minimum=0, maximum=3000 )
