@@ -159,7 +159,17 @@ class DataAnalysisInput(Input):
 
     @property
     def interferometers(self):
-        return self.data_dump.interferometers
+        try:
+            return self._interferometers
+        except AttributeError:
+            ifos = self.data_dump.interferometers
+            names = [ifo.name for ifo in ifos]
+            logger.info("Found data for detectors = {}".format(names))
+            ifos_to_use = [ifo for ifo in ifos if ifo.name in self.detectors]
+            names_to_use = [ifo.name for ifo in ifos_to_use]
+            logger.info("Using data for detectors = {}".format(names_to_use))
+            self._interferometers = bilby.gw.detector.InterferometerList(ifos_to_use)
+            return self._interferometers
 
     @property
     def meta_data(self):
