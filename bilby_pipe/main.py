@@ -20,7 +20,7 @@ from . import webpages
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
-JobInput = namedtuple('level_A_job_input', 'idx kwargs')
+JobInput = namedtuple('level_A_job_input', 'idx meta_label kwargs')
 
 
 def parse_args(input_args, parser):
@@ -276,8 +276,6 @@ class MainInput(Input):
 
         logger.debug('Known detector list = {}'.format(self.known_detectors))
 
-        self.n_level_A_jobs = 1
-
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
@@ -311,6 +309,31 @@ class MainInput(Input):
         if os.path.isfile(ini) is False:
             raise ValueError('ini file is not a file')
         self._ini = os.path.abspath(ini)
+
+    @property
+    def n_level_A_jobs(self):
+        try:
+            return self._n_level_A_jobs
+        except AttributeError:
+            logger.debug("n_level_A_jobs not set, defaulting to 1")
+            return 1
+
+    @n_level_A_jobs.setter
+    def n_level_A_jobs(self, n_level_A_jobs):
+        logger.debug("Setting n_level_A_jobs = {}".format(n_level_A_jobs))
+        self._n_level_A_jobs = n_level_A_jobs
+
+    @property
+    def level_A_labels(self):
+        try:
+            return self._level_A_jobs
+        except AttributeError:
+            logger.debug('level_A_jobs not set')
+            return None
+
+    @level_A_labels.setter
+    def level_A_labels(self, labels):
+        self._level_A_jobs = labels
 
     @property
     def n_injection(self):
@@ -363,7 +386,9 @@ class MainInput(Input):
         logger.info(
             "{} times found in gps_file={}, setting level A jobs"
             .format(n, self.gps_file))
+
         self.n_level_A_jobs = n
+        self.level_A_labels = [str(x) for x in gpstimes]
 
 
 class Dag(object):
@@ -422,7 +447,7 @@ class Dag(object):
     def __init__(self, inputs, request_memory=None, request_disk=None,
                  request_cpus=None, getenv=True, universe='vanilla',
                  initialdir=None, notification='never', requirements=None,
-                 retry=3, verbose=0):
+                 retry=None, verbose=0):
         self.request_memory = request_memory
         self.request_disk = request_disk
         self.request_cpus = request_disk
@@ -439,6 +464,7 @@ class Dag(object):
             name='dag_' + inputs.label,
             submit=self.inputs.submit_directory)
         self.generation_jobs = []
+        self.generation_job_labels = []
         self.analysis_jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
@@ -498,7 +524,9 @@ class Dag(object):
             jobs_numbers = range(self.inputs.n_level_A_jobs)
             jobs_inputs = []
             for idx in jobs_numbers:
-                jobs_inputs.append(JobInput(idx=idx, kwargs=dict()))
+                jobs_inputs.append(
+                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                             kwargs=dict()))
 
             logger.debug("List of job inputs = {}".format(jobs_inputs))
             self._generation_jobs_inputs = jobs_inputs
@@ -513,8 +541,10 @@ class Dag(object):
     def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
         idx = job_input.idx
-        job_label = '_'.join([self.inputs.label, 'generation', str(idx)])
-        job_logs_base = os.path.join(self.inputs.data_generation_log_directory, job_label)
+        job_name = '_'.join([self.inputs.label, 'generation', str(idx)])
+        if job_input.meta_label is not None:
+            job_name = '_'.join([job_name, job_input.meta_label])
+        job_logs_base = os.path.join(self.inputs.data_generation_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ''
         for arg in ['error', 'log', 'output']:
@@ -524,12 +554,14 @@ class Dag(object):
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
 
+        arguments += ' --label {}'.format(job_name)
+        self.generation_job_labels.append(job_name)
         arguments += ' --idx {}'.format(idx)
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         generation_job = pycondor.Job(
-            name=job_label,
+            name=job_name,
             executable=self.generation_executable,
             submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
@@ -538,7 +570,7 @@ class Dag(object):
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments, retry=self.retry, verbose=self.verbose)
-        logger.debug('Adding job: {}'.format(job_label))
+        logger.debug('Adding job: {}'.format(job_name))
         return generation_job
 
     def create_analysis_jobs(self):
@@ -571,7 +603,8 @@ class Dag(object):
         for idx in list(level_A_jobs_numbers):
             for detectors, sampler in level_B_prod_list:
                 jobs_inputs.append(
-                    JobInput(idx=idx, kwargs=dict(detectors=detectors, sampler=sampler)))
+                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                             kwargs=dict(detectors=detectors, sampler=sampler)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -593,8 +626,9 @@ class Dag(object):
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
-        run_label = '_'.join([self.inputs.label, ''.join(detectors), sampler])
-        job_name = run_label
+        job_name = '_'.join([self.inputs.label, ''.join(detectors), sampler])
+        if job_input.meta_label is not None:
+            job_name = '_'.join([job_name, job_input.meta_label])
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ''
@@ -606,6 +640,8 @@ class Dag(object):
         arguments = '--ini {}'.format(self.inputs.ini)
         for detector in detectors:
             arguments += ' --detectors {}'.format(detector)
+        arguments += ' --label {}'.format(job_name)
+        arguments += ' --data-label {}'.format(self.generation_job_labels[idx])
         arguments += ' --idx {}'.format(idx)
         arguments += ' --sampler {}'.format(sampler)
         arguments += ' --cluster $(Cluster)'
@@ -622,8 +658,8 @@ class Dag(object):
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments, retry=self.retry, verbose=self.verbose)
         job.add_parent(self.generation_jobs[idx])
-        logger.debug('Adding job: {}'.format(run_label))
-        self.results_pages[run_label] = 'result/{}.html'.format(run_label)
+        logger.debug('Adding job: {}'.format(job_name))
+        self.results_pages[job_name] = 'result/{}.html'.format(job_name)
         return job
 
     def create_postprocessing_jobs(self):

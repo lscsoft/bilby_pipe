@@ -73,6 +73,7 @@ def create_parser():
     parser.add('--sampler-kwargs', default=None)
     parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
+    parser.add('--data-label', default=None, help='Label used for the data dump', required=True)
     parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
     parser.add('--create-output', default=True, type=bool, help='If true, create plots')
     return parser
@@ -111,6 +112,7 @@ class DataAnalysisInput(Input):
         self.sampler_kwargs = args.sampler_kwargs
         self.outdir = args.outdir
         self.label = args.label
+        self.data_label = args.data_label
         self.default_prior = args.default_prior
         self._frequency_domain_source_model = args.frequency_domain_source_model
         self.conversion = args.conversion
@@ -174,15 +176,9 @@ class DataAnalysisInput(Input):
         except AttributeError:
             filename = os.path.join(
                 self.data_directory,
-                '_'.join([self.label, str(self.idx), 'data_dump.h5']))
+                '_'.join([self.data_label, str(self.idx), 'data_dump.h5']))
             self._data_dump = DataDump.from_hdf5(filename)
             return self._data_dump
-
-    @property
-    def run_label(self):
-        label = '{}_{}_{}_{}'.format(
-            self.label, ''.join(self.detectors), self.sampler, self.idx)
-        return label
 
     @property
     def priors(self):
@@ -257,7 +253,7 @@ class DataAnalysisInput(Input):
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
-            sampler=self.sampler, label=self.run_label, outdir=self.result_directory,
+            sampler=self.sampler, label=self.label, outdir=self.result_directory,
             conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
             injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
