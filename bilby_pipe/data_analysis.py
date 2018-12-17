@@ -183,12 +183,19 @@ class DataAnalysisInput(Input):
 
     @property
     def priors(self):
+        logger.info("self._priors: " + str(self._priors))
+        logger.info("self.default_prior: " + str(self.default_prior))
         if self._priors is None:
+            logger.info("searching for " + self.default_prior)
+            logger.info("core priors: " + str(bilby.core.prior.__dict__.keys()))
+            logger.info("gw priors: " + str(bilby.gw.prior.__dict__.keys()))
             if self.default_prior in bilby.core.prior.__dict__.keys():
+                logger.info("core prior found: " + str(bilby.core.prior.__dict__[self.default_prior]))
                 self._priors = bilby.core.prior.__dict__[self.default_prior](
                     filename=self.prior_file
                 )
             elif self.default_prior in bilby.gw.prior.__dict__.keys():
+                logger.info("gw prior found: " + str(bilby.gw.prior.__dict__[self.default_prior]))
                 self._priors = bilby.gw.prior.__dict__[self.default_prior](
                     filename=self.prior_file
                 )
