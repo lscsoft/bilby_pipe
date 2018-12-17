@@ -11,12 +11,16 @@ import itertools
 import pycondor
 import deepdish
 import numpy as np
+from collections import namedtuple
 
 from .utils import logger
 from . import utils
 from . import webpages
 
 from bilby_pipe.bilbyargparser import BilbyArgParser
+
+
+JobInput = namedtuple('level_A_job_input', 'idx kwargs')
 
 
 def parse_args(input_args, parser):
@@ -89,6 +93,15 @@ def create_parser():
 
 class Input(object):
     """ Superclass of input handlers """
+
+    @property
+    def idx(self):
+        """ The level A job index """
+        return self._idx
+
+    @idx.setter
+    def idx(self, idx):
+        self._idx = idx
 
     @property
     def known_detectors(self):
@@ -263,6 +276,8 @@ class MainInput(Input):
 
         logger.debug('Known detector list = {}'.format(self.known_detectors))
 
+        self.n_level_A_jobs = 1
+
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
@@ -346,9 +361,9 @@ class MainInput(Input):
         gpstimes = self.read_gps_file()
         n = len(gpstimes)
         logger.info(
-            "{} times found in gps_file={}, overwriting queue input"
+            "{} times found in gps_file={}, setting level A jobs"
             .format(n, self.gps_file))
-        self.queue = n
+        self.n_level_A_jobs = n
 
 
 class Dag(object):
@@ -423,11 +438,12 @@ class Dag(object):
         self.dag = pycondor.Dagman(
             name='dag_' + inputs.label,
             submit=self.inputs.submit_directory)
-        self.jobs = []
+        self.generation_jobs = []
+        self.analysis_jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
             self.check_injection()
-        self.create_generation_job()
+        self.create_generation_jobs()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
         self.build_submit()
@@ -466,9 +482,38 @@ class Dag(object):
                 inj_args, inj_unknown_args)
             inj_inputs.create_injection_file()
 
-    def create_generation_job(self):
+    @property
+    def generation_jobs_inputs(self):
+        """ A list of dictionaries enumerating all the generation jobs
+
+        This contains the logic of generating multiple parallel running jobs
+        The keys of each dictionary should be the keyword arguments to
+        `self._create_jobs()`
+
+        """
+        try:
+            return self._generation_jobs_inputs
+        except AttributeError:
+            logger.debug("Generating list of generation jobs")
+            jobs_numbers = range(self.inputs.n_level_A_jobs)
+            jobs_inputs = []
+            for idx in jobs_numbers:
+                jobs_inputs.append(JobInput(idx=idx, kwargs=dict()))
+
+            logger.debug("List of job inputs = {}".format(jobs_inputs))
+            self._generation_jobs_inputs = jobs_inputs
+            return jobs_inputs
+
+    def create_generation_jobs(self):
+        """ Create all the condor jobs and add them to the dag """
+        for job_input in self.generation_jobs_inputs:
+            self.generation_jobs.append(
+                self._create_generation_job(job_input))
+
+    def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
-        job_label = self.inputs.label + '_generation'
+        idx = job_input.idx
+        job_label = '_'.join([self.inputs.label, 'generation', str(idx)])
         job_logs_base = os.path.join(self.inputs.data_generation_log_directory, job_label)
         submit = self.inputs.submit_directory
         extra_lines = ''
@@ -479,10 +524,11 @@ class Dag(object):
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
         arguments = '--ini {}'.format(self.inputs.ini)
 
+        arguments += ' --idx {}'.format(idx)
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
-        self.generation_job = pycondor.Job(
+        generation_job = pycondor.Job(
             name=job_label,
             executable=self.generation_executable,
             submit=submit,
@@ -493,11 +539,12 @@ class Dag(object):
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments, retry=self.retry, verbose=self.verbose)
         logger.debug('Adding job: {}'.format(job_label))
+        return generation_job
 
     def create_analysis_jobs(self):
         """ Create all the condor jobs and add them to the dag """
         for job_input in self.analysis_jobs_inputs:
-            self.jobs.append(self._create_analysis_job(**job_input))
+            self.analysis_jobs.append(self._create_analysis_job(job_input))
 
     @property
     def analysis_jobs_inputs(self):
@@ -509,23 +556,27 @@ class Dag(object):
 
         """
         logger.debug("Generating list of jobs")
+
+        # Create level B inputs
         detectors_list = []
         detectors_list.append(self.inputs.detectors)
         if self.inputs.coherence_test:
             for detector in self.inputs.detectors:
                 detectors_list.append([detector])
-
         sampler_list = self.inputs.sampler
+        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
 
-        prod_list = itertools.product(detectors_list, sampler_list)
+        level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
-        for detectors, sampler in prod_list:
-            jobs_inputs.append(dict(detectors=detectors, sampler=sampler))
+        for idx in list(level_A_jobs_numbers):
+            for detectors, sampler in level_B_prod_list:
+                jobs_inputs.append(
+                    JobInput(idx=idx, kwargs=dict(detectors=detectors, sampler=sampler)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
 
-    def _create_analysis_job(self, detectors, sampler):
+    def _create_analysis_job(self, job_input):
         """ Create a condor job and add it to the dag
 
         Parameters
@@ -536,7 +587,9 @@ class Dag(object):
             The sampler to use for the job
 
         """
-
+        detectors = job_input.kwargs['detectors']
+        sampler = job_input.kwargs['sampler']
+        idx = job_input.idx
         if not isinstance(detectors, list):
             raise ValueError("`detectors must be a list")
 
@@ -553,6 +606,7 @@ class Dag(object):
         arguments = '--ini {}'.format(self.inputs.ini)
         for detector in detectors:
             arguments += ' --detectors {}'.format(detector)
+        arguments += ' --idx {}'.format(idx)
         arguments += ' --sampler {}'.format(sampler)
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
@@ -567,7 +621,7 @@ class Dag(object):
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments, retry=self.retry, verbose=self.verbose)
-        job.add_parent(self.generation_job)
+        job.add_parent(self.generation_jobs[idx])
         logger.debug('Adding job: {}'.format(run_label))
         self.results_pages[run_label] = 'result/{}.html'.format(run_label)
         return job
@@ -586,18 +640,18 @@ class Dag(object):
 
 class DataDump():
     def __init__(self, label, outdir, trigger_time, interferometers, meta_data,
-                 process):
+                 idx):
         self.trigger_time = trigger_time
         self.label = label
         self.outdir = outdir
         self.interferometers = interferometers
         self.meta_data = meta_data
-        self.process = process
+        self.idx = idx
 
     @property
     def filename(self):
         return os.path.join(
-            self.outdir, '_'.join([self.label, str(self.process), 'data_dump.h5']))
+            self.outdir, '_'.join([self.label, str(self.idx), 'data_dump.h5']))
 
     def to_hdf5(self):
         deepdish.io.save(self.filename, self)
