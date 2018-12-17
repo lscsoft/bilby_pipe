@@ -73,6 +73,7 @@ def create_parser():
     parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
     parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
+    parser.add('--create-output', default=True, type=bool, help='If true, create plots')
     return parser
 
 
@@ -264,4 +265,5 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     analysis = DataAnalysisInput(args, unknown_args)
     analysis.run_sampler()
-    webpages.create_run_output(analysis.result)
+    if args.create_output:
+        webpages.create_run_output(analysis.result)
