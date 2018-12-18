@@ -105,17 +105,13 @@ class CreateInjectionInput(Input):
         else:
             raise ValueError("Input prior not understood")
 
-    @property
-    def filename(self):
-        return '{}/{}_injection_file.h5'.format(self.outdir, self.label)
-
-    def create_injection_file(self):
+    def create_injection_file(self, filename):
         logger.info("Generating injection file with prior={}, n_injection={}"
                     .format(self.prior, self.n_injection))
         injection_values = pd.DataFrame.from_dict(self.prior.sample(self.n_injection))
         injections = dict(injections=injection_values, prior=self.prior.__repr__)
-        deepdish.io.save(self.filename, injections)
-        logger.info("Create injection file {}".format(self.filename))
+        deepdish.io.save(filename, injections)
+        logger.info("Created injection file {}".format(filename))
 
 
 def main():

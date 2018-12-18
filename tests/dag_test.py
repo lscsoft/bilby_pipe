@@ -1,7 +1,6 @@
 import os
 import unittest
 from argparse import Namespace
-import copy
 import shutil
 
 import bilby_pipe
@@ -28,16 +27,16 @@ class TestDag(unittest.TestCase):
         del self.inputs
         shutil.rmtree(self.outdir)
 
-    #def test_jobs_creation(self):
-    #    test_args = copy.copy(self.test_args)
-    #    test_args.detectors = 'H1 L1'
-    #    test_args.coherence_test = True
-    #    inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-    #    dag = bilby_pipe.main.Dag(inputs)
-    #    expected_jobs = [dict(detectors=['H1', 'L1'], sampler='nestle'),
-    #                     dict(detectors=['H1'], sampler='nestle'),
-    #                     dict(detectors=['L1'], sampler='nestle')]
-    #    self.assertEqual(dag.analysis_jobs_inputs, expected_jobs)
+    # def test_jobs_creation(self):
+    #     test_args = copy.copy(self.test_args)
+    #     test_args.detectors = 'H1 L1'
+    #     test_args.coherence_test = True
+    #     inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
+    #     dag = bilby_pipe.main.Dag(inputs)
+    #     expected_jobs = [dict(detectors=['H1', 'L1'], sampler='nestle'),
+    #                      dict(detectors=['H1'], sampler='nestle'),
+    #                      dict(detectors=['L1'], sampler='nestle')]
+    #     self.assertEqual(dag.analysis_jobs_inputs, expected_jobs)
 
     # def test_build_submit(self):
     #     test_args = copy.copy(self.test_args)

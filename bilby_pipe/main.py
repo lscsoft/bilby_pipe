@@ -336,17 +336,6 @@ class MainInput(Input):
         self._level_A_jobs = labels
 
     @property
-    def n_injection(self):
-        return self._n_injection
-
-    @n_injection.setter
-    def n_injection(self, n_injection):
-        if n_injection is not None:
-            logger.info(
-                "n_injection={}, overwriting queue input".format(n_injection))
-            self.queue = n_injection
-
-    @property
     def x509userproxy(self):
         """ A path to the users X509 certificate used for authentication """
         try:
@@ -389,6 +378,20 @@ class MainInput(Input):
 
         self.n_level_A_jobs = n
         self.level_A_labels = [str(x) for x in gpstimes]
+
+    @property
+    def n_injection(self):
+        return self._n_injection
+
+    @n_injection.setter
+    def n_injection(self, n_injection):
+        if n_injection is not None:
+            logger.info(
+                "n_injection={}, setting level A jobs".format(n_injection))
+            self.n_level_A_jobs = n_injection
+            self.level_A_labels = ['injection_{}'.format(x) for x in range(n_injection)]
+        else:
+            n_injection = None
 
 
 class Dag(object):
@@ -494,11 +497,13 @@ class Dag(object):
     def check_injection(self):
         """ If injections are requested, create an injection file """
         default_injection_file_name = '{}/{}_injection_file.h5'.format(
-            self.inputs.outdir, self.inputs.label)
+            self.inputs.data_directory, self.inputs.label)
         if self.inputs.injection_file is not None:
             logger.info("Using injection file {}".format(self.inputs.injection_file))
         elif os.path.isfile(default_injection_file_name):
+            # This is done to avoid overwriting the injection file
             logger.info("Using injection file {}".format(default_injection_file_name))
+            self.inputs.injection_file = default_injection_file_name
         else:
             logger.info("No injection file found, generating one now")
             import bilby_pipe.create_injections
@@ -506,7 +511,8 @@ class Dag(object):
                 sys.argv[1:], bilby_pipe.create_injections.create_parser())
             inj_inputs = bilby_pipe.create_injections.CreateInjectionInput(
                 inj_args, inj_unknown_args)
-            inj_inputs.create_injection_file()
+            inj_inputs.create_injection_file(default_injection_file_name)
+            self.inputs.injection_file = default_injection_file_name
 
     @property
     def generation_jobs_inputs(self):
@@ -559,6 +565,8 @@ class Dag(object):
         arguments += ' --idx {}'.format(idx)
         arguments += ' --cluster $(Cluster)'
         arguments += ' --process $(Process)'
+        if self.inputs.injection_file is not None:
+            arguments += ' --injection-file {}'.format(self.inputs.injection_file)
         arguments += ' ' + ' '.join(self.inputs.unknown_args)
         generation_job = pycondor.Job(
             name=job_name,
