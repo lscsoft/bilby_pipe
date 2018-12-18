@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-bilby_pipe is a command line tools for taking user input (as command line or
-an ini file) and creating DAG files for submitting bilby parameter estimation
-jobs.
+bilby_pipe is a command line tools for taking user input (as command line
+arguments or an ini file) and creating DAG files for submitting bilby parameter
+estimation jobs.
 """
 import os
 import sys
