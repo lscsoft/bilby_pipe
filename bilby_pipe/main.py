@@ -328,8 +328,8 @@ class MainInput(Input):
         try:
             return self._level_A_jobs
         except AttributeError:
-            logger.debug('level_A_jobs not set')
-            return None
+            logger.debug('level_A_jobs not set, using default')
+            return ['' for _ in range(self.n_level_A_jobs)]
 
     @level_A_labels.setter
     def level_A_labels(self, labels):
@@ -524,10 +524,10 @@ class Dag(object):
             jobs_numbers = range(self.inputs.n_level_A_jobs)
             jobs_inputs = []
             for idx in jobs_numbers:
-                jobs_inputs.append(
-                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                             kwargs=dict()))
-
+                ji = JobInput(
+                    idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                    kwargs=dict())
+                jobs_inputs.append(ji)
             logger.debug("List of job inputs = {}".format(jobs_inputs))
             self._generation_jobs_inputs = jobs_inputs
             return jobs_inputs
