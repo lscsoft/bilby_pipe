@@ -1,8 +1,8 @@
 # These are the priors for analysing GW170104.
 chirp_mass = Uniform(name='chirp_mass', minimum=12.299, maximum=45, unit='$M_{\\odot}$')
 mass_ratio = Uniform(name='mass_ratio', minimum=0.125, maximum=1)
-a_1 =  Uniform(name='a_1', minimum=0, maximum=0.8)
-a_2 =  Uniform(name='a_2', minimum=0, maximum=0.8)
+a_1 =  Uniform(name='a_1', minimum=0, maximum=0.99)
+a_2 =  Uniform(name='a_2', minimum=0, maximum=0.99)
 tilt_1 =  Sine(name='tilt_1')
 tilt_2 =  Sine(name='tilt_2')
 phi_12 =  Uniform(name='phi_12', minimum=0, maximum=2 * np.pi)

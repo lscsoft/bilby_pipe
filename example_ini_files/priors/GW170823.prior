@@ -1,0 +1,16 @@
+# These are the priors for analysing GW170823.
+chirp_mass = Uniform(name='chirp_mass', minimum=12, maximum=55, unit='$M_{\\odot}$')
+mass_ratio = Uniform(name='mass_ratio', minimum=0.125, maximum=1)
+a_1 =  Uniform(name='a_1', minimum=0, maximum=0.99)
+a_2 =  Uniform(name='a_2', minimum=0, maximum=0.99)
+tilt_1 =  Sine(name='tilt_1')
+tilt_2 =  Sine(name='tilt_2')
+phi_12 =  Uniform(name='phi_12', minimum=0, maximum=2 * np.pi)
+phi_jl =  Uniform(name='phi_jl', minimum=0, maximum=2 * np.pi)
+# Here we use a luminosity distance consistent with LAL analyses for comparison.
+luminosity_distance = bilby.gw.prior.PowerLaw(alpha=2, name='luminosity_distance', minimum=300, maximum=6000, unit='Mpc', latex_label='$d_L$')
+dec =  Cosine(name='dec')
+ra =  Uniform(name='ra', minimum=0, maximum=2 * np.pi)
+iota =  Sine(name='iota')
+psi =  Uniform(name='psi', minimum=0, maximum=np.pi)
+phase =  Uniform(name='phase', minimum=0, maximum=2 * np.pi)
