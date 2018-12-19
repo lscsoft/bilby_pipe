@@ -75,7 +75,8 @@ def create_parser():
     parser.add('--label', default='label', help='Output label')
     parser.add('--data-label', default=None, help='Label used for the data dump', required=True)
     parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
-    parser.add('--create-output', default=True, type=bool, help='If true, create plots')
+    parser.add('--create-output', action='store_true',
+               help='If true, create plots')
     return parser
 
 
