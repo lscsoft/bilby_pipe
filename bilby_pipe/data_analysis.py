@@ -166,7 +166,6 @@ class DataAnalysisInput(Input):
 
     @property
     def data_dump(self):
-        logger.info("data_dump")
         try:
             return self._data_dump
         except AttributeError:
@@ -178,16 +177,12 @@ class DataAnalysisInput(Input):
 
     @property
     def run_label(self):
-        logger.info("run_label")
         label = '{}_{}_{}_{}'.format(
             self.label, ''.join(self.detectors), self.sampler, self.process)
         return label
 
     @property
     def priors(self):
-        logger.info("priors")
-        logger.info("self._priors: " + str(self._priors))
-        logger.info("self.default_prior: " + str(self.default_prior))
         if self._priors is None:
             logger.info("searching for " + self.default_prior)
             logger.info("core priors: " + str(bilby.core.prior.__dict__.keys()))
@@ -217,7 +212,6 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        logger.info("parameter_conversion")
         if self.conversion in bilby.gw.conversion.__dict__.keys():
             return bilby.gw.conversion.__dict__[self.conversion]
         else:
@@ -227,7 +221,6 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_generator(self):
-        logger.info("waveform_generator")
         waveform_generator = bilby.gw.WaveformGenerator(
             sampling_frequency=self.interferometers.sampling_frequency,
             duration=self.interferometers.duration,
@@ -239,7 +232,6 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_arguments(self):
-        logger.info("waveform_arguments")
         return dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
@@ -247,7 +239,6 @@ class DataAnalysisInput(Input):
 
     @property
     def likelihood(self):
-        logger.info("likelihood")
         return bilby.gw.likelihood.GravitationalWaveTransient(
             interferometers=self.interferometers,
             waveform_generator=self.waveform_generator, priors=self.priors,
@@ -257,7 +248,6 @@ class DataAnalysisInput(Input):
 
     @property
     def frequency_domain_source_model(self):
-        logger.info("frequency_domain_source_model")
         if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
             return bilby.gw.source.__dict__[self._frequency_domain_source_model]
         else:
@@ -267,7 +257,6 @@ class DataAnalysisInput(Input):
             return bilby.gw.source.lal_binary_black_hole
 
     def run_sampler(self):
-        logger.info("run_sampler")
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
             sampler=self.sampler, label=self.run_label, outdir=self.result_directory,
