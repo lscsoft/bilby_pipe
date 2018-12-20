@@ -5,6 +5,7 @@ Module containing the tools for data generation
 from __future__ import division, print_function
 
 import sys
+import os
 
 import bilby
 import deepdish
@@ -28,6 +29,7 @@ def create_parser():
     """
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
+    parser.add('--idx', type=int, help="The level A job index", default=0)
     parser.add('--cluster', type=int,
                help='The condor cluster ID', default=None)
     parser.add('--process', type=int,
@@ -59,8 +61,8 @@ def create_parser():
     data_parser = parser.add_argument_group(title='Data setting methods')
     data_parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
     data_parser.add('--gps-file', type=str, help='File containing GPS times')
-    data_parser.add('--injection', action='store_true', default=False,
-                    help='Create data from an injection file')
+    data_parser.add('--injection-file', type=str, default=None,
+                    help='Path to an injection file')
     data_parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
                     help="Name of the waveform approximant for injection")
     data_parser.add('--reference-frequency', default=20, type=float,
@@ -89,6 +91,7 @@ class DataGenerationInput(Input):
         self.ini = args.ini
         self.cluster = args.cluster
         self.process = args.process
+        self.idx = args.idx
         self.detectors = args.detectors
         self.calibration = args.calibration
         self.channel_names = args.channel_names
@@ -105,7 +108,7 @@ class DataGenerationInput(Input):
 
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
-        self.injection = args.injection
+        self.injection_file = args.injection_file
 
     @property
     def minimum_frequency(self):
@@ -162,7 +165,7 @@ class DataGenerationInput(Input):
 
     def _parse_gps_file(self):
         gps_start_times = self.read_gps_file()
-        gps_start_time = gps_start_times[self.process]
+        gps_start_time = gps_start_times[self.idx]
         self.trigger_time = gps_start_time + self.duration / 2.0
         self.frame_caches = self.generate_frame_cache_list_from_gpstime(gps_start_time)
 
@@ -220,21 +223,24 @@ class DataGenerationInput(Input):
         return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
 
     @property
-    def injection(self):
-        return self._injection
+    def injection_file(self):
+        return self._injection_file
 
-    @injection.setter
-    def injection(self, injection):
-        self._injection = injection
-        if injection is True:
-            injection_filename = '{}/{}_injection_file.h5'.format(self.data_directory, self.label)
-            injection_dict = deepdish.io.load(injection_filename)
+    @injection_file.setter
+    def injection_file(self, injection_file):
+        self._injection_file = injection_file
+        if injection_file is None:
+            logger.debug("No injection file set")
+        elif os.path.isfile(injection_file):
+            injection_dict = deepdish.io.load(injection_file)
             injection_df = injection_dict['injections']
             self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
             self.meta_data['injection_parameters'] = self.injection_parameters
             if self.trigger_time is None:
                 self.trigger_time = self.injection_parameters['geocent_time']
             self._set_interferometers_from_simulation()
+        else:
+            raise FileNotFoundError("Injection file {} not found".format(injection_file))
 
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
@@ -273,7 +279,7 @@ class DataGenerationInput(Input):
 
     def save_interferometer_list(self):
         data_dump = DataDump(outdir=self.data_directory, label=self.label,
-                             process=self.process,
+                             idx=self.idx,
                              trigger_time=self.trigger_time,
                              interferometers=self.interferometers,
                              meta_data=self.meta_data)

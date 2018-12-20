@@ -8,7 +8,6 @@ MANIFEST
 *.png
 *.h5
 *.h5.old
-*.txt
 *.log
 *.dat
 *.version

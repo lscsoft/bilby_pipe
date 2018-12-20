@@ -5,7 +5,7 @@ Installation
 Install bilby_pipe from source
 ------------------------------
 
-:code:`bilby_pipe` is developed and tested with for Python 3+. In the
+:code:`bilby_pipe` is developed and tested for Python 3.5+ In the
 following, we assume you have a working python installation, `python pip
 <https://packaging.python.org/tutorials/installing-packages/#use-pip-for-installing)>`_,
 and `git <https://git-scm.com/>`_.
