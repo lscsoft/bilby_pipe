@@ -65,6 +65,29 @@ class TestInput(unittest.TestCase):
             self.assertEqual(bilby_pipe.main.Input._convert_string_to_list(string),
                              ['H1', 'L1'])
 
+    def test_gps_file_unset(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(AttributeError):
+            self.assertEqual(inputs.gps_file, None)
+
+    def test_gps_file_set_none(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.gps_file = None
+        self.assertEqual(inputs.gps_file, None)
+
+    def test_gps_file_set(self):
+        inputs = bilby_pipe.main.Input()
+        gps_file = 'tests/gps_file.txt'
+        inputs.gps_file = gps_file
+        self.assertEqual(inputs.gps_file, os.path.abspath(gps_file))
+        self.assertEqual(len(inputs.read_gps_file()), 3)
+
+    def test_gps_file_set_fail(self):
+        inputs = bilby_pipe.main.Input()
+        gps_file = 'tests/nonexistant_file.txt'
+        with self.assertRaises(FileNotFoundError):
+            inputs.gps_file = gps_file
+
 
 class TestMainInput(unittest.TestCase):
 

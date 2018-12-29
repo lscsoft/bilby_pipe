@@ -8,18 +8,12 @@ Command line interface
 ----------------------
 
 The primary user-interface for this code is a command line tool
-:code:`bilby_pipe` which is available after following the `installation
-instructions <installation.txt>`_.
-
-.. argparse::
-   :module: bilby_pipe.main
-   :func: create_parser
-   :prog: fancytool
-
+:code:`bilby_pipe`, for an overview of this see `the user interface
+<user-interface.txt>`_.
 
 Main function
 -------------
-Functionally, this command line tool is
+Functionally, the main command line tool is
 calling the function :code:`bilby_pipe.main.main()`, which is transcribed here:
 
 .. code-block:: python

@@ -6,7 +6,6 @@ from __future__ import division, print_function
 
 import sys
 
-import configargparse
 import bilby
 from bilby.gw.prior import BBHPriorDict
 import deepdish
@@ -14,6 +13,7 @@ import pandas as pd
 
 from bilby_pipe.utils import logger
 from bilby_pipe.main import parse_args, Input
+from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
 def create_parser():
@@ -24,11 +24,11 @@ def create_parser():
 
     Returns
     -------
-    parser: configargparse.ArgParser
+    parser: BilbyArgParser
         A parser with all the default options already added
 
     """
-    parser = configargparse.ArgParser(ignore_unknown_config_file_keys=True)
+    parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
     parser.add('--label', type=str, default='LABEL',
                help='The output label')
@@ -105,17 +105,13 @@ class CreateInjectionInput(Input):
         else:
             raise ValueError("Input prior not understood")
 
-    @property
-    def filename(self):
-        return '{}/{}_injection_file.h5'.format(self.outdir, self.label)
-
-    def create_injection_file(self):
+    def create_injection_file(self, filename):
         logger.info("Generating injection file with prior={}, n_injection={}"
                     .format(self.prior, self.n_injection))
         injection_values = pd.DataFrame.from_dict(self.prior.sample(self.n_injection))
         injections = dict(injections=injection_values, prior=self.prior.__repr__)
-        deepdish.io.save(self.filename, injections)
-        logger.info("Create injection file {}".format(self.filename))
+        deepdish.io.save(filename, injections)
+        logger.info("Created injection file {}".format(filename))
 
 
 def main():

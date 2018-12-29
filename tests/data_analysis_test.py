@@ -22,11 +22,6 @@ class TestDataAnalysisInput(unittest.TestCase):
         del self.inputs
         shutil.rmtree(self.outdir)
 
-    def test_run_label(self):
-        self.assertEqual(
-            self.inputs.run_label, '{}_{}_{}'.format(
-                self.inputs.label, ''.join(self.inputs.detectors), self.inputs.sampler))
-
     def test_unset_sampling_seed(self):
         self.assertEqual(type(self.inputs.sampling_seed), int)
 
