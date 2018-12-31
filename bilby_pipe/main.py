@@ -54,6 +54,11 @@ def create_parser():
         usage=__doc__, ignore_unknown_config_file_keys=True,
         allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
+    parser.add('--simg', type=str, default=None,
+               help='(optional) singularity image to use')
+    parser.add('-D', '--no-singularity', action='store_true',
+               help=('If given, use the locally-installed bilby instead of the'
+                     'singularity image'))
     parser.add('--submit', action='store_true',
                help='If given, build and submit')
     parser.add('--sampler', nargs='+', default='dynesty',
@@ -282,6 +287,12 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
+        self.singularity_image = args.simg
+        self.use_singularity = args.use_singularity
+        if args.no_singularity:
+            self.use_singularity = False
+        else:
+            self.use_singularity = True
         self.outdir = args.outdir
         self.label = args.label
         self.queue = args.queue
@@ -312,6 +323,33 @@ class MainInput(Input):
         if os.path.isfile(ini) is False:
             raise ValueError('ini file is not a file')
         self._ini = os.path.abspath(ini)
+
+    @property
+    def singularity_image(self):
+        return self._singularity_image
+
+    @singularity_image.setter
+    def singularity_image(self, singularity_image):
+        if singularity_image is None:
+            pass
+        elif isinstance(singularity_image, str):
+            pass
+        else:
+            raise ValueError(
+                "simg={} not understood".format(singularity_image))
+
+    @property
+    def use_singularity(self):
+        return self._use_singularity
+
+    @use_singularity.setter
+    def use_singularity(self, use_singularity):
+        if isinstance(use_singularity, bool):
+            logger.info('Setting use_singularity = {}'.format(use_singularity))
+            self._use_singularity = use_singularity
+        else:
+            raise ValueError(
+                "use_singularity={} not understood".format(use_singularity))
 
     @property
     def n_level_A_jobs(self):
