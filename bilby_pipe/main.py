@@ -19,6 +19,7 @@ from . import webpages
 
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
+__version__ = utils.get_version_information()
 
 JobInput = namedtuple('level_A_job_input', 'idx meta_label kwargs')
 
@@ -75,6 +76,8 @@ def create_parser():
                      '$X509_USER_PROXY will be made in outdir and linked in '
                      'the condor jobs submission'))
     parser.add('-v', '--verbose', action='store_true', help='verbose')
+    parser.add('--version', action='version',
+               version='%(prog)s {version}'.format(version=__version__))
 
     injection_parser = parser.add_argument_group(title='Injection arguments')
     injection_parser.add(
@@ -229,7 +232,7 @@ class Input(object):
             logger.debug("No _parse_gps_file method present")
 
     def read_gps_file(self):
-        gpstimes = np.loadtxt(self.gps_file)
+        gpstimes = np.loadtxt(self.gps_file, ndmin=1)
         return gpstimes
 
 

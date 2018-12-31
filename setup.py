@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+import os
+import sys
 from setuptools import setup
 import subprocess
-from os import path
-import sys
 
 # check that python version is 3.5 or above
 python_version = sys.version_info
@@ -44,7 +44,7 @@ def write_version_file(version):
         git_status = ''
 
     version_file = '.version'
-    if path.isfile(version_file) is False:
+    if os.path.isfile(version_file) is False:
         with open('bilby_pipe/' + version_file, 'w+') as f:
             f.write('{}: {}'.format(version, git_status))
 
@@ -53,8 +53,8 @@ def write_version_file(version):
 
 def get_long_description():
     """ Finds the README and reads in the description """
-    here = path.abspath(path.dirname(__file__))
-    with open(path.join(here, 'README.rst')) as f:
+    here = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(here, 'README.rst')) as f:
             long_description = f.read()
     return long_description
 
