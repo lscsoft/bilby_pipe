@@ -79,13 +79,19 @@ def setup_logger(outdir=None, label=None, log_level='INFO',
     for handler in logger.handlers:
         handler.setLevel(level)
 
+    if print_version:
+        version = get_version_information()
+        logger.info('Running bilby_pipe version: {}'.format(version))
+
+
+def get_version_information():
     version_file = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), 'bilby_pipe/.version')
-    with open(version_file, 'r') as f:
-        version = f.readline().rstrip()
-
-    if print_version:
-        logger.info('Running bilby_pipe version: {}'.format(version))
+    try:
+        with open(version_file, 'r') as f:
+            return f.readline().rstrip()
+    except EnvironmentError:
+        print("No version information file '.version' found")
 
 
 setup_logger(print_version=True)
