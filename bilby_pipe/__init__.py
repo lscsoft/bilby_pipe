@@ -9,5 +9,4 @@ estimation on computing clusters.
 """
 
 from . import main
-from . import webpages
 from . import bilbyargparser

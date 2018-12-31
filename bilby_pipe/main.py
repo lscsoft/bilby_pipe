@@ -15,7 +15,6 @@ from collections import namedtuple
 
 from .utils import logger
 from . import utils
-from . import webpages
 
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
@@ -724,6 +723,3 @@ def main():
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
     dag = Dag(inputs)
-    # If requested, create a summary page at the DAG-level
-    if inputs.create_summary:
-        webpages.create_summary_page(dag)
