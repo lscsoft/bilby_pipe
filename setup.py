@@ -79,6 +79,7 @@ setup(name='bilby_pipe',
           'configargparse',
           'jinja2',
           'ligo-gracedb',
+          'spython',
           'gwdatafind'],
       entry_points={
           'console_scripts': [
