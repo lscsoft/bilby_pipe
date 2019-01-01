@@ -640,19 +640,19 @@ class Dag(object):
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
 
-        arguments = ''
+        arguments = ArgumentsString()
         if self.inputs.use_singularity:
-            arguments += ' --bilby-pipe-executable generation'
-            arguments += ' --simg {}'.format(self.inputs.singularity_image)
-        arguments += ' --ini {}'.format(self.inputs.ini)
-        arguments += ' --label {}'.format(job_name)
+            arguments.add('bilby-pipe-executable', 'generation')
+            arguments.add('simg', self.inputs.singularity_image)
+        arguments.add('ini', self.inputs.ini)
+        arguments.add('label', job_name)
         self.generation_job_labels.append(job_name)
-        arguments += ' --idx {}'.format(idx)
-        arguments += ' --cluster $(Cluster)'
-        arguments += ' --process $(Process)'
+        arguments.add('idx', idx)
+        arguments.add('cluster', '$(Cluster)')
+        arguments.add('process', '$(Process)')
         if self.inputs.injection_file is not None:
-            arguments += ' --injection-file {}'.format(self.inputs.injection_file)
-        arguments += ' ' + ' '.join(self.inputs.unknown_args)
+            arguments.add('injection-file', self.inputs.injection_file)
+        arguments.add_unknown_args(self.inputs.unknown_args)
         generation_job = pycondor.Job(
             name=job_name,
             executable=self.generation_executable,
@@ -662,7 +662,7 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         logger.debug('Adding job: {}'.format(job_name))
         return generation_job
 
@@ -731,20 +731,20 @@ class Dag(object):
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
 
-        arguments = ''
+        arguments = ArgumentsString()
         if self.inputs.use_singularity:
-            arguments += ' --bilby-pipe-executable analysis'
-            arguments += ' --simg {}'.format(self.inputs.singularity_image)
-        arguments += ' --ini {}'.format(self.inputs.ini)
+            arguments.add('bilby-pipe-executable', 'analysis')
+            arguments.add('simg', self.inputs.singularity_image)
+        arguments.add('ini', self.inputs.ini)
         for detector in detectors:
-            arguments += ' --detectors {}'.format(detector)
-        arguments += ' --label {}'.format(job_name)
-        arguments += ' --data-label {}'.format(self.generation_job_labels[idx])
-        arguments += ' --idx {}'.format(idx)
-        arguments += ' --sampler {}'.format(sampler)
-        arguments += ' --cluster $(Cluster)'
-        arguments += ' --process $(Process)'
-        arguments += ' ' + ' '.join(self.inputs.unknown_args)
+            arguments.add('detectors', detector)
+        arguments.add('label', job_name)
+        arguments.add('data-label', self.generation_job_labels[idx])
+        arguments.add('idx', idx)
+        arguments.add('sampler', sampler)
+        arguments.add('cluster', '$(Cluster)')
+        arguments.add('process', '$(Process)')
+        arguments.add_unknown_args(self.inputs.unknown_args)
         job = pycondor.Job(
             name=job_name,
             executable=self.analysis_executable,
@@ -754,7 +754,7 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         job.add_parent(self.generation_jobs[idx])
         logger.debug('Adding job: {}'.format(job_name))
         self.results_pages[job_name] = 'result/{}.html'.format(job_name)
@@ -770,6 +770,21 @@ class Dag(object):
             self.dag.build_submit()
         else:
             self.dag.build()
+
+
+class ArgumentsString(object):
+    """ A convienience object to aid in the creation of argument strings """
+    def __init__(self):
+        self.argument_list = []
+
+    def add(self, argument, value):
+        self.argument_list.append('--{} {}'.format(argument, value))
+
+    def add_unknown_args(self, unknown_args):
+        self.argument_list += unknown_args
+
+    def print(self):
+        return ' '.join(self.argument_list)
 
 
 class DataDump():
