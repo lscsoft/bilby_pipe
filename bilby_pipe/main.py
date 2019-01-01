@@ -289,11 +289,11 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
-        self.singularity_image = args.simg
         if args.no_singularity:
             self.use_singularity = False
         else:
             self.use_singularity = True
+            self.singularity_image = args.simg
         self.outdir = args.outdir
         self.label = args.label
         self.queue = args.queue
@@ -332,7 +332,14 @@ class MainInput(Input):
     @singularity_image.setter
     def singularity_image(self, singularity_image):
         if singularity_image is None:
-            raise NotImplementedError("No default image is available yet")
+            logger.info('Downloading singularity image..')
+            version = __version__.split(' ')[0].rstrip(':')
+            singularity_url = 'shub://lscsoft/bilby_pipe:{}'.format(version)
+            self._singularity_image = Client.pull(singularity_url)
+            self._singularity_image = os.path.abspath(self._singularity_image)
+            self._verify_singularity(self._singularity_image)
+            logger.info('Singularity image saved to {}'.format(
+                self._singularity_image))
         elif isinstance(singularity_image, str):
             self._verify_singularity(singularity_image)
             self._singularity_image = singularity_image
