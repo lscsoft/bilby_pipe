@@ -13,6 +13,8 @@ import deepdish
 import numpy as np
 from collections import namedtuple
 
+from spython.main import Client
+
 from .utils import logger
 from . import utils
 from . import webpages
@@ -288,7 +290,6 @@ class MainInput(Input):
         self.ini = args.ini
         self.submit = args.submit
         self.singularity_image = args.simg
-        self.use_singularity = args.use_singularity
         if args.no_singularity:
             self.use_singularity = False
         else:
@@ -331,12 +332,38 @@ class MainInput(Input):
     @singularity_image.setter
     def singularity_image(self, singularity_image):
         if singularity_image is None:
-            pass
+            raise NotImplementedError("No default image is available yet")
         elif isinstance(singularity_image, str):
-            pass
+            self._verify_singularity(singularity_image)
+            self._singularity_image = singularity_image
         else:
             raise ValueError(
                 "simg={} not understood".format(singularity_image))
+
+    def _verify_singularity(self, singularity_image):
+        """ Verify the singularity exists, runs, and warn of version mismatches """
+        if os.path.isfile(singularity_image) is False:
+            raise ValueError("singularity_image={} is not a file".format(singularity_image))
+        else:
+            singularity_image = os.path.abspath(singularity_image)
+
+        # Check the bilby_pipe version
+        call = Client.execute(
+            singularity_image, ['bilby_pipe', '--version'], stream=True)
+        version_string = [line for line in call][-1].rstrip('\n')
+        if version_string == __version__:
+            logger.info("bilby_pipe version matched with container")
+        else:
+            logger.warning(
+                "Mismatch in bilby_pipe version: system install is {}, but "
+                "singularity_image has {}".format(__version__, version_string))
+
+        # Check the bilby version
+        call = Client.execute(singularity_image,
+                              ['python3', '-c', 'import bilby; print(bilby.__version__)'],
+                              stream=True)
+        bilby_version_string = [line for line in call][-1].rstrip('\n')
+        logger.info("Singularity image has bilby version={}".format(bilby_version_string))
 
     @property
     def use_singularity(self):
@@ -529,11 +556,17 @@ class Dag(object):
 
     @property
     def generation_executable(self):
-        return self._get_executable_path('bilby_pipe_generation')
+        if self.inputs.use_singularity:
+            return self._get_executable_path('bilby_pipe_singularity')
+        else:
+            return self._get_executable_path('bilby_pipe_generation')
 
     @property
     def analysis_executable(self):
-        return self._get_executable_path('bilby_pipe_analysis')
+        if self.inputs.use_singularity:
+            return self._get_executable_path('bilby_pipe_singularity')
+        else:
+            return self._get_executable_path('bilby_pipe_analysis')
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
@@ -599,8 +632,12 @@ class Dag(object):
                 arg, job_logs_base, arg[:3])
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
 
+        arguments = ''
+        if self.inputs.use_singularity:
+            arguments += ' --bilby-pipe-executable generation'
+            arguments += ' --simg {}'.format(self.inputs.singularity_image)
+        arguments += ' --ini {}'.format(self.inputs.ini)
         arguments += ' --label {}'.format(job_name)
         self.generation_job_labels.append(job_name)
         arguments += ' --idx {}'.format(idx)
@@ -686,7 +723,12 @@ class Dag(object):
                 arg, job_logs_base, arg[:3])
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
+
+        arguments = ''
+        if self.inputs.use_singularity:
+            arguments += ' --bilby-pipe-executable analysis'
+            arguments += ' --simg {}'.format(self.inputs.singularity_image)
+        arguments += ' --ini {}'.format(self.inputs.ini)
         for detector in detectors:
             arguments += ' --detectors {}'.format(detector)
         arguments += ' --label {}'.format(job_name)
