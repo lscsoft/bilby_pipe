@@ -10,4 +10,4 @@ RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singulari
 && make\
 && make install
 
-RUN pip install --upgrade pip && pip install future pycondor>=0.5 configargparse spython jinja2 flake8 urllib3
+RUN pip install --upgrade pip && pip install future pycondor>=0.5 configargparse spython jinja2 flake8 urllib3 coverage pytest-cov
