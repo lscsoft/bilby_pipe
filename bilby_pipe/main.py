@@ -350,7 +350,8 @@ class MainInput(Input):
     def _verify_singularity(self, singularity_image):
         """ Verify the singularity exists, runs, and warn of version mismatches """
         if os.path.isfile(singularity_image) is False:
-            raise ValueError("singularity_image={} is not a file".format(singularity_image))
+            raise FileNotFoundError(
+                "singularity_image={} is not a file".format(singularity_image))
         else:
             singularity_image = os.path.abspath(singularity_image)
 
@@ -433,11 +434,11 @@ class MainInput(Input):
             except FileNotFoundError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY does not point to a"
-                    " file. Try running $ligo-proxy-init albert.einstein")
+                    " file. Try running `$ ligo-proxy-init albert.einstein`")
             except KeyError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY not set"
-                    " Try running $ligo-proxy-init albert.einstein")
+                    " Try running `$ ligo-proxy-init albert.einstein`")
                 self._x509userproxy = None
         elif os.path.isfile(x509userproxy):
             self._x509userproxy = x509userproxy
