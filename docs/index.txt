@@ -10,4 +10,5 @@
    installation
    user-interface
    structure
+   singularity
    ini_file

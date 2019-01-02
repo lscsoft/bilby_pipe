@@ -15,8 +15,9 @@ stages:
 
 python-3:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite
   script:
+    - pip install bilby
     - python setup.py install
 
     # Run pyflakes
@@ -34,8 +35,9 @@ python-3:
 
 documentation:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite
   script:
+    - pip install bilby
     - python setup.py install
 
     # Make the documentation

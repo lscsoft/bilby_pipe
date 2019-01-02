@@ -13,6 +13,8 @@ import deepdish
 import numpy as np
 from collections import namedtuple
 
+from spython.main import Client
+
 from .utils import logger
 from . import utils
 from . import webpages
@@ -54,6 +56,11 @@ def create_parser():
         usage=__doc__, ignore_unknown_config_file_keys=True,
         allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
+    parser.add('--simg', type=str, default=None,
+               help='(optional) singularity image to use')
+    parser.add('-D', '--no-singularity', action='store_true',
+               help=('If given, use the locally-installed bilby instead of the'
+                     'singularity image'))
     parser.add('--submit', action='store_true',
                help='If given, build and submit')
     parser.add('--sampler', nargs='+', default='dynesty',
@@ -282,6 +289,11 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
+        if args.no_singularity:
+            self.use_singularity = False
+        else:
+            self.use_singularity = True
+            self.singularity_image = args.simg
         self.outdir = args.outdir
         self.label = args.label
         self.queue = args.queue
@@ -312,6 +324,67 @@ class MainInput(Input):
         if os.path.isfile(ini) is False:
             raise ValueError('ini file is not a file')
         self._ini = os.path.abspath(ini)
+
+    @property
+    def singularity_image(self):
+        return self._singularity_image
+
+    @singularity_image.setter
+    def singularity_image(self, singularity_image):
+        if singularity_image is None:
+            logger.info('Downloading singularity image..')
+            version = __version__.split(' ')[0].rstrip(':')
+            singularity_url = 'shub://lscsoft/bilby_pipe:{}'.format(version)
+            self._singularity_image = Client.pull(singularity_url)
+            self._singularity_image = os.path.abspath(self._singularity_image)
+            self._verify_singularity(self._singularity_image)
+            logger.info('Singularity image saved to {}'.format(
+                self._singularity_image))
+        elif isinstance(singularity_image, str):
+            self._verify_singularity(singularity_image)
+            self._singularity_image = singularity_image
+        else:
+            raise ValueError(
+                "simg={} not understood".format(singularity_image))
+
+    def _verify_singularity(self, singularity_image):
+        """ Verify the singularity exists, runs, and warn of version mismatches """
+        if os.path.isfile(singularity_image) is False:
+            raise FileNotFoundError(
+                "singularity_image={} is not a file".format(singularity_image))
+        else:
+            singularity_image = os.path.abspath(singularity_image)
+
+        # Check the bilby_pipe version
+        call = Client.execute(
+            singularity_image, ['bilby_pipe', '--version'], stream=True)
+        version_string = [line for line in call][-1].rstrip('\n')
+        if version_string == __version__:
+            logger.info("bilby_pipe version matched with container")
+        else:
+            logger.warning(
+                "Mismatch in bilby_pipe version: system install is {}, but "
+                "singularity_image has {}".format(__version__, version_string))
+
+        # Check the bilby version
+        call = Client.execute(singularity_image,
+                              ['python3', '-c', 'import bilby; print(bilby.__version__)'],
+                              stream=True)
+        bilby_version_string = [line for line in call][-1].rstrip('\n')
+        logger.info("Singularity image has bilby version={}".format(bilby_version_string))
+
+    @property
+    def use_singularity(self):
+        return self._use_singularity
+
+    @use_singularity.setter
+    def use_singularity(self, use_singularity):
+        if isinstance(use_singularity, bool):
+            logger.info('Setting use_singularity = {}'.format(use_singularity))
+            self._use_singularity = use_singularity
+        else:
+            raise ValueError(
+                "use_singularity={} not understood".format(use_singularity))
 
     @property
     def n_level_A_jobs(self):
@@ -361,11 +434,11 @@ class MainInput(Input):
             except FileNotFoundError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY does not point to a"
-                    " file. Try running $ligo-proxy-init albert.einstein")
+                    " file. Try running `$ ligo-proxy-init albert.einstein`")
             except KeyError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY not set"
-                    " Try running $ligo-proxy-init albert.einstein")
+                    " Try running `$ ligo-proxy-init albert.einstein`")
                 self._x509userproxy = None
         elif os.path.isfile(x509userproxy):
             self._x509userproxy = x509userproxy
@@ -491,11 +564,17 @@ class Dag(object):
 
     @property
     def generation_executable(self):
-        return self._get_executable_path('bilby_pipe_generation')
+        if self.inputs.use_singularity:
+            return self._get_executable_path('bilby_pipe_singularity')
+        else:
+            return self._get_executable_path('bilby_pipe_generation')
 
     @property
     def analysis_executable(self):
-        return self._get_executable_path('bilby_pipe_analysis')
+        if self.inputs.use_singularity:
+            return self._get_executable_path('bilby_pipe_singularity')
+        else:
+            return self._get_executable_path('bilby_pipe_analysis')
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
@@ -561,16 +640,20 @@ class Dag(object):
                 arg, job_logs_base, arg[:3])
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
 
-        arguments += ' --label {}'.format(job_name)
+        arguments = ArgumentsString()
+        if self.inputs.use_singularity:
+            arguments.add('bilby-pipe-executable', 'generation')
+            arguments.add('simg', self.inputs.singularity_image)
+        arguments.add('ini', self.inputs.ini)
+        arguments.add('label', job_name)
         self.generation_job_labels.append(job_name)
-        arguments += ' --idx {}'.format(idx)
-        arguments += ' --cluster $(Cluster)'
-        arguments += ' --process $(Process)'
+        arguments.add('idx', idx)
+        arguments.add('cluster', '$(Cluster)')
+        arguments.add('process', '$(Process)')
         if self.inputs.injection_file is not None:
-            arguments += ' --injection-file {}'.format(self.inputs.injection_file)
-        arguments += ' ' + ' '.join(self.inputs.unknown_args)
+            arguments.add('injection-file', self.inputs.injection_file)
+        arguments.add_unknown_args(self.inputs.unknown_args)
         generation_job = pycondor.Job(
             name=job_name,
             executable=self.generation_executable,
@@ -580,7 +663,7 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         logger.debug('Adding job: {}'.format(job_name))
         return generation_job
 
@@ -648,16 +731,21 @@ class Dag(object):
                 arg, job_logs_base, arg[:3])
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
-        arguments = '--ini {}'.format(self.inputs.ini)
+
+        arguments = ArgumentsString()
+        if self.inputs.use_singularity:
+            arguments.add('bilby-pipe-executable', 'analysis')
+            arguments.add('simg', self.inputs.singularity_image)
+        arguments.add('ini', self.inputs.ini)
         for detector in detectors:
-            arguments += ' --detectors {}'.format(detector)
-        arguments += ' --label {}'.format(job_name)
-        arguments += ' --data-label {}'.format(self.generation_job_labels[idx])
-        arguments += ' --idx {}'.format(idx)
-        arguments += ' --sampler {}'.format(sampler)
-        arguments += ' --cluster $(Cluster)'
-        arguments += ' --process $(Process)'
-        arguments += ' ' + ' '.join(self.inputs.unknown_args)
+            arguments.add('detectors', detector)
+        arguments.add('label', job_name)
+        arguments.add('data-label', self.generation_job_labels[idx])
+        arguments.add('idx', idx)
+        arguments.add('sampler', sampler)
+        arguments.add('cluster', '$(Cluster)')
+        arguments.add('process', '$(Process)')
+        arguments.add_unknown_args(self.inputs.unknown_args)
         job = pycondor.Job(
             name=job_name,
             executable=self.analysis_executable,
@@ -667,7 +755,7 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         job.add_parent(self.generation_jobs[idx])
         logger.debug('Adding job: {}'.format(job_name))
         self.results_pages[job_name] = 'result/{}.html'.format(job_name)
@@ -683,6 +771,21 @@ class Dag(object):
             self.dag.build_submit()
         else:
             self.dag.build()
+
+
+class ArgumentsString(object):
+    """ A convienience object to aid in the creation of argument strings """
+    def __init__(self):
+        self.argument_list = []
+
+    def add(self, argument, value):
+        self.argument_list.append('--{} {}'.format(argument, value))
+
+    def add_unknown_args(self, unknown_args):
+        self.argument_list += unknown_args
+
+    def print(self):
+        return ' '.join(self.argument_list)
 
 
 class DataDump():

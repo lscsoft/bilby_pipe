@@ -101,7 +101,7 @@ class BilbyArgParser(configargparse.ArgParser):
             value = env_vars[key]
             # Make list-string into list.
             if action.nargs or isinstance(action, argparse._AppendAction):
-                element_capture = re.match('\[(.*)\]', value)
+                element_capture = re.match('\[(.*)\]', value)  # noqa
                 if element_capture:
                     value = [val.strip() for val in element_capture.group(1).split(',') if val.strip()]
             env_var_args += self.convert_item_to_command_line_arg(

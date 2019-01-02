@@ -13,6 +13,11 @@ class TestInput(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_idx(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.idx = 1
+        self.assertEqual(inputs.idx, 1)
+
     def test_known_detectors(self):
         inputs = bilby_pipe.main.Input()
         self.assertEqual(inputs.known_detectors, ['H1', 'L1', 'V1'])
@@ -96,7 +101,8 @@ class TestMainInput(unittest.TestCase):
         self.outdir = 'outdir'
         self.known_args_list = [
             'tests/test_main_input.ini', '--submit', '--outdir', self.outdir,
-            '--X509', os.path.join(self.directory, 'X509.txt')]
+            '--X509', os.path.join(self.directory, 'X509.txt'),
+            '--no-singularity']
         self.unknown_args_list = ['--argument', 'value']
         self.all_args_list = self.known_args_list + self.unknown_args_list
         self.parser = bilby_pipe.main.create_parser()
@@ -111,6 +117,36 @@ class TestMainInput(unittest.TestCase):
 
     def test_ini(self):
         self.assertEqual(self.inputs.ini, os.path.abspath(self.args.ini))
+
+    def test_ini_not_a_file(self):
+        with self.assertRaises(ValueError):
+            self.inputs.ini = 'not_a_file'
+
+    def test_singularity_image_setting_fail(self):
+        with self.assertRaises(ValueError):
+            self.inputs.singularity_image = 10
+
+        with self.assertRaises(FileNotFoundError):
+            self.inputs.singularity_image = 'not_a_file'
+
+    def test_use_singularity(self):
+        self.inputs.use_singularity = True
+        self.assertEqual(self.inputs.use_singularity, True)
+
+        with self.assertRaises(ValueError):
+            self.inputs.use_singularity = 10
+
+    def test_setting_level_A_jobs(self):
+        self.inputs.n_level_A_jobs = 10
+        self.assertEqual(self.inputs.n_level_A_jobs, 10)
+
+    def test_default_level_A_labels(self):
+        self.inputs.n_level_A_jobs = 2
+        self.assertEqual(self.inputs.level_A_labels, ['', ''])
+
+    def test_setting_level_A_labels(self):
+        self.inputs.level_A_labels = ['a', 'b']
+        self.assertEqual(self.inputs.level_A_labels, ['a', 'b'])
 
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)
