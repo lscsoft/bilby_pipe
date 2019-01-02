@@ -78,9 +78,8 @@ setup(name='bilby_pipe',
           'pycondor>=0.5',
           'configargparse',
           'jinja2',
-          'ligo-gracedb',
-          'spython',
-          'gwdatafind'],
+          'urllib3',
+          'spython'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
