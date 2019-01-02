@@ -37,6 +37,7 @@ documentation:
   stage: test
   image: bilbydev/bilby_pipe-test-suite
   script:
+    - pip install bilby
     - python setup.py install
 
     # Make the documentation
