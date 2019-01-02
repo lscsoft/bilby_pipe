@@ -15,7 +15,7 @@ class TestDag(unittest.TestCase):
             ini='tests/test_main_input.ini', submit=False, outdir=self.outdir,
             label='label', accounting='accounting.group', detectors='H1',
             coherence_test=False, injection=False, injection_file=None,
-            n_injection=None,
+            n_injection=None, no_singularity=False, simg=None,
             X509=os.path.join(self.directory, 'X509.txt'),
             queue=1, create_summary=False, sampler=['nestle'],
             gps_file=None)
