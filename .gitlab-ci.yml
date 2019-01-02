@@ -15,7 +15,7 @@ stages:
 
 python-3:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite
   script:
     - python setup.py install
 
@@ -34,7 +34,7 @@ python-3:
 
 documentation:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite
   script:
     - python setup.py install
 
