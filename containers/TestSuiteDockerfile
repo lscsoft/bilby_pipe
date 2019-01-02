@@ -13,7 +13,7 @@ RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singulari
 && make install
 
 # Fix mismatch bug between pip and matplotlib
-RUN pip uninstall matplotlib\
+RUN pip uninstall -y matplotlib\
 && pip install --upgrade pip\
 && pip install matplotlib
 
