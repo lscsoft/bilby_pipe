@@ -18,4 +18,4 @@ RUN pip uninstall -y matplotlib\
 && pip install matplotlib
 
 # Install requirements
-RUN pip install --upgrade pip && pip install future pycondor>=0.5 configargparse spython jinja2 flake8 urllib3 deepdish coverage pytest-cov
+RUN pip install --upgrade pip && pip install future pycondor>=0.5 configargparse spython jinja2 flake8 urllib3 deepdish coverage pytest-cov coverage-badge
