@@ -64,12 +64,12 @@ version_file = write_version_file(version)
 long_description = get_long_description()
 
 setup(name='bilby_pipe',
-      description='',
+      description='Automating the running of bilby for gravitational wave signals',
       long_description=long_description,
-      url='',
-      author='',
-      author_email='',
-      license='',
+      url='https://lscsoft.docs.ligo.org/bilby_pipe/index.html',
+      author='Gregory Ashton, Isobel Romero-Shaw, Colm Talbot',
+      author_email='gregory.ashton@ligo.org',
+      license='MIT',
       version=version,
       package_data={'bilby_pipe': [version_file, 'templates/*html']},
       packages=['bilby_pipe'],
@@ -89,6 +89,9 @@ setup(name='bilby_pipe',
               'bilby_pipe_singularity=bilby_pipe.singularity:main',
               'bilby_pipe_create_injection_file=bilby_pipe.create_injections:main']},
       classifiers=[
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",
-          "Operating System :: OS Independent"])
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: POSIX'])
