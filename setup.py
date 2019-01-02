@@ -79,6 +79,7 @@ setup(name='bilby_pipe',
           'configargparse',
           'jinja2',
           'urllib3',
+          'deepdish',
           'spython'],
       entry_points={
           'console_scripts': [
