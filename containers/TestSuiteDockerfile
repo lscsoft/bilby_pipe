@@ -1,5 +1,13 @@
 FROM continuumio/anaconda3
 
-RUN apt-get update && apt-get install -y singularity-container
+RUN apt-get update\
+&& apt-get install -y python dh-autoreconf build-essential libarchive-dev
 
-RUN pip install future pycondor>=0.5 configargparse spython
+RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz\
+&& tar xvf singularity-2.5.2.tar.gz\
+&& cd singularity-2.5.2\
+&& ./configure --prefix=/usr/local\
+&& make\
+&& make install
+
+RUN pip install --upgrade pip && pip install future pycondor>=0.5 configargparse spython jinja2
