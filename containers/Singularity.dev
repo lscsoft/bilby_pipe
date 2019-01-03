@@ -1,0 +1,27 @@
+Bootstrap: docker
+From: bilbydev/bilby_pipe-test-suite-python37
+
+%post
+export PATH=/opt/conda/bin:${PATH}
+apt-get install -y git
+pip install dynesty
+pip install nestle
+pip install astropy
+pip install lalsuite
+pip install gwpy
+git clone https://github.com/lscsoft/bilby.git
+(cd bilby && python setup.py install)
+git clone https://github.com/lscsoft/bilby_pipe.git
+(cd bilby_pipe && python setup.py install)
+
+%runscript
+    bilby_pipe "$@"
+    
+%apprun generation
+    bilby_pipe_generation "$@"
+    
+%apprun analysis
+    bilby_pipe_analysis "$@"
+    
+%apprun create_injection_file
+    bilby_pipe_create_injection_file "$@"
