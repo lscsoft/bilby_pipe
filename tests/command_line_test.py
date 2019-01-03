@@ -6,7 +6,7 @@ import bilby_pipe
 class TestDagCommandLine(unittest.TestCase):
 
     def setUp(self):
-        self.default_args = ['tests/test_dag_ini_file.ini']
+        self.default_args = ['tests/test_dag_ini_file.ini', '--no-singularity']
         self.parser = bilby_pipe.main.create_parser()
 
     def tearDown(self):
