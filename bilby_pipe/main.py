@@ -486,7 +486,8 @@ class Dag(object):
         self.create_generation_jobs()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
-        self.create_summary_jobs()
+        if self.inputs.create_summary:
+            self.create_summary_jobs()
         self.build_submit()
 
     @staticmethod
