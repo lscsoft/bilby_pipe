@@ -66,6 +66,10 @@ def create_parser():
                help='The output directory')
     parser.add('--create-summary', action='store_true',
                help='If true, create a summary page')
+    parser.add('--webdir', type=str, default='./',
+               help='Directory to store summary pages')
+    parser.add('--email', type=str,
+               help='Email for notifications')
     parser.add('--accounting', type=str, required=True,
                help='The accounting group to use')
     parser.add('--X509', type=str, default=None,
@@ -174,7 +178,7 @@ class Input(object):
         for dr in [outdir, self.submit_directory,
                    self.data_generation_log_directory,
                    self.data_analysis_log_directory, self.data_directory,
-                   self.result_directory]:
+                   self.result_directory, self.summary_log_directory]:
             utils.check_directory_exists_and_if_not_mkdir(dr)
 
     @property
@@ -191,6 +195,11 @@ class Input(object):
     def data_analysis_log_directory(self):
         """ The path to the directory where log output will be stored """
         return os.path.join(self._outdir, 'data_analysis_log')
+
+    @property
+    def summary_log_directory(self):
+        """ The path to the directory where log output will be stored """
+        return os.path.join(self._outdir, 'results_page_log')
 
     @property
     def data_directory(self):
@@ -287,6 +296,8 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+        self.webdir = args.webdir
+        self.email = args.email
 
         self.gps_file = args.gps_file
 
@@ -468,12 +479,14 @@ class Dag(object):
         self.generation_jobs = []
         self.generation_job_labels = []
         self.analysis_jobs = []
+        self.summary_jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
             self.check_injection()
         self.create_generation_jobs()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
+        self.create_summary_jobs()
         self.build_submit()
 
     @staticmethod
@@ -492,6 +505,10 @@ class Dag(object):
     @property
     def analysis_executable(self):
         return self._get_executable_path('bilby_pipe_analysis')
+
+    @property
+    def summary_executable(self):
+        return self._get_executable_path('summarypages.py')
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
@@ -672,6 +689,68 @@ class Dag(object):
     def create_postprocessing_jobs(self):
         """ Generate postprocessing job """
         pass
+
+    @property
+    def summary_jobs_inputs(self):
+        """ A list of dictionaries enumerating all the main jobs to generate
+
+        This contains the logic of generating multiple parallel running jobs
+        The keys of each dictionary should be the keyword arguments to
+        `self._create_jobs()`
+
+        """
+        logger.debug("Generating list of jobs")
+
+        # Create level B inputs
+        webdir = self.inputs.webdir
+        email = self.inputs.email
+        level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
+        jobs_inputs = []
+        for idx in list(level_A_jobs_numbers):
+            jobs_inputs.append(
+                JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                         kwargs=dict(webdir=webdir, email=email)))
+
+        logger.debug("List of job inputs = {}".format(jobs_inputs))
+        return jobs_inputs
+
+    def create_summary_jobs(self):
+        """ Generate job to generate summary pages """
+        for job_input in self.summary_jobs_inputs:
+            self.summary_jobs.append(
+                self._create_summary_job(job_input))
+
+    def _create_summary_job(self, job_input):
+        """ Create a condor job and add it to the dag """
+        webdir = job_input.kwargs['webdir']
+        email = job_input.kwargs['email']
+        idx = job_input.idx
+        job_name = '_'.join([self.inputs.label, 'summary', str(idx)])
+        if job_input.meta_label is not None:
+            job_name = '_'.join([job_name, job_input.meta_label])
+        job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
+        submit = self.inputs.submit_directory
+        extra_lines = ''
+        for arg in ['error', 'log', 'output']:
+            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
+                arg, job_logs_base, arg[:3])
+        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        arguments = "--webdir {}".format(webdir)
+        arguments += " --email {}".format(email)
+
+        job = pycondor.Job(
+            name=job_name,
+            executable=self.summary_executable,
+            submit=submit,
+            request_memory=self.request_memory, request_disk=self.request_disk,
+            request_cpus=self.request_cpus, getenv=self.getenv,
+            universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
+        job.add_parent(self.analysis_jobs[idx])
+        logger.debug('Adding job: {}'.format(job_name))
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
