@@ -801,4 +801,4 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
-    dag = Dag(inputs)
+    Dag(inputs)
