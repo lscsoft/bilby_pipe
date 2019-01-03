@@ -1,0 +1,52 @@
+FROM ubuntu:18.04
+
+LABEL name="bilby_pipe Base Enterprise Linux 7" \
+maintainer="Gregory Ashton <gregory.ashton@ligo.org>" \
+date="20190103"
+
+ENV PATH /opt/conda/bin:$PATH
+
+# Install backend
+RUN apt-get update --fix-missing \
+&& apt-get install -y libglib2.0-0 libxext6 libsm6 libxrender1 \
+dh-autoreconf build-essential libarchive-dev wget curl git libhdf5-serial-dev
+
+# Install python3.7
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh -O ~/miniconda.sh && \
+/bin/bash ~/miniconda.sh -b -p /opt/conda && \
+rm ~/miniconda.sh && \
+/opt/conda/bin/conda clean -tipsy && \
+ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+echo "conda activate base" >> ~/.bashrc
+
+# Downgrade to python3.6
+RUN conda install -y python==3.5
+
+# Install singularity
+RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz\
+&& tar xvf singularity-2.5.2.tar.gz\
+&& cd singularity-2.5.2\
+&& ./configure --prefix=/usr/local\
+&& make\
+&& make install
+
+# Install conda-installable programs
+RUN conda install -y matplotlib numpy scipy pandas
+
+RUN conda install -c conda-forge deepdish
+
+# Install requirements
+RUN pip install --upgrade pip \
+&& pip install --upgrade setuptools \
+&& pip install future \
+pycondor>=0.5 \
+configargparse \
+spython \
+jinja2 \
+flake8 \
+urllib3 \
+deepdish \
+coverage \
+pytest-cov \
+coverage-badge
