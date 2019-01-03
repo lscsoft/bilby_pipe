@@ -70,6 +70,9 @@ def create_parser():
                help='Directory to store summary pages')
     parser.add('--email', type=str,
                help='Email for notifications')
+    parser.add('--add-to-existing', action='store_true')
+    parser.add('--existing-dir', type=str, default=None,
+               help='Directory where an existing summary.html exists')
     parser.add('--accounting', type=str, required=True,
                help='The accounting group to use')
     parser.add('--X509', type=str, default=None,
@@ -298,6 +301,8 @@ class MainInput(Input):
         self.x509userproxy = args.X509
         self.webdir = args.webdir
         self.email = args.email
+        self.add_to_existing = args.add_to_existing
+        self.existing_dir = args.existing_dir
 
         self.gps_file = args.gps_file
 
@@ -705,12 +710,16 @@ class Dag(object):
         # Create level B inputs
         webdir = self.inputs.webdir
         email = self.inputs.email
+        add_to_existing = self.inputs.add_to_existing
+        existing_dir = self.inputs.existing_dir
         level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
         for idx in list(level_A_jobs_numbers):
             jobs_inputs.append(
                 JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                         kwargs=dict(webdir=webdir, email=email)))
+                         kwargs=dict(webdir=webdir, email=email,
+                                     add_to_existing=add_to_existing,
+                                     existing_dir=existing_dir)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -725,8 +734,10 @@ class Dag(object):
         """ Create a condor job and add it to the dag """
         webdir = job_input.kwargs['webdir']
         email = job_input.kwargs['email']
+        add_to_existing = job_input.kwargs['add_to_existing']
+        existing_dir = job_input.kwargs['existing_dir']
         idx = job_input.idx
-        job_name = '_'.join([self.inputs.label, 'summary', str(idx)])
+        job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
         if job_input.meta_label is not None:
             job_name = '_'.join([job_name, job_input.meta_label])
         job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
@@ -739,6 +750,10 @@ class Dag(object):
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
         arguments = "--webdir {}".format(webdir)
         arguments += " --email {}".format(email)
+        arguments += " --samples results/...h5"
+        if add_to_existing:
+            arguments += " --add_to_existing"
+            arguments += " --existing_webdir {}".format(existing_dir)
 
         job = pycondor.Job(
             name=job_name,
