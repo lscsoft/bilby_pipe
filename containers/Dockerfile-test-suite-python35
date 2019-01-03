@@ -8,7 +8,7 @@ ENV PATH /opt/conda/bin:$PATH
 
 # Install backend
 RUN apt-get update --fix-missing \
-&& apt-get install -y libglib2.0-0 libxext6 libsm6 libxrender1 \
+&& apt-get install -y libglib2.0-0 libxext6 libsm6 libxrender1 libgl1-mesa-glx \
 dh-autoreconf build-essential libarchive-dev wget curl git libhdf5-serial-dev
 
 # Install python3.7
