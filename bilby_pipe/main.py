@@ -56,11 +56,6 @@ def create_parser():
         usage=__doc__, ignore_unknown_config_file_keys=True,
         allow_abbrev=False)
     parser.add('ini', type=str, is_config_file=True, help='The ini file')
-    parser.add('--simg', type=str, default=None,
-               help='(optional) singularity image to use')
-    parser.add('-D', '--no-singularity', action='store_true',
-               help=('If given, use the locally-installed bilby instead of the'
-                     'singularity image'))
     parser.add('--submit', action='store_true',
                help='If given, build and submit')
     parser.add('--sampler', nargs='+', default='dynesty',
@@ -77,6 +72,8 @@ def create_parser():
                help='If true, create a summary page')
     parser.add('--accounting', type=str, required=True,
                help='The accounting group to use')
+    parser.add('--singularity-image', type=str, default=None,
+               help='Singularity image to use')
     parser.add('--X509', type=str, default=None,
                help=('If given, the path to the users X509 certificate file.'
                      'If not given, a copy of the file at the env. variable '
@@ -289,11 +286,7 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
-        if args.no_singularity:
-            self.use_singularity = False
-        else:
-            self.use_singularity = True
-            self.singularity_image = args.simg
+        self.singularity_image = args.singularity_image
         self.outdir = args.outdir
         self.label = args.label
         self.queue = args.queue
@@ -332,17 +325,13 @@ class MainInput(Input):
     @singularity_image.setter
     def singularity_image(self, singularity_image):
         if singularity_image is None:
-            logger.info('Downloading singularity image..')
-            version = __version__.split(' ')[0].rstrip(':')
-            singularity_url = 'shub://lscsoft/bilby_pipe:{}'.format(version)
-            self._singularity_image = Client.pull(singularity_url)
-            self._singularity_image = os.path.abspath(self._singularity_image)
-            self._verify_singularity(self._singularity_image)
-            logger.info('Singularity image saved to {}'.format(
-                self._singularity_image))
+            self._singularity_image = None
+            self.use_singularity = False
+            logger.debug('No singularity image provided')
         elif isinstance(singularity_image, str):
             self._verify_singularity(singularity_image)
             self._singularity_image = singularity_image
+            self.use_singularity = True
         else:
             raise ValueError(
                 "simg={} not understood".format(singularity_image))
@@ -380,7 +369,7 @@ class MainInput(Input):
     @use_singularity.setter
     def use_singularity(self, use_singularity):
         if isinstance(use_singularity, bool):
-            logger.info('Setting use_singularity = {}'.format(use_singularity))
+            logger.debug('Setting use_singularity = {}'.format(use_singularity))
             self._use_singularity = use_singularity
         else:
             raise ValueError(
@@ -565,14 +554,14 @@ class Dag(object):
     @property
     def generation_executable(self):
         if self.inputs.use_singularity:
-            return self._get_executable_path('bilby_pipe_singularity')
+            return self._get_executable_path('singularity')
         else:
             return self._get_executable_path('bilby_pipe_generation')
 
     @property
     def analysis_executable(self):
         if self.inputs.use_singularity:
-            return self._get_executable_path('bilby_pipe_singularity')
+            return self._get_executable_path('singularity')
         else:
             return self._get_executable_path('bilby_pipe_analysis')
 
@@ -643,8 +632,7 @@ class Dag(object):
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
-            arguments.add('bilby-pipe-executable', 'generation')
-            arguments.add('simg', self.inputs.singularity_image)
+            arguments.append('run --app generation {}'.format(self.singularity_image))
         arguments.add('ini', self.inputs.ini)
         arguments.add('label', job_name)
         self.generation_job_labels.append(job_name)
@@ -734,8 +722,7 @@ class Dag(object):
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
-            arguments.add('bilby-pipe-executable', 'analysis')
-            arguments.add('simg', self.inputs.singularity_image)
+            arguments.append('run --app analysis {}'.format(self.singularity_image))
         arguments.add('ini', self.inputs.ini)
         for detector in detectors:
             arguments.add('detectors', detector)
@@ -777,6 +764,9 @@ class ArgumentsString(object):
     """ A convienience object to aid in the creation of argument strings """
     def __init__(self):
         self.argument_list = []
+
+    def append(self, argument):
+        self.argument_list.append(str(argument))
 
     def add(self, argument, value):
         self.argument_list.append('--{} {}'.format(argument, value))

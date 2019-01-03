@@ -15,13 +15,14 @@ git clone https://github.com/lscsoft/bilby_pipe.git
 (cd bilby_pipe && python setup.py install)
 
 %runscript
-    bilby_pipe "$@"
-    
+    simg=$(cat /.singularity.d/labels.json | python -c 'import sys, json; print(json.load(sys.stdin)["org.label-schema.usage.singularity.deffile"])')
+    bilby_pipe "$@" --singularity-image $simg
+
 %apprun generation
     bilby_pipe_generation "$@"
-    
+
 %apprun analysis
     bilby_pipe_analysis "$@"
-    
+
 %apprun create_injection_file
     bilby_pipe_create_injection_file "$@"
