@@ -615,7 +615,7 @@ class Dag(object):
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
             arguments.append(
-                'run --app generation {}'.format(self.singularity_image))
+                'run --app generation {}'.format(self.inputs.singularity_image))
         arguments.add('ini', self.inputs.ini)
         arguments.add('label', job_name)
         self.generation_job_labels.append(job_name)
@@ -706,7 +706,7 @@ class Dag(object):
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
             arguments.append(
-                'run --app analysis {}'.format(self.singularity_image))
+                'run --app analysis {}'.format(self.inputs.singularity_image))
         arguments.add('ini', self.inputs.ini)
         for detector in detectors:
             arguments.add('detectors', detector)
