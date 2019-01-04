@@ -101,8 +101,7 @@ class TestMainInput(unittest.TestCase):
         self.outdir = 'outdir'
         self.known_args_list = [
             'tests/test_main_input.ini', '--submit', '--outdir', self.outdir,
-            '--X509', os.path.join(self.directory, 'X509.txt'),
-            '--no-singularity']
+            '--X509', os.path.join(self.directory, 'X509.txt')]
         self.unknown_args_list = ['--argument', 'value']
         self.all_args_list = self.known_args_list + self.unknown_args_list
         self.parser = bilby_pipe.main.create_parser()
