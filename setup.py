@@ -80,7 +80,7 @@ setup(name='bilby_pipe',
           'jinja2',
           'urllib3',
           'deepdish',
-          'spython'],
+          'ligo-gracedb'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',

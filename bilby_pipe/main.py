@@ -13,8 +13,6 @@ import deepdish
 import numpy as np
 from collections import namedtuple
 
-from spython.main import Client
-
 from .utils import logger
 from . import utils
 from . import webpages
@@ -536,14 +534,16 @@ class Dag(object):
     @property
     def generation_executable(self):
         if self.inputs.use_singularity:
-            return self._get_executable_path('singularity')
+            # This hard-codes the path to singularity: TODO infer this from the users env
+            return '/bin/singularity'
         else:
             return self._get_executable_path('bilby_pipe_generation')
 
     @property
     def analysis_executable(self):
         if self.inputs.use_singularity:
-            return self._get_executable_path('singularity')
+            # This hard-codes the path to singularity: TODO infer this from the users env
+            return '/bin/singularity'
         else:
             return self._get_executable_path('bilby_pipe_analysis')
 
