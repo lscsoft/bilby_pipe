@@ -332,37 +332,17 @@ class MainInput(Input):
             self.use_singularity = False
         elif isinstance(singularity_image, str):
             self._verify_singularity(singularity_image)
-            self._singularity_image = singularity_image
+            self._singularity_image = os.path.abspath(singularity_image)
             self.use_singularity = True
         else:
             raise ValueError(
                 "simg={} not understood".format(singularity_image))
 
     def _verify_singularity(self, singularity_image):
-        """ Verify the singularity exists, runs, and warn of version mismatches """
+        """ Verify the singularity image exists """
         if os.path.isfile(singularity_image) is False:
             raise FileNotFoundError(
                 "singularity_image={} is not a file".format(singularity_image))
-        else:
-            singularity_image = os.path.abspath(singularity_image)
-
-        # Check the bilby_pipe version
-        call = Client.execute(
-            singularity_image, ['bilby_pipe', '--version'], stream=True)
-        version_string = [line for line in call][-1].rstrip('\n')
-        if version_string == __version__:
-            logger.info("bilby_pipe version matched with container")
-        else:
-            logger.warning(
-                "Mismatch in bilby_pipe version: system install is {}, but "
-                "singularity_image has {}".format(__version__, version_string))
-
-        # Check the bilby version
-        call = Client.execute(singularity_image,
-                              ['python3', '-c', 'import bilby; print(bilby.__version__)'],
-                              stream=True)
-        bilby_version_string = [line for line in call][-1].rstrip('\n')
-        logger.info("Singularity image has bilby version={}".format(bilby_version_string))
 
     @property
     def use_singularity(self):
