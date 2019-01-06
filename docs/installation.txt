@@ -2,10 +2,17 @@
 Installation
 ============
 
+singularity
+-----------
+
+Installing :code:`bilby_pipe` should only be required if you are developing or
+testing. For most users, and in particular production-use, please use a
+`singularity image <singularity.txt>`_.
+
 Install bilby_pipe from source
 ------------------------------
 
-:code:`bilby_pipe` is developed and tested for Python 3.5+ In the
+:code:`bilby_pipe` is developed and tested for Python 3.5, 3.6, and 3.7. In the
 following, we assume you have a working python installation, `python pip
 <https://packaging.python.org/tutorials/installing-packages/#use-pip-for-installing)>`_,
 and `git <https://git-scm.com/>`_.
@@ -18,7 +25,6 @@ Clone the repository and then install the software:
    $ cd bilby_pipe/
    $ python setup.py install
 
-Once you have run these steps, you have :code:`bilby_pipe` installed.
 
 .. note::
    If you do not have a git.ligo account, and recieve an error message:
@@ -33,3 +39,39 @@ Once you have run these steps, you have :code:`bilby_pipe` installed.
    .. code-block:: console
 
       $ git clone https://git.ligo.org/lscsoft/bilby.git
+
+
+Once you have run these steps, you have :code:`bilby_pipe` installed. However,
+you will also need to install `bilby <https://git.ligo.org/lscsoft/bilby>`_.
+Installation instructions can be found `here
+<https://lscsoft.docs.ligo.org/bilby/installation.html>`_.
+
+
+Whilst the code is developed, we expect to find many bugs. These can either be
+in bilby_pipe or in bilby. To debug the problem it is useful to know which
+version of the code you are using.
+
+To see which version of the code you are using, call
+
+.. code-block:: console
+
+  $ bilby_pipe --version
+
+If the output of :code:`bilby_pipe --version` contains something like
+
+.. code-block:: console
+
+  bilby_pipe 0.0.1: (UNCLEAN) 3fd2820 2019-01-01 15:08:26 -0800
+
+rather than
+
+.. code-block:: console
+
+  bilby_pipe 0.0.1:
+
+Then you have installed :code:`bilby_pipe` from source. This information is
+also printed everytime the code is called and therefore will be at the top of
+your log files.
+
+
+

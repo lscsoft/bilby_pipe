@@ -25,6 +25,12 @@ Which will produce something like the following output
 
 ..
 
+.. note::
+
+   If you are using a `singularity image <singularity.txt>`_, you will need to
+   replace :code:`bilby_pipe` with :code:`./PATH/TO/THE/IMAGE.simg` unless you
+   define an alias.
+
 Running bilby_pipe
 ------------------
 

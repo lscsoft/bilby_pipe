@@ -4,88 +4,92 @@ Singularity
 
 :code:`bilby_pipe` is a lightweight code for setting up parameter estmation for
 gravitational wave signals on the LIGO Data Grid clusters. The actual heavy
-lifting of running parameter ensure provenance of results should be done in a
-`singularity container
-<https://www.sylabs.io/guides/2.6/user-guide/index.html>`_. These containers
-can be thought of as a lightweight virtual machine which hosts the
-:code:`bilby` software in an environment with all prerequisite software
-installed. Using containers decreases the start-up difficulty and also
-provenance of the results since we can know the versions of all software used
-in the container.
+lifting of running parameter is done by `bilby
+<https://git.ligo.org/lscsoft/bilby>`_. We provide a `singularity container
+<https://www.sylabs.io/guides/2.6/user-guide/index.html>`_ for bilby_pipe which
+has all the prerequiste software (e.g.., `bilby
+<file:///home/user1/bilby_pipe/docs/_build/html/singularity.html>`_, `lalsuite
+<https://git.ligo.org/lscsoft/lalsuite>`_, `gwpy <https://gwpy.github.io/>`_,
+and `all supported bilby samplers
+<https://lscsoft.docs.ligo.org/bilby/samplers.html>`_.
 
-:code:`singularity` is installed on all LIGO Data Grid clusters. To install it
-on your local machine, see `the installation instructions
+A container can be thought of as a lightweight virtual machine which hosts the
+software. Using containers decreases the start-up difficulty and also aids in
+ensuring that results are reproducable since we can know the versions of all
+software used in the container.
+
+:code:`singularity` is installed on all LIGO Data Grid (LDG) clusters. To
+install it on your local machine, see `the installation instructions
 <https://www.sylabs.io/guides/2.6/user-guide/installation.html>`_.
 
-Using the release container
----------------------------
+Obtaining a singularity image
+-----------------------------
 
-By default, :code:`bilby_pipe` will run all code in a container matching the
-release-version of the :code:`bilby_pipe` software that was called.  A release
-containers is created for every :code:`bilby_pipe` release and available
-through the `lscsoft/bilby_pipe singularity-hub landing page
-<https://www.singularity-hub.org/collections/2050>`_.
-
-Calling :code:`bilby_pipe` with an ini file :code:`config.ini`, one will see
-something like the following message
+All the singularity containers are hosted on `singularity-hub
+<https://www.singularity-hub.org/collections/2050>`_. Whilst working on one of
+the LDG clusters, you can "pull" a container:
 
 .. code-block:: console
 
-   $ bilby_pipe config.ini
-   18:00 bilby_pipe INFO    : Setting use_singularity = True
-   18:00 bilby_pipe INFO    : Downloading singularity image..
-   singularity pull --name lscsoft-bilby_pipe:0.0.1.simg shub://lscsoft/bilby_pipe:0.0.1
-   Progress |===================================| 100.0%
-   Done. Container is at: /PATH/TO/PWD/lscsoft-bilby_pipe:0.0.1.simg
+   $ singularity pull shub://lscsoft/bilby_pipe:dev
 
-This will download the container image (with suffix :code:`simg`) to the
-current working directory.
+Here, :code:`shub://` indicates to singularity that you want to pull from
+singularity-hub, then the remaining path is the URI. The part of the URI
+following the colon is the "tag". We intend to maintain two types of tags:
+
+1. Release tags, e.g. :code:`:0.0.1`, for each release of :code:`bilby_pipe` a
+   singularity image will be provided. The :code:`bilby` version will be set by
+   the latest `bilby-PyPI version <https://pypi.org/project/bilby/>`_ at the
+   time of the release.
+
+2. A development tag :code:`:tag` which will be manually built from the master
+   branch of bilby_pipe and bilby. Unfortunately, it is not possible yet to
+   have this update automatically with all changes to master, although we will
+   work on adding this in future.
+
+Using a singularity image
+-------------------------
+
+After pulling the image, one should see something like this
+
+.. code-block:: console
+
+   $ singularity pull shub://lscsoft/bilby_pipe:dev
+   Progress |===================================| 100.0%
+   Done. Container is at: /home/gregory.ashton/lscsoft-bilby_pipe-master-dev.simg
+
+The final line provides a path to where the container was downloaded too. The
+container is an executable version of :code:`bilby_pipe`. To see what it can
+do, run
+
+.. code-block:: console
+
+   $ ./lscsoft-bilby_pipe-master-dev.simg --help
+   14:31 bilby_pipe INFO    : Running bilby_pipe version: 0.0.1: (CLEAN) 81118ee 2019-01-04 16:39:08 +1100
+   usage:
+   bilby_pipe is a command line tools for taking user input (as command line
+   arguments or an ini file) and creating DAG files for submitting bilby parameter
+   estimation jobs.
+
+   ...
+
+(note the use of :code:`./` before the container path, this "executes" the
+container).
+
+The container is equivalent to calling :code:`bilby_pipe`. I.e., all of the
+commands given in `Using bilby_pipe <user-interface.txt>`_ can equivalently be
+run instead by executing the container image and providing the neccersery
+command line arguments.
 
 .. note::
-   To see which version of the code you are using, call
+
+   You may wish to define an alias in your :code:`.bashrc` such as
 
    .. code-block:: console
 
-      $ bilby_pipe --version
+      alias bilby_pipe='./PATH/TO/CONTAINER.simg
 
-   If the output of :code:`bilby_pipe --version` contains something like
-
-   .. code-block:: console
-
-      bilby_pipe 0.0.1: (UNCLEAN) 3fd2820 2019-01-01 15:08:26 -0800
-
-   rather than
-
-   .. code-block:: console
-
-      bilby_pipe 0.0.1:
-
-   Then you have installed :code:`bilby_pipe` from source. Be wary that the
-   release container version may not match that of the development code.
-
-Using an alternative container
-------------------------------
-
-To use a different container, provide the path to the container to the
-:code:`--simg` flag to :code:`bilby_pipe`.
-
-.. warning::
-
-   Every container requires an installation of :code:`bilby` and
-   :code:`bilby_pipe` to succeed. This allows for the potential for the
-   :code:`bilby_pipe` module inside the container to differ from your local
-   install. For example, changes to your local copy of :code:`bilby` or
-   :code:`bilby_pipe` will not be used by the container unless you explictly
-   install the changes in the container (see `building a custom container`_).
-   Version mismatches are checked at runtime and a warning is printed.
-
-Using local installs of :code:`bilby` and :code:`bilby_pipe`
-------------------------------------------------------------
-
-To skip the use of containers all together, use the :code:`--no-singularity`
-(or shorter :code:`-D`) flag. For this to succeed, you will need your local
-python installation to have working :code:`bilby` and :code:`bilby_pipe`
-modules. This option is useful for development and testing.
+   Use an absolute path to ensure :code:`bilby_pipe` can be called from anywhere.
 
 
 Building a custom container
@@ -95,10 +99,12 @@ Singularity images can be built in a number of ways. For full instructions,
 please refer to the `official documentation
 <https://www.sylabs.io/guides/2.6/user-guide/quick_start.html#build-images-from-scratch>`_.
 
-Perhaps the cleanest way to generate an image is using a `container recipe
+The cleanest way to generate an image is using a `container recipe
 <https://www.sylabs.io/guides/2.6/user-guide/container_recipes.html>`_. For an
-example, see the :code:`bilby_pipe` `release build recipe
-<https://git.ligo.org/lscsoft/bilby_pipe/blob/master/containers/Singularity.0.0.1>`_.
+example, see the `bilby_pipe build recipes
+<https://git.ligo.org/lscsoft/bilby_pipe/blob/master/containers/>`_ (files
+starting with :code:`Singularity`.
+
 Unfortunately, :code:`singularity` requires root access to build from a recipe.
 As such, it is not possible to build recipes on the LIGO Data Grid clusters.
 Instead, one can install a local copy of :code:`singularity`. Alternatively one
