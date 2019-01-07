@@ -30,9 +30,9 @@ def create_parser():
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
     parser.add('--idx', type=int, help="The level A job index", default=0)
-    parser.add('--cluster', type=int,
+    parser.add('--cluster', type=str,
                help='The condor cluster ID', default=None)
-    parser.add('--process', type=int,
+    parser.add('--process', type=str,
                help='The condor process ID', default=None)
     parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
@@ -109,6 +109,30 @@ class DataGenerationInput(Input):
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
         self.injection_file = args.injection_file
+
+    @property
+    def cluster(self):
+        return self._cluster
+
+    @cluster.setter
+    def cluster(self, cluster):
+        try:
+            self._cluster = int(cluster)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `cluster` to type int')
+            self._cluster = cluster
+
+    @property
+    def process(self):
+        return self._process
+
+    @process.setter
+    def process(self, process):
+        try:
+            self._process = int(process)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `process` to type int')
+            self._process = process
 
     @property
     def minimum_frequency(self):
