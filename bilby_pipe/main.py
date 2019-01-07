@@ -7,6 +7,7 @@ estimation jobs.
 import os
 import sys
 import shutil
+import subprocess
 import itertools
 import pycondor
 import deepdish
@@ -89,6 +90,9 @@ def create_parser():
     parser.add(
         '--version', action='version',
         version='%(prog)s {version}'.format(version=__version__))
+    parser.add(
+        '--local', action='store_true',
+        help='Run the job locally, i.e., not through a batch submission')
     parser.add(
         '--singularity-image', type=str, default=None,
         help='Singularity image to use')
@@ -307,6 +311,7 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+        self.run_local = args.local
 
         self.gps_file = args.gps_file
 
@@ -646,6 +651,11 @@ class Dag(object):
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         logger.debug('Adding job: {}'.format(job_name))
+
+        if self.inputs.run_local:
+            subprocess.run(
+                [self.generation_executable] + arguments.argument_list)
+
         return generation_job
 
     def create_analysis_jobs(self):
@@ -740,6 +750,11 @@ class Dag(object):
         job.add_parent(self.generation_jobs[idx])
         logger.debug('Adding job: {}'.format(job_name))
         self.results_pages[job_name] = 'result/{}.html'.format(job_name)
+
+        if self.inputs.run_local:
+            subprocess.run(
+                [self.analysis_executable] + arguments.argument_list)
+
         return job
 
     def create_postprocessing_jobs(self):
@@ -763,7 +778,8 @@ class ArgumentsString(object):
         self.argument_list.append(argument)
 
     def add(self, argument, value):
-        self.argument_list.append('--{} {}'.format(argument, value))
+        self.argument_list.append('--{}'.format(argument))
+        self.argument_list.append('{}'.format(value))
 
     def add_unknown_args(self, unknown_args):
         self.argument_list += unknown_args
