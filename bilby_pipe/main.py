@@ -53,36 +53,45 @@ def create_parser():
     parser = BilbyArgParser(
         usage=__doc__, ignore_unknown_config_file_keys=True,
         allow_abbrev=False)
-    parser.add('ini', type=str, is_config_file=True, help='The ini file')
-    parser.add('--singularity-image', type=str, default=None,
-               help='Singularity image to use')
-    parser.add('-D', '--no-singularity', action='store_true',
-               help=('If given, use the locally-installed bilby instead of the'
-                     'singularity image'))
-    parser.add('--submit', action='store_true',
-               help='If given, build and submit')
-    parser.add('--sampler', nargs='+', default='dynesty',
-               help='Sampler to use, or list of sampler to use')
-    parser.add('--detectors', nargs='+', default=['H1', 'L1'],
-               help='The names of detectors to include {H1, L1}')
-    parser.add('--coherence-test', action='store_true')
-    parser.add('--queue', type=int, default=1)
-    parser.add('--label', type=str, default='LABEL',
-               help='The output label')
-    parser.add('--outdir', type=str, default='.',
-               help='The output directory')
-    parser.add('--create-summary', action='store_true',
-               help='If true, create a summary page')
-    parser.add('--accounting', type=str, required=True,
-               help='The accounting group to use')
-    parser.add('--X509', type=str, default=None,
-               help=('If given, the path to the users X509 certificate file.'
-                     'If not given, a copy of the file at the env. variable '
-                     '$X509_USER_PROXY will be made in outdir and linked in '
-                     'the condor jobs submission'))
-    parser.add('-v', '--verbose', action='store_true', help='verbose')
-    parser.add('--version', action='version',
-               version='%(prog)s {version}'.format(version=__version__))
+    parser.add(
+        'ini', type=str, is_config_file=True, help='The ini file')
+    parser.add(
+        '--submit', action='store_true',
+        help='Attempt to submit the job after the build')
+    parser.add(
+        '--sampler', nargs='+', default='dynesty',
+        help='Sampler to use, or list of sampler to use')
+    parser.add(
+        '--detectors', nargs='+', default=['H1', 'L1'],
+        help='The names of detectors to include {H1, L1}')
+    parser.add(
+        '--coherence-test', action='store_true',
+        help=('Run the analysis for all detectors together and for each '
+              'detector separately'))
+    parser.add(
+        '--label', type=str, default='LABEL', help='The output label')
+    parser.add(
+        '--outdir', type=str, default='.', help='The output directory')
+    parser.add(
+        '--create-summary', action='store_true',
+        help='If true, create a summary page')
+    parser.add(
+        '--accounting', type=str, required=True,
+        help='The accounting group to use')
+    parser.add(
+        '--X509', type=str, default=None,
+        help=('The path to the users X509 certificate file.'
+              'If not given, a copy of the file at the env. variable '
+              '$X509_USER_PROXY will be made in outdir and linked in '
+              'the condor jobs submission'))
+    parser.add(
+        '-v', '--verbose', action='store_true', help='verbose')
+    parser.add(
+        '--version', action='version',
+        version='%(prog)s {version}'.format(version=__version__))
+    parser.add(
+        '--singularity-image', type=str, default=None,
+        help='Singularity image to use')
 
     injection_parser = parser.add_argument_group(title='Injection arguments')
     injection_parser.add(
@@ -90,12 +99,15 @@ def create_parser():
         help='Create data from an injection file')
     injection_parser.add(
         '--injection-file', type=str, default=None,
-        help='If given, an injection file')
+        help='An injection file: overrides `n-injection`.')
     injection_parser.add_arg(
-        '--n-injection', type=int, help='The number of injections to generate')
+        '--n-injection', type=int,
+        help='The number of injections to generate by sampling from the prior')
 
-    data_gen_pars = parser.add_argument_group(title='Data generation arguments')
-    data_gen_pars.add('--gps-file', type=str, help='File containing GPS times')
+    data_gen_pars = parser.add_argument_group(
+        title='Data generation arguments')
+    data_gen_pars.add(
+        '--gps-file', type=str, help='File containing GPS times')
     return parser
 
 
@@ -261,8 +273,6 @@ class MainInput(Input):
         A label describing the job
     outdir: str
         The path to the directory where output will be stored
-    queue: int
-        The number of jobs to queue
     create_summary: bool
         If true, create a summary page
     accounting: str
@@ -290,7 +300,7 @@ class MainInput(Input):
         self.singularity_image = args.singularity_image
         self.outdir = args.outdir
         self.label = args.label
-        self.queue = args.queue
+        self.queue = 1
         self.create_summary = args.create_summary
         self.accounting = args.accounting
         self.sampler = args.sampler
