@@ -53,9 +53,16 @@ def create_parser():
     det_parser.add("--channel-names", default=None, nargs="*",
                    help="Channel names to use, if not provided known "
                    "channel names will be tested.")
+    det_parser.add("--query-types", default=None, nargs="*", help="Query types to "
+                   "use. If not provided known query types will be tested.")
     det_parser.add('--psd-duration', default=500, type=int,
                    help='Time used to generate the PSD, default is 500.')
     det_parser.add('--minimum-frequency', default=20, type=float)
+    det_parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
+                   type=str, help="Name of the frequency domain source model. Can be one of"
+                                  "[lal_binary_black_hole, lal_binary_neutron_star,"
+                                  "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
+                                  "supernova, supernova_pca_model]")
 
     # Method specific options below here
     data_parser = parser.add_argument_group(title='Data setting methods')
@@ -95,6 +102,7 @@ class DataGenerationInput(Input):
         self.detectors = args.detectors
         self.calibration = args.calibration
         self.channel_names = args.channel_names
+        self.query_types = args.query_types
         self.duration = args.duration
         self.trigger_time = args.trigger_time
         self.sampling_frequency = args.sampling_frequency
@@ -102,6 +110,7 @@ class DataGenerationInput(Input):
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
         self.label = args.label
+        self.frequency_domain_source_model = args.frequency_domain_source_model
 
         self.gracedb = args.gracedb
         self.gps_file = args.gps_file
@@ -181,7 +190,7 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
                 gracedb, self.data_directory, self.duration, self.calibration,
-                self.detectors)
+                self.detectors, self.query_types)
             self.meta_data['gracedb_candidate'] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate['gpstime']
@@ -244,7 +253,12 @@ class DataGenerationInput(Input):
 
     @property
     def parameter_conversion(self):
-        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        if 'binary_neutron_star' in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif 'binary_black_hole' in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        else:
+            return None
 
     @property
     def injection_file(self):
@@ -273,7 +287,7 @@ class DataGenerationInput(Input):
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration, sampling_frequency=self.sampling_frequency,
-            frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
+            frequency_domain_source_model=self.frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             waveform_arguments=waveform_arguments)
 
