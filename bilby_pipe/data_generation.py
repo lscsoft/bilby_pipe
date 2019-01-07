@@ -234,7 +234,7 @@ class DataGenerationInput(Input):
         elif os.path.isfile(injection_file):
             injection_dict = deepdish.io.load(injection_file)
             injection_df = injection_dict['injections']
-            self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
+            self.injection_parameters = injection_df.iloc[self.idx - 1].to_dict()
             self.meta_data['injection_parameters'] = self.injection_parameters
             if self.trigger_time is None:
                 self.trigger_time = self.injection_parameters['geocent_time']
