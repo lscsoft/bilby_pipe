@@ -51,10 +51,6 @@ def create_parser():
     parser.add('--default-prior', default='BBHPriorDict', type=str,
                help="The name of the prior set to base the prior on. Can be one of"
                     "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]")
-    parser.add('--conversion', default='convert_to_lal_binary_black_hole_parameters',
-               type=str, help='Name of the conversion function. Can be one of '
-                              '[convert_to_lal_binary_black_hole_parameters,'
-                              'convert_to_lal_binary_neutron_star_parameters]')
     parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
                type=str, help="Name of the frequency domain source model. Can be one of"
                               "[lal_binary_black_hole, lal_binary_neutron_star,"
@@ -116,7 +112,6 @@ class DataAnalysisInput(Input):
         self.data_label = args.data_label
         self.default_prior = args.default_prior
         self._frequency_domain_source_model = args.frequency_domain_source_model
-        self.conversion = args.conversion
         self.result = None
 
     @property
@@ -241,12 +236,12 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if self.conversion in bilby.gw.conversion.__dict__.keys():
-            return bilby.gw.conversion.__dict__[self.conversion]
-        else:
-            logger.info("No conversion model {} found.").format(self.conversion)
-            logger.info("Defaulting to convert_to_lal_binary_black_hole_parameters")
+        if 'binary_neutron_star' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif 'binary_black_hole' in self._frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        else:
+            return None
 
     @property
     def waveform_generator(self):
@@ -285,11 +280,20 @@ class DataAnalysisInput(Input):
             logger.error("Defaulting to lal_binary_black_hole")
             return bilby.gw.source.lal_binary_black_hole
 
+    @property
+    def parameter_generation(self):
+        if 'binary_neutron_star' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bns_parameters
+        elif 'binary_black_hole' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bbh_parameters
+        else:
+            return None
+
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
             sampler=self.sampler, label=self.label, outdir=self.result_directory,
-            conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
 
