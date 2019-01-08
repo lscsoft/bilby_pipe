@@ -11,7 +11,8 @@ import bilby
 import deepdish
 
 from bilby_pipe.utils import logger
-from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
@@ -266,19 +267,21 @@ class DataGenerationInput(Input):
 
     @injection_file.setter
     def injection_file(self, injection_file):
-        self._injection_file = injection_file
         if injection_file is None:
             logger.debug("No injection file set")
+            self._injection_file = None
         elif os.path.isfile(injection_file):
+            self._injection_file = os.path.abspath(injection_file)
             injection_dict = deepdish.io.load(injection_file)
             injection_df = injection_dict['injections']
-            self.injection_parameters = injection_df.iloc[self.idx - 1].to_dict()
+            self.injection_parameters = injection_df.iloc[self.idx].to_dict()
             self.meta_data['injection_parameters'] = self.injection_parameters
             if self.trigger_time is None:
                 self.trigger_time = self.injection_parameters['geocent_time']
             self._set_interferometers_from_simulation()
         else:
-            raise FileNotFoundError("Injection file {} not found".format(injection_file))
+            raise FileNotFoundError(
+                "Injection file {} not found".format(injection_file))
 
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
@@ -287,7 +290,7 @@ class DataGenerationInput(Input):
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration, sampling_frequency=self.sampling_frequency,
-            frequency_domain_source_model=self.frequency_domain_source_model,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             waveform_arguments=waveform_arguments)
 
@@ -295,11 +298,9 @@ class DataGenerationInput(Input):
         ifos.set_strain_data_from_power_spectral_densities(
             sampling_frequency=self.sampling_frequency, duration=self.duration,
             start_time=self.trigger_time - self.duration / 2)
-        try:
-            ifos.inject_signal(waveform_generator=waveform_generator,
-                               parameters=self.injection_parameters)
-        except AttributeError:
-            pass
+
+        ifos.inject_signal(waveform_generator=waveform_generator,
+                           parameters=self.injection_parameters)
 
         self.interferometers = ifos
 

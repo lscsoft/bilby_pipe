@@ -1,7 +1,10 @@
 import unittest
 import shutil
 
+import bilby
+
 from bilby_pipe.main import parse_args
+from bilby_pipe.utils import BilbyPipeError
 from bilby_pipe.data_analysis import (
     DataAnalysisInput, create_parser)
 
@@ -37,8 +40,41 @@ class TestDataAnalysisInput(unittest.TestCase):
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.reference_frequency, 10)
 
+    def test_set_sampler(self):
+        self.inputs.sampler = 'dynesty'
+        self.assertEqual(self.inputs.sampler, 'dynesty')
+
     def test_set_sampling_kwargs_ini(self):
         self.assertEqual(self.inputs.sampler_kwargs, dict(a=1, b=2))
+
+    def test_set_sampling_kwargs_direct(self):
+        self.inputs.sampler_kwargs = 'dict(a=5, b=5)'
+        self.assertEqual(self.inputs.sampler_kwargs, dict(a=5, b=5))
+
+    def test_unset_sampling_kwargs(self):
+        args, unknown_args = parse_args(self.default_args_list, self.parser)
+        args.sampler_kwargs = None
+        inputs = DataAnalysisInput(args, unknown_args)
+        self.assertEqual(inputs.sampler_kwargs, None)
+
+    def test_set_sampler_kwargs_fail(self):
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.sampler_kwargs = 'random_string'
+
+    def test_set_frequency_domain_source_model(self):
+        self.inputs.frequency_domain_source_model = 'lal_binary_black_hole'
+        self.assertEqual(self.inputs.frequency_domain_source_model,
+                         'lal_binary_black_hole')
+
+    def test_bilby_frequency_domain_source_model(self):
+        self.inputs.frequency_domain_source_model = 'lal_binary_black_hole'
+        self.assertEqual(self.inputs.bilby_frequency_domain_source_model,
+                         bilby.gw.source.lal_binary_black_hole)
+
+    def test_unset_bilby_frequency_domain_source_model(self):
+        self.inputs.frequency_domain_source_model = 'not_a_source_model'
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.bilby_frequency_domain_source_model
 
 
 if __name__ == '__main__':

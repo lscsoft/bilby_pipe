@@ -10,9 +10,10 @@ import os
 import numpy as np
 import bilby
 
-from bilby_pipe.utils import logger
+from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe import webpages
-from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
@@ -111,7 +112,7 @@ class DataAnalysisInput(Input):
         self.label = args.label
         self.data_label = args.data_label
         self.default_prior = args.default_prior
-        self._frequency_domain_source_model = args.frequency_domain_source_model
+        self.frequency_domain_source_model = args.frequency_domain_source_model
         self.result = None
 
     @property
@@ -160,10 +161,7 @@ class DataAnalysisInput(Input):
 
     @property
     def sampler_kwargs(self):
-        if hasattr(self, '_sampler_kwargs'):
-            return self._sampler_kwargs
-        else:
-            return None
+        return self._sampler_kwargs
 
     @sampler_kwargs.setter
     def sampler_kwargs(self, sampler_kwargs):
@@ -171,7 +169,7 @@ class DataAnalysisInput(Input):
             try:
                 self._sampler_kwargs = eval(sampler_kwargs)
             except (NameError, TypeError) as e:
-                raise ValueError(
+                raise BilbyPipeError(
                     "Error {}. Unable to parse sampler_kwargs: {}"
                     .format(e, sampler_kwargs))
         else:
@@ -248,7 +246,7 @@ class DataAnalysisInput(Input):
         waveform_generator = bilby.gw.WaveformGenerator(
             sampling_frequency=self.interferometers.sampling_frequency,
             duration=self.interferometers.duration,
-            frequency_domain_source_model=self.frequency_domain_source_model,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             start_time=self.interferometers.start_time,
             waveform_arguments=self.waveform_arguments)
@@ -269,16 +267,6 @@ class DataAnalysisInput(Input):
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             time_marginalization=self.time_marginalization)
-
-    @property
-    def frequency_domain_source_model(self):
-        if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
-            return bilby.gw.source.__dict__[self._frequency_domain_source_model]
-        else:
-            logger.error(
-                "No source model {} found.".format(self._frequency_domain_source_model))
-            logger.error("Defaulting to lal_binary_black_hole")
-            return bilby.gw.source.lal_binary_black_hole
 
     @property
     def parameter_generation(self):
