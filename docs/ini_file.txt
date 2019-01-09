@@ -26,7 +26,7 @@ An example ini file for GW150914
     executable = bbh_from_gracedb.py
     accounting = ligo.dev.o3.cbc.pe.lalinference
 
-If the contents of this file are saved as :code:`GW1509145.txt`, this ini-file
+If the contents of this file are saved as :code:`GW1509145.ini`, this ini-file
  can be passed to :code:`bilby_pipe` with
 
 .. code-block:: console
@@ -41,3 +41,7 @@ overwritten, for example
    $ bilby_pipe GW150914.ini --include-detectors [H1]
 
 will overwrite the :code:`include-detectors` argument provided in the ini file.
+
+The complete ini file, containing all available flags, can be found `here <https://git.ligo.org/lscsoft/bilby_pipe/blob/master/example_ini_files/adjust_all_inputs.ini>`_.
+
+
