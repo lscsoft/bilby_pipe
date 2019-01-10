@@ -742,7 +742,9 @@ class Dag(object):
         add_to_existing = job_input.kwargs['add_to_existing']
         existing_dir = job_input.kwargs['existing_dir']
         idx = job_input.idx
-        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler,
+        # FIX ME - sampler should not be sampler[0]. This was just a temporary
+        # fix to see if the rest of the job works
+        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler[0],
                                 "result"])
         job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
         if job_input.meta_label is not None:
