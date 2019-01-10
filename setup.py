@@ -77,7 +77,6 @@ setup(name='bilby_pipe',
           'future',
           'pycondor>=0.5',
           'configargparse',
-          'pesummary',
           'ligo-gracedb',
           'gwdatafind'],
       entry_points={
