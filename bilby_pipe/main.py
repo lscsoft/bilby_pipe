@@ -611,7 +611,6 @@ class Dag(object):
     @property
     def analysis_jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
-
         This contains the logic of generating multiple parallel running jobs
         The keys of each dictionary should be the keyword arguments to
         `self._create_jobs()`
@@ -708,6 +707,8 @@ class Dag(object):
         logger.debug("Generating list of jobs")
 
         # Create level B inputs
+        detectors = self.inputs.detectors
+        sampler = self.inputs.sampler
         webdir = self.inputs.webdir
         email = self.inputs.email
         add_to_existing = self.inputs.add_to_existing
@@ -719,7 +720,9 @@ class Dag(object):
                 JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
                          kwargs=dict(webdir=webdir, email=email,
                                      add_to_existing=add_to_existing,
-                                     existing_dir=existing_dir)))
+                                     existing_dir=existing_dir,
+                                     detectors=detectors,
+                                     sampler=sampler)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -734,9 +737,13 @@ class Dag(object):
         """ Create a condor job and add it to the dag """
         webdir = job_input.kwargs['webdir']
         email = job_input.kwargs['email']
+        detectors = job_input.kwargs["detectors"]
+        sampler = job_input.kwargs["sampler"]
         add_to_existing = job_input.kwargs['add_to_existing']
         existing_dir = job_input.kwargs['existing_dir']
         idx = job_input.idx
+        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler
+                                "result"])
         job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
         if job_input.meta_label is not None:
             job_name = '_'.join([job_name, job_input.meta_label])
@@ -750,7 +757,9 @@ class Dag(object):
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
         arguments = "--webdir {}".format(webdir)
         arguments += " --email {}".format(email)
-        arguments += " --samples results/...h5"
+        arguments += ' --config {}'.format(self.inputs.ini)
+        arguments += " --samples {}/{}.h5".format(self.inputs.result_directory,
+                                                  result_file)
         if add_to_existing:
             arguments += " --add_to_existing"
             arguments += " --existing_webdir {}".format(existing_dir)
