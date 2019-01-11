@@ -497,6 +497,7 @@ class Dag(object):
         if self.inputs.injection_file is not None:
             arguments.add('injection-file', self.inputs.injection_file)
         arguments.add_unknown_args(self.inputs.unknown_args)
+        arguments.add_command_line_arguments()
         generation_job = pycondor.Job(
             name=job_name,
             executable=self.generation_executable,
@@ -593,6 +594,7 @@ class Dag(object):
         arguments.add('cluster', '$(Cluster)')
         arguments.add('process', '$(Process)')
         arguments.add_unknown_args(self.inputs.unknown_args)
+        arguments.add_command_line_arguments()
         job = pycondor.Job(
             name=job_name,
             executable=self.analysis_executable,
@@ -729,6 +731,13 @@ class ArgumentsString(object):
     def add_unknown_args(self, unknown_args):
         self.argument_list += unknown_args
 
+    def add_command_line_arguments(self):
+        """ Adds command line arguments given in addition to the ini file """
+        command_line_args_list = utils.get_command_line_arguments()
+        # Remove the first positional ini-file argument
+        command_line_args_list = command_line_args_list[1:]
+        self.argument_list += command_line_args_list
+
     def print(self):
         return ' '.join(self.argument_list)
 
@@ -771,7 +780,8 @@ class DataDump():
 
 def main():
     """ Top-level interface for bilby_pipe """
-    args, unknown_args = parse_args(sys.argv[1:], create_parser())
+    args, unknown_args = parse_args(
+        utils.get_command_line_arguments(), create_parser())
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
     Dag(inputs)
