@@ -23,10 +23,7 @@ calling the function :code:`bilby_pipe.main.main()`, which is transcribed here:
        args, unknown_args = parse_args(sys.argv[1:], create_parser())
        inputs = MainInput(args, unknown_args)
        # Create a Directed Acyclic Graph (DAG) of the workflow
-       dag = Dag(inputs)
-       # If requested, create a summary page at the DAG-level
-       if inputs.create_summary:
-           webpages.create_summary_page(dag)
+       Dag(inputs)
 
 As you can see, there 3 steps. First the command line arguments are parsed, the
 :code:`args` object stores the user inputs and any defaults (see `Command line
