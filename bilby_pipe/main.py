@@ -713,16 +713,25 @@ class Dag(object):
         email = self.inputs.email
         add_to_existing = self.inputs.add_to_existing
         existing_dir = self.inputs.existing_dir
+
+        detectors_list = []
+        detectors_list.append(self.inputs.detectors)
+        if self.inputs.coherence_test:
+            for detector in self.inputs.detectors:
+                detectors_list.append([detector])
+        sampler_list = self.inputs.sampler
+        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
+
         level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
         for idx in list(level_A_jobs_numbers):
-            jobs_inputs.append(
-                JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                         kwargs=dict(webdir=webdir, email=email,
-                                     add_to_existing=add_to_existing,
-                                     existing_dir=existing_dir,
-                                     detectors=detectors,
-                                     sampler=sampler)))
+            for detectors, sampler in level_B_prod_list:
+                jobs_inputs.append(
+                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                             kwargs=dict(detectors=detectors, sampler=sampler,
+                                         webdir=webdir, email=email,
+                                         add_to_existing=add_to_existing,
+                                         existing_dir=existing_dir)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -742,10 +751,8 @@ class Dag(object):
         add_to_existing = job_input.kwargs['add_to_existing']
         existing_dir = job_input.kwargs['existing_dir']
         idx = job_input.idx
-        # FIX ME - sampler should not be sampler[0]. This was just a temporary
-        # fix to see if the rest of the job works
-        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler[0],
-                                "result"])
+        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler,
+                                job_input.meta_label, "result"])
         job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
         if job_input.meta_label is not None:
             job_name = '_'.join([job_name, job_input.meta_label])
