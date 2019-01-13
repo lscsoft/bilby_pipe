@@ -59,10 +59,9 @@ def create_parser():
         '--email', type=str,
         help='Email for notifications')
     parser.add(
-        '--add-to-existing', action='store_true')
-    parser.add(
         '--existing-dir', type=str, default=None,
-        help='Directory where an existing summary.html exists')
+        help=('If given, add results to an directory with an an existing'
+              ' summary.html file'))
     parser.add(
         '--accounting', type=str, required=True,
         help='The accounting group to use')
