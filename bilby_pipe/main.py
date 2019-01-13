@@ -685,7 +685,7 @@ class Dag(object):
         arguments = ArgumentsString()
         arguments.add("webdir", webdir)
         arguments.add("email", email)
-        arguments.add("config {}", self.inputs.ini)
+        arguments.add("config", self.inputs.ini)
         arguments.add("samples",
                       "{}/{}.h5".format(self.inputs.result_directory,
                                         result_file))
@@ -701,7 +701,7 @@ class Dag(object):
             universe=self.universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments, retry=self.retry, verbose=self.verbose)
+            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
         job.add_parent(self.analysis_jobs[idx])
         logger.debug('Adding job: {}'.format(job_name))
 
