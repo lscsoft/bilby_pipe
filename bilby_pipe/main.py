@@ -682,13 +682,15 @@ class Dag(object):
                 arg, job_logs_base, arg[:3])
         extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
-        arguments = "--webdir {}".format(webdir)
-        arguments += " --email {}".format(email)
-        arguments += " --config {}".format(self.inputs.ini)
-        arguments += " --samples {}/{}.h5".format(self.inputs.result_directory,
-                                                  result_file)
-        if existing_dir:
-            arguments += " --existing_webdir {}".format(existing_dir)
+        arguments = ArgumentsString()
+        arguments.add("webdir", webdir)
+        arguments.add("email", email)
+        arguments.add("config {}", self.inputs.ini)
+        arguments.add("samples",
+                      "{}/{}.h5".format(self.inputs.result_directory,
+                                        result_file))
+        if existing_dir is not None:
+            arguments.add("existing_webdir", existing_dir)
 
         job = pycondor.Job(
             name=job_name,
