@@ -766,11 +766,10 @@ class Dag(object):
         extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
         arguments = "--webdir {}".format(webdir)
         arguments += " --email {}".format(email)
-        arguments += ' --config {}'.format(self.inputs.ini)
+        arguments += " --config {}".format(self.inputs.ini)
         arguments += " --samples {}/{}.h5".format(self.inputs.result_directory,
                                                   result_file)
-        if add_to_existing:
-            arguments += " --add_to_existing"
+        if existing_dir:
             arguments += " --existing_webdir {}".format(existing_dir)
 
         job = pycondor.Job(
