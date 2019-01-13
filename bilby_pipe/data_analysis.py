@@ -11,7 +11,6 @@ import numpy as np
 import bilby
 
 from bilby_pipe.utils import logger, BilbyPipeError
-from bilby_pipe import webpages
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
@@ -290,5 +289,3 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     analysis = DataAnalysisInput(args, unknown_args)
     analysis.run_sampler()
-    if args.create_output:
-        webpages.create_run_output(analysis.result)

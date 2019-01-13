@@ -97,7 +97,7 @@ class Input(object):
         for dr in [outdir, self.submit_directory,
                    self.data_generation_log_directory,
                    self.data_analysis_log_directory, self.data_directory,
-                   self.result_directory]:
+                   self.summary_log_directory, self.result_directory]:
             utils.check_directory_exists_and_if_not_mkdir(dr)
 
     @property
@@ -114,6 +114,11 @@ class Input(object):
     def data_analysis_log_directory(self):
         """ The path to the directory where log output will be stored """
         return os.path.join(self._outdir, 'data_analysis_log')
+
+    @property
+    def summary_log_directory(self):
+        """ The path to the directory where log output will be stored """
+        return os.path.join(self._outdir, 'results_page_log')
 
     @property
     def data_directory(self):

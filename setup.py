@@ -77,10 +77,10 @@ setup(name='bilby_pipe',
           'future',
           'pycondor>=0.5',
           'configargparse',
-          'jinja2',
+          'ligo-gracedb',
+          'gwdatafind',
           'urllib3',
-          'deepdish',
-          'ligo-gracedb'],
+          'deepdish'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',

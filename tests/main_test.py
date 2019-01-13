@@ -163,6 +163,13 @@ class TestMainInput(unittest.TestCase):
                                                         '.X509.txt'))
         self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
+    def test_create_summary_page(self):
+        self.assertEqual(self.inputs.create_summary,
+                         self.args.create_summary)
+        self.assertEqual(self.inputs.email, self.args.email)
+        self.assertEqual(self.inputs.webdir, self.args.webdir)
+        self.assertEqual(self.inputs.existing_dir, self.args.existing_dir)
+
     def test_parse_gps_file(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
         inputs.gps_file = self.test_gps_file

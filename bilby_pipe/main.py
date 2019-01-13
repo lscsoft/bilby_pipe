@@ -15,7 +15,6 @@ from collections import namedtuple
 
 from .utils import logger, parse_args, BilbyPipeError
 from . import utils
-from . import webpages
 from . import create_injections
 from .input import Input
 
@@ -53,6 +52,17 @@ def create_parser():
     parser.add(
         '--create-summary', action='store_true',
         help='If true, create a summary page')
+    parser.add(
+        '--webdir', type=str, default='./',
+        help='Directory to store summary pages')
+    parser.add(
+        '--email', type=str,
+        help='Email for notifications')
+    parser.add(
+        '--add-to-existing', action='store_true')
+    parser.add(
+        '--existing-dir', type=str, default=None,
+        help='Directory where an existing summary.html exists')
     parser.add(
         '--accounting', type=str, required=True,
         help='The accounting group to use')
@@ -146,6 +156,11 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+
+        self.webdir = args.webdir
+        self.email = args.email
+        self.existing_dir = args.existing_dir
+
         self.run_local = args.local
 
         self.gps_file = args.gps_file
@@ -365,12 +380,15 @@ class Dag(object):
         self.generation_jobs = []
         self.generation_job_labels = []
         self.analysis_jobs = []
+        self.summary_jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
             self.check_injection()
         self.create_generation_jobs()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
+        if self.inputs.create_summary:
+            self.create_summary_jobs()
         self.build_submit()
 
     @staticmethod
@@ -397,6 +415,10 @@ class Dag(object):
             return '/bin/singularity'
         else:
             return self._get_executable_path('bilby_pipe_analysis')
+
+    @property
+    def summary_executable(self):
+        return self._get_executable_path('summarypages.py')
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
@@ -501,7 +523,6 @@ class Dag(object):
     @property
     def analysis_jobs_inputs(self):
         """ A list of dictionaries enumerating all the main jobs to generate
-
         This contains the logic of generating multiple parallel running jobs
         The keys of each dictionary should be the keyword arguments to
         `self._create_jobs()`
@@ -596,6 +617,93 @@ class Dag(object):
         """ Generate postprocessing job """
         pass
 
+    @property
+    def summary_jobs_inputs(self):
+        """ A list of dictionaries enumerating all the main jobs to generate
+
+        This contains the logic of generating multiple parallel running jobs
+        The keys of each dictionary should be the keyword arguments to
+        `self._create_jobs()`
+
+        """
+        logger.debug("Generating list of jobs")
+
+        # Create level B inputs
+        detectors = self.inputs.detectors
+        sampler = self.inputs.sampler
+        webdir = self.inputs.webdir
+        email = self.inputs.email
+        existing_dir = self.inputs.existing_dir
+
+        detectors_list = []
+        detectors_list.append(self.inputs.detectors)
+        if self.inputs.coherence_test:
+            for detector in self.inputs.detectors:
+                detectors_list.append([detector])
+        sampler_list = self.inputs.sampler
+        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
+
+        level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
+        jobs_inputs = []
+        for idx in list(level_A_jobs_numbers):
+            for detectors, sampler in level_B_prod_list:
+                jobs_inputs.append(
+                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
+                             kwargs=dict(detectors=detectors, sampler=sampler,
+                                         webdir=webdir, email=email,
+                                         existing_dir=existing_dir)))
+
+        logger.debug("List of job inputs = {}".format(jobs_inputs))
+        return jobs_inputs
+
+    def create_summary_jobs(self):
+        """ Generate job to generate summary pages """
+        for job_input in self.summary_jobs_inputs:
+            self.summary_jobs.append(
+                self._create_summary_job(job_input))
+
+    def _create_summary_job(self, job_input):
+        """ Create a condor job and add it to the dag """
+        webdir = job_input.kwargs['webdir']
+        email = job_input.kwargs['email']
+        detectors = job_input.kwargs["detectors"]
+        sampler = job_input.kwargs["sampler"]
+        existing_dir = job_input.kwargs['existing_dir']
+        idx = job_input.idx
+        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler,
+                                job_input.meta_label, "result"])
+        job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
+        if job_input.meta_label is not None:
+            job_name = '_'.join([job_name, job_input.meta_label])
+        job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
+        submit = self.inputs.submit_directory
+        extra_lines = ''
+        for arg in ['error', 'log', 'output']:
+            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
+                arg, job_logs_base, arg[:3])
+        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
+        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        arguments = "--webdir {}".format(webdir)
+        arguments += " --email {}".format(email)
+        arguments += " --config {}".format(self.inputs.ini)
+        arguments += " --samples {}/{}.h5".format(self.inputs.result_directory,
+                                                  result_file)
+        if existing_dir:
+            arguments += " --existing_webdir {}".format(existing_dir)
+
+        job = pycondor.Job(
+            name=job_name,
+            executable=self.summary_executable,
+            submit=submit,
+            request_memory=self.request_memory, request_disk=self.request_disk,
+            request_cpus=self.request_cpus, getenv=self.getenv,
+            universe=self.universe, initialdir=self.initialdir,
+            notification=self.notification, requirements=self.requirements,
+            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
+            arguments=arguments, retry=self.retry, verbose=self.verbose)
+        job.add_parent(self.analysis_jobs[idx])
+        logger.debug('Adding job: {}'.format(job_name))
+
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
         if self.inputs.submit:
@@ -664,7 +772,4 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
-    dag = Dag(inputs)
-    # If requested, create a summary page at the DAG-level
-    if inputs.create_summary:
-        webpages.create_summary_page(dag)
+    Dag(inputs)

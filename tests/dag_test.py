@@ -18,7 +18,8 @@ class TestDag(unittest.TestCase):
             injection_file=None, n_injection=None, singularity_image=None,
             local=False, X509=os.path.join(self.directory, 'X509.txt'),
             queue=1, create_summary=False, sampler=['nestle'],
-            gps_file=None)
+            gps_file=None, webdir='.', email='test@test.com',
+            existing_dir=None)
         self.test_unknown_args = ['--argument', 'value']
         self.inputs = bilby_pipe.main.MainInput(
             self.test_args, self.test_unknown_args)
