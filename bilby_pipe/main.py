@@ -301,7 +301,6 @@ class MainInput(Input):
         self.x509userproxy = args.X509
         self.webdir = args.webdir
         self.email = args.email
-        self.add_to_existing = args.add_to_existing
         self.existing_dir = args.existing_dir
 
         self.gps_file = args.gps_file
@@ -711,7 +710,6 @@ class Dag(object):
         sampler = self.inputs.sampler
         webdir = self.inputs.webdir
         email = self.inputs.email
-        add_to_existing = self.inputs.add_to_existing
         existing_dir = self.inputs.existing_dir
 
         detectors_list = []
@@ -730,7 +728,6 @@ class Dag(object):
                     JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
                              kwargs=dict(detectors=detectors, sampler=sampler,
                                          webdir=webdir, email=email,
-                                         add_to_existing=add_to_existing,
                                          existing_dir=existing_dir)))
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
@@ -748,7 +745,6 @@ class Dag(object):
         email = job_input.kwargs['email']
         detectors = job_input.kwargs["detectors"]
         sampler = job_input.kwargs["sampler"]
-        add_to_existing = job_input.kwargs['add_to_existing']
         existing_dir = job_input.kwargs['existing_dir']
         idx = job_input.idx
         result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler,
