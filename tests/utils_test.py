@@ -5,6 +5,18 @@ import shutil
 import logging
 import sys
 
+from bilby_pipe.utils import BilbyPipeError
+
+
+class TestParseArgs(unittest.TestCase):
+    def test_no_command_line_arguments(self):
+        input_args = []
+        parser = bilby_pipe.bilbyargparser.BilbyArgParser(
+            usage=__doc__, ignore_unknown_config_file_keys=True,
+            allow_abbrev=False)
+        with self.assertRaises(BilbyPipeError):
+            bilby_pipe.main.parse_args(input_args, parser)
+
 
 class TestUtils(unittest.TestCase):
 

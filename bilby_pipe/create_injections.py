@@ -11,9 +11,9 @@ from bilby.gw.prior import BBHPriorDict
 import deepdish
 import pandas as pd
 
-from bilby_pipe.utils import logger
-from bilby_pipe.main import parse_args, Input
-from bilby_pipe.bilbyargparser import BilbyArgParser
+from .input import Input
+from .utils import parse_args, logger, BilbyPipeError
+from .bilbyargparser import BilbyArgParser
 
 
 def create_parser():
@@ -68,7 +68,7 @@ class CreateInjectionInput(Input):
         if self._n_injection is not None:
             return self._n_injection
         else:
-            raise ValueError("The number of injection has not been set")
+            raise BilbyPipeError("The number of injection has not been set")
 
     @n_injection.setter
     def n_injection(self, n_injection):
@@ -76,10 +76,7 @@ class CreateInjectionInput(Input):
 
     @property
     def prior_file(self):
-        if self._prior_file is not None:
-            return self._prior_file
-        else:
-            raise ValueError("The prior_file has not been set")
+        return self._prior_file
 
     @prior_file.setter
     def prior_file(self, prior_file):
@@ -89,27 +86,24 @@ class CreateInjectionInput(Input):
             logger.debug("Generating PriorDict")
             self.prior = BBHPriorDict(filename=self._prior_file)
         else:
-            raise ValueError("Type of prior_file must be str")
+            raise BilbyPipeError("Type of prior_file must be str")
 
     @property
     def prior(self):
-        try:
-            return self._prior
-        except AttributeError:
-            raise ValueError("The prior has not been set")
+        return self._prior
 
     @prior.setter
     def prior(self, prior):
         if isinstance(prior, bilby.core.prior.PriorDict):
             self._prior = prior
         else:
-            raise ValueError("Input prior not understood")
+            raise BilbyPipeError("Input prior not understood")
 
     def create_injection_file(self, filename):
         logger.info("Generating injection file with prior={}, n_injection={}"
                     .format(self.prior, self.n_injection))
         injection_values = pd.DataFrame.from_dict(self.prior.sample(self.n_injection))
-        injections = dict(injections=injection_values, prior=self.prior.__repr__)
+        injections = dict(injections=injection_values, prior=self.prior)
         deepdish.io.save(filename, injections)
         logger.info("Created injection file {}".format(filename))
 

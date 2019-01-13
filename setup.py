@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+import os
+import sys
 from setuptools import setup
 import subprocess
-from os import path
-import sys
 
 # check that python version is 3.5 or above
 python_version = sys.version_info
@@ -44,7 +44,7 @@ def write_version_file(version):
         git_status = ''
 
     version_file = '.version'
-    if path.isfile(version_file) is False:
+    if os.path.isfile(version_file) is False:
         with open('bilby_pipe/' + version_file, 'w+') as f:
             f.write('{}: {}'.format(version, git_status))
 
@@ -53,23 +53,23 @@ def write_version_file(version):
 
 def get_long_description():
     """ Finds the README and reads in the description """
-    here = path.abspath(path.dirname(__file__))
-    with open(path.join(here, 'README.rst')) as f:
+    here = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(here, 'README.rst')) as f:
             long_description = f.read()
     return long_description
 
 
-version = '0.0.1'
+version = '0.0.2'
 version_file = write_version_file(version)
 long_description = get_long_description()
 
 setup(name='bilby_pipe',
-      description='',
+      description='Automating the running of bilby for gravitational wave signals',
       long_description=long_description,
-      url='',
-      author='',
-      author_email='',
-      license='',
+      url='https://lscsoft.docs.ligo.org/bilby_pipe/index.html',
+      author='Gregory Ashton, Isobel Romero-Shaw, Colm Talbot',
+      author_email='gregory.ashton@ligo.org',
+      license='MIT',
       version=version,
       package_data={'bilby_pipe': [version_file, 'templates/*html']},
       packages=['bilby_pipe'],
@@ -78,14 +78,20 @@ setup(name='bilby_pipe',
           'pycondor>=0.5',
           'configargparse',
           'ligo-gracedb',
-          'gwdatafind'],
+          'gwdatafind',
+          'urllib3',
+          'deepdish'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
               'bilby_pipe_generation=bilby_pipe.data_generation:main',
               'bilby_pipe_analysis=bilby_pipe.data_analysis:main',
+              'bilby_pipe_singularity=bilby_pipe.singularity:main',
               'bilby_pipe_create_injection_file=bilby_pipe.create_injections:main']},
       classifiers=[
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
           "License :: OSI Approved :: MIT License",
-          "Operating System :: OS Independent"])
+          'Operating System :: MacOS :: MacOS X',
+          'Operating System :: POSIX'])

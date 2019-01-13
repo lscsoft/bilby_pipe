@@ -11,7 +11,8 @@ import bilby
 import deepdish
 
 from bilby_pipe.utils import logger
-from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
@@ -30,9 +31,9 @@ def create_parser():
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
     parser.add('--idx', type=int, help="The level A job index", default=0)
-    parser.add('--cluster', type=int,
+    parser.add('--cluster', type=str,
                help='The condor cluster ID', default=None)
-    parser.add('--process', type=int,
+    parser.add('--process', type=str,
                help='The condor process ID', default=None)
     parser.add('--outdir', default='.', help='Output directory')
     parser.add('--label', default='label', help='Output label')
@@ -53,9 +54,16 @@ def create_parser():
     det_parser.add("--channel-names", default=None, nargs="*",
                    help="Channel names to use, if not provided known "
                    "channel names will be tested.")
+    det_parser.add("--query-types", default=None, nargs="*", help="Query types to "
+                   "use. If not provided known query types will be tested.")
     det_parser.add('--psd-duration', default=500, type=int,
                    help='Time used to generate the PSD, default is 500.')
     det_parser.add('--minimum-frequency', default=20, type=float)
+    det_parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
+                   type=str, help="Name of the frequency domain source model. Can be one of"
+                                  "[lal_binary_black_hole, lal_binary_neutron_star,"
+                                  "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
+                                  "supernova, supernova_pca_model]")
 
     # Method specific options below here
     data_parser = parser.add_argument_group(title='Data setting methods')
@@ -95,6 +103,7 @@ class DataGenerationInput(Input):
         self.detectors = args.detectors
         self.calibration = args.calibration
         self.channel_names = args.channel_names
+        self.query_types = args.query_types
         self.duration = args.duration
         self.trigger_time = args.trigger_time
         self.sampling_frequency = args.sampling_frequency
@@ -102,6 +111,7 @@ class DataGenerationInput(Input):
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
         self.label = args.label
+        self.frequency_domain_source_model = args.frequency_domain_source_model
 
         self.gracedb = args.gracedb
         self.gps_file = args.gps_file
@@ -109,6 +119,30 @@ class DataGenerationInput(Input):
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
         self.injection_file = args.injection_file
+
+    @property
+    def cluster(self):
+        return self._cluster
+
+    @cluster.setter
+    def cluster(self, cluster):
+        try:
+            self._cluster = int(cluster)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `cluster` to type int')
+            self._cluster = cluster
+
+    @property
+    def process(self):
+        return self._process
+
+    @process.setter
+    def process(self, process):
+        try:
+            self._process = int(process)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `process` to type int')
+            self._process = process
 
     @property
     def minimum_frequency(self):
@@ -157,7 +191,7 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
                 gracedb, self.data_directory, self.duration, self.calibration,
-                self.detectors)
+                self.detectors, self.query_types)
             self.meta_data['gracedb_candidate'] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate['gpstime']
@@ -220,7 +254,12 @@ class DataGenerationInput(Input):
 
     @property
     def parameter_conversion(self):
-        return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        if 'binary_neutron_star' in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif 'binary_black_hole' in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        else:
+            return None
 
     @property
     def injection_file(self):
@@ -228,19 +267,21 @@ class DataGenerationInput(Input):
 
     @injection_file.setter
     def injection_file(self, injection_file):
-        self._injection_file = injection_file
         if injection_file is None:
             logger.debug("No injection file set")
+            self._injection_file = None
         elif os.path.isfile(injection_file):
+            self._injection_file = os.path.abspath(injection_file)
             injection_dict = deepdish.io.load(injection_file)
             injection_df = injection_dict['injections']
-            self.injection_parameters = injection_df.iloc[self.process - 1].to_dict()
+            self.injection_parameters = injection_df.iloc[self.idx].to_dict()
             self.meta_data['injection_parameters'] = self.injection_parameters
             if self.trigger_time is None:
                 self.trigger_time = self.injection_parameters['geocent_time']
             self._set_interferometers_from_simulation()
         else:
-            raise FileNotFoundError("Injection file {} not found".format(injection_file))
+            raise FileNotFoundError(
+                "Injection file {} not found".format(injection_file))
 
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
@@ -249,7 +290,7 @@ class DataGenerationInput(Input):
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration, sampling_frequency=self.sampling_frequency,
-            frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             waveform_arguments=waveform_arguments)
 
@@ -257,11 +298,9 @@ class DataGenerationInput(Input):
         ifos.set_strain_data_from_power_spectral_densities(
             sampling_frequency=self.sampling_frequency, duration=self.duration,
             start_time=self.trigger_time - self.duration / 2)
-        try:
-            ifos.inject_signal(waveform_generator=waveform_generator,
-                               parameters=self.injection_parameters)
-        except AttributeError:
-            pass
+
+        ifos.inject_signal(waveform_generator=waveform_generator,
+                           parameters=self.injection_parameters)
 
         self.interferometers = ifos
 

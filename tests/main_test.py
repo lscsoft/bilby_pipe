@@ -4,89 +4,7 @@ import copy
 import shutil
 
 import bilby_pipe
-
-
-class TestInput(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_known_detectors(self):
-        inputs = bilby_pipe.main.Input()
-        self.assertEqual(inputs.known_detectors, ['H1', 'L1', 'V1'])
-
-    def test_set_known_detectors_list(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.known_detectors = ['G1']
-        self.assertEqual(inputs.known_detectors, ['G1'])
-
-    def test_set_known_detectors_string(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.known_detectors = 'G1 H1'
-        self.assertEqual(inputs.known_detectors, ['G1', 'H1'])
-
-    def test_detectors(self):
-        inputs = bilby_pipe.main.Input()
-        with self.assertRaises(AttributeError):
-            inputs.detectors
-
-    def test_set_detectors_list(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.detectors = ['H1']
-        self.assertEqual(inputs.detectors, ['H1'])
-
-    def test_set_detectors_string(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.detectors = 'H1 L1'
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
-
-    def test_set_detectors_ordering(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.detectors = 'L1 H1'
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
-
-    def test_unknown_detector(self):
-        inputs = bilby_pipe.main.Input()
-        with self.assertRaises(ValueError):
-            inputs.detectors = 'G1'
-
-        with self.assertRaises(ValueError):
-            inputs.detectors = ['G1', 'L1']
-
-        inputs.known_detectors = inputs.known_detectors + ['G1']
-        inputs.detectors = ['G1', 'L1']
-        self.assertEqual(inputs.detectors, ['G1', 'L1'])
-
-    def test_convert_string_to_list(self):
-        for string in ['H1 L1', '[H1, L1]', 'H1, L1', '["H1", "L1"]',
-                       "'H1' 'L1'", '"H1", "L1"']:
-            self.assertEqual(bilby_pipe.main.Input._convert_string_to_list(string),
-                             ['H1', 'L1'])
-
-    def test_gps_file_unset(self):
-        inputs = bilby_pipe.main.Input()
-        with self.assertRaises(AttributeError):
-            self.assertEqual(inputs.gps_file, None)
-
-    def test_gps_file_set_none(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.gps_file = None
-        self.assertEqual(inputs.gps_file, None)
-
-    def test_gps_file_set(self):
-        inputs = bilby_pipe.main.Input()
-        gps_file = 'tests/gps_file.txt'
-        inputs.gps_file = gps_file
-        self.assertEqual(inputs.gps_file, os.path.abspath(gps_file))
-        self.assertEqual(len(inputs.read_gps_file()), 3)
-
-    def test_gps_file_set_fail(self):
-        inputs = bilby_pipe.main.Input()
-        gps_file = 'tests/nonexistant_file.txt'
-        with self.assertRaises(FileNotFoundError):
-            inputs.gps_file = gps_file
+from bilby_pipe.main import BilbyPipeError
 
 
 class TestMainInput(unittest.TestCase):
@@ -104,6 +22,11 @@ class TestMainInput(unittest.TestCase):
         self.inputs = bilby_pipe.main.MainInput(
             *self.parser.parse_known_args(self.all_args_list))
 
+        self.test_gps_file = 'tests/gps_file.txt'
+        self.singularity_image_test = os.path.join(self.outdir, 'test.simg')
+        with open(self.singularity_image_test, 'w+') as file:
+            file.write('')
+
     def tearDown(self):
         shutil.rmtree(self.outdir)
         del self.args
@@ -111,6 +34,42 @@ class TestMainInput(unittest.TestCase):
 
     def test_ini(self):
         self.assertEqual(self.inputs.ini, os.path.abspath(self.args.ini))
+
+    def test_ini_not_a_file(self):
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.ini = 'not_a_file'
+
+    def test_set_singularity_image(self):
+        self.inputs.singularity_image = self.singularity_image_test
+        self.assertEqual(
+            self.inputs.singularity_image,
+            os.path.abspath(self.singularity_image_test))
+
+    def test_singularity_image_setting_fail(self):
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.singularity_image = 10
+
+        with self.assertRaises(FileNotFoundError):
+            self.inputs.singularity_image = 'not_a_file'
+
+    def test_use_singularity(self):
+        self.inputs.use_singularity = True
+        self.assertEqual(self.inputs.use_singularity, True)
+
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.use_singularity = 10
+
+    def test_setting_level_A_jobs(self):
+        self.inputs.n_level_A_jobs = 10
+        self.assertEqual(self.inputs.n_level_A_jobs, 10)
+
+    def test_default_level_A_labels(self):
+        self.inputs.n_level_A_jobs = 2
+        self.assertEqual(self.inputs.level_A_labels, ['', ''])
+
+    def test_setting_level_A_labels(self):
+        self.inputs.level_A_labels = ['a', 'b']
+        self.assertEqual(self.inputs.level_A_labels, ['a', 'b'])
 
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)
@@ -140,11 +99,11 @@ class TestMainInput(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
         self.assertEqual(inputs.detectors, ['L1'])
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BilbyPipeError):
             args.detectors = 'A1'
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BilbyPipeError):
             args.detectors = None
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
@@ -173,12 +132,12 @@ class TestMainInput(unittest.TestCase):
         args.detectors = ['H1', 'l1']
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BilbyPipeError):
             args.detectors = ['H1', 'error']
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
     def test_x506_fail(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BilbyPipeError):
             args = copy.copy(self.args)
             args.X509 = 'random_string'
             bilby_pipe.main.MainInput(args, self.unknown_args_list)
@@ -210,6 +169,20 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(self.inputs.email, self.args.email)
         self.assertEqual(self.inputs.webdir, self.args.webdir)
         self.assertEqual(self.inputs.existing_dir, self.args.existing_dir)
+
+    def test_parse_gps_file(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        inputs.gps_file = self.test_gps_file
+        inputs._parse_gps_file()
+        self.assertEqual(len(inputs.read_gps_file()), inputs.n_level_A_jobs)
+        self.assertEqual(inputs.level_A_labels, ['12345.1', '45677.0', '89324.0'])
+
+    def test_n_injection_setting(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        inputs.n_injection = 1
+        self.assertEqual(inputs.n_injection, 1)
+        self.assertEqual(inputs.n_level_A_jobs, 1)
+        self.assertEqual(inputs.level_A_labels, ['injection_0'])
 
 
 if __name__ == '__main__':

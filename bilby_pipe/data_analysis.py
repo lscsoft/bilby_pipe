@@ -10,8 +10,9 @@ import os
 import numpy as np
 import bilby
 
-from bilby_pipe.utils import logger
-from bilby_pipe.main import Input, DataDump, parse_args
+from bilby_pipe.utils import logger, BilbyPipeError
+from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
 
@@ -30,9 +31,9 @@ def create_parser():
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add('--ini', is_config_file=True, help='The ini-style config file')
     parser.add('--idx', type=int, help="The level A job index", default=0)
-    parser.add('--cluster', type=int,
+    parser.add('--cluster', type=str,
                help='The condor cluster ID', default=None)
-    parser.add('--process', type=int,
+    parser.add('--process', type=str,
                help='The condor process ID', default=None)
     parser.add(
         '--detectors', action='append',
@@ -50,10 +51,6 @@ def create_parser():
     parser.add('--default-prior', default='BBHPriorDict', type=str,
                help="The name of the prior set to base the prior on. Can be one of"
                     "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]")
-    parser.add('--conversion', default='convert_to_lal_binary_black_hole_parameters',
-               type=str, help='Name of the conversion function. Can be one of '
-                              '[convert_to_lal_binary_black_hole_parameters,'
-                              'convert_to_lal_binary_neutron_star_parameters]')
     parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
                type=str, help="Name of the frequency domain source model. Can be one of"
                               "[lal_binary_black_hole, lal_binary_neutron_star,"
@@ -114,9 +111,32 @@ class DataAnalysisInput(Input):
         self.label = args.label
         self.data_label = args.data_label
         self.default_prior = args.default_prior
-        self._frequency_domain_source_model = args.frequency_domain_source_model
-        self.conversion = args.conversion
+        self.frequency_domain_source_model = args.frequency_domain_source_model
         self.result = None
+
+    @property
+    def cluster(self):
+        return self._cluster
+
+    @cluster.setter
+    def cluster(self, cluster):
+        try:
+            self._cluster = int(cluster)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `cluster` to type int')
+            self._cluster = cluster
+
+    @property
+    def process(self):
+        return self._process
+
+    @process.setter
+    def process(self, process):
+        try:
+            self._process = int(process)
+        except (ValueError, TypeError):
+            logger.debug('Unable to convert input `process` to type int')
+            self._process = process
 
     @property
     def reference_frequency(self):
@@ -140,10 +160,7 @@ class DataAnalysisInput(Input):
 
     @property
     def sampler_kwargs(self):
-        if hasattr(self, '_sampler_kwargs'):
-            return self._sampler_kwargs
-        else:
-            return None
+        return self._sampler_kwargs
 
     @sampler_kwargs.setter
     def sampler_kwargs(self, sampler_kwargs):
@@ -151,7 +168,7 @@ class DataAnalysisInput(Input):
             try:
                 self._sampler_kwargs = eval(sampler_kwargs)
             except (NameError, TypeError) as e:
-                raise ValueError(
+                raise BilbyPipeError(
                     "Error {}. Unable to parse sampler_kwargs: {}"
                     .format(e, sampler_kwargs))
         else:
@@ -216,19 +233,19 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if self.conversion in bilby.gw.conversion.__dict__.keys():
-            return bilby.gw.conversion.__dict__[self.conversion]
-        else:
-            logger.info("No conversion model {} found.").format(self.conversion)
-            logger.info("Defaulting to convert_to_lal_binary_black_hole_parameters")
+        if 'binary_neutron_star' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif 'binary_black_hole' in self._frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        else:
+            return None
 
     @property
     def waveform_generator(self):
         waveform_generator = bilby.gw.WaveformGenerator(
             sampling_frequency=self.interferometers.sampling_frequency,
             duration=self.interferometers.duration,
-            frequency_domain_source_model=self.frequency_domain_source_model,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             start_time=self.interferometers.start_time,
             waveform_arguments=self.waveform_arguments)
@@ -251,20 +268,19 @@ class DataAnalysisInput(Input):
             time_marginalization=self.time_marginalization)
 
     @property
-    def frequency_domain_source_model(self):
-        if self._frequency_domain_source_model in bilby.gw.source.__dict__.keys():
-            return bilby.gw.source.__dict__[self._frequency_domain_source_model]
+    def parameter_generation(self):
+        if 'binary_neutron_star' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bns_parameters
+        elif 'binary_black_hole' in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bbh_parameters
         else:
-            logger.error(
-                "No source model {} found.".format(self._frequency_domain_source_model))
-            logger.error("Defaulting to lal_binary_black_hole")
-            return bilby.gw.source.lal_binary_black_hole
+            return None
 
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood, priors=self.priors,
             sampler=self.sampler, label=self.label, outdir=self.result_directory,
-            conversion_function=bilby.gw.conversion.generate_all_bbh_parameters,
+            conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data['injection_parameters'],
             **self.sampler_kwargs)
 

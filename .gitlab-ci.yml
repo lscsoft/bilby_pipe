@@ -13,10 +13,11 @@ stages:
   - test
   - deploy
 
-python-3:
+python-3.7:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite-python37
   script:
+    - pip install lalsuite gwpy bilby
     - python setup.py install
 
     # Run pyflakes
@@ -32,10 +33,32 @@ python-3:
       - htmlcov/
       - coverage_badge.svg
 
+python-3.6:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python36
+  script:
+    - pip install lalsuite gwpy bilby
+    - python setup.py install
+
+    # Run tests
+    - pytest
+
+python-3.5:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python35
+  script:
+    - pip install lalsuite gwpy bilby
+    - python setup.py install
+
+    # Run tests
+    - pytest
+
+
 documentation:
   stage: test
-  image: bilbydev/bilby
+  image: bilbydev/bilby_pipe-test-suite-python37
   script:
+    - pip install bilby
     - python setup.py install
 
     # Make the documentation
@@ -52,7 +75,7 @@ documentation:
 pages:
   stage: deploy
   dependencies:
-    - python-3
+    - python-3.7
     - documentation
   script:
     - mkdir public/
