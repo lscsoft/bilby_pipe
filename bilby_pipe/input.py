@@ -108,17 +108,17 @@ class Input(object):
     @property
     def data_generation_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'data_generation_log')
+        return os.path.join(self._outdir, 'log_data_generation')
 
     @property
     def data_analysis_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'data_analysis_log')
+        return os.path.join(self._outdir, 'log_data_analysis')
 
     @property
     def summary_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'results_page_log')
+        return os.path.join(self._outdir, 'log_results_page')
 
     @property
     def data_directory(self):
@@ -129,6 +129,17 @@ class Input(object):
     def result_directory(self):
         """ The path to the directory where result output will be stored """
         return os.path.join(self._outdir, 'result')
+
+    @property
+    def webdir(self):
+        return self._webdir
+
+    @webdir.setter
+    def webdir(self, webdir):
+        if webdir is None:
+            self._webdir = os.path.join(self.outdir, 'results_page')
+        else:
+            self._webdir = webdir
 
     @property
     def gps_file(self):

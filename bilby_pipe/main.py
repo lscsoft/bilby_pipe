@@ -53,8 +53,9 @@ def create_parser():
         '--create-summary', action='store_true',
         help='If true, create a summary page')
     parser.add(
-        '--webdir', type=str, default='./',
-        help='Directory to store summary pages')
+        '--webdir', type=str, default=None,
+        help=('Directory to store summary pages. If not given, defaults to '
+              'outdir/results_page'))
     parser.add(
         '--email', type=str,
         help='Email for notifications')
