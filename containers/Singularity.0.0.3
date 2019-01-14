@@ -6,8 +6,7 @@ A singularity container for running bilby_pipe.
 
 %post
 export PATH=/opt/conda/bin:${PATH}
-git clone https://git.ligo.org/charlie.hoy/pesummary.git
-(cd pesummary && python setup.py install)
+pip install pesummary
 pip install ligo-gracedb
 pip install bilby==0.3.4
 pip install bilby_pipe==0.0.3
