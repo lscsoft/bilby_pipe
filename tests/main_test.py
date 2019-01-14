@@ -63,9 +63,9 @@ class TestMainInput(unittest.TestCase):
         self.inputs.n_level_A_jobs = 10
         self.assertEqual(self.inputs.n_level_A_jobs, 10)
 
-    def test_default_level_A_labels(self):
-        self.inputs.n_level_A_jobs = 2
-        self.assertEqual(self.inputs.level_A_labels, ['', ''])
+    def test_unset_level_A_labels(self):
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.level_A_labels
 
     def test_setting_level_A_labels(self):
         self.inputs.level_A_labels = ['a', 'b']

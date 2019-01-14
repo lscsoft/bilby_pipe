@@ -99,6 +99,8 @@ def create_parser():
         title='Data generation arguments')
     data_gen_pars.add(
         '--gps-file', type=str, help='File containing GPS times')
+    data_gen_pars.add(
+        '--gracedb', type=str, help='Gracedb UID', default=None)
     return parser
 
 
@@ -169,6 +171,8 @@ class MainInput(Input):
         self.injection_file = args.injection_file
         self.n_injection = args.n_injection
 
+        self.gracedb = args.gracedb
+
         # These keys are used in the webpages summary
         self.meta_keys = ['label', 'outdir', 'ini',
                           'detectors', 'coherence_test',
@@ -238,8 +242,7 @@ class MainInput(Input):
         try:
             return self._level_A_jobs
         except AttributeError:
-            logger.debug('level_A_jobs not set, using default')
-            return ['' for _ in range(self.n_level_A_jobs)]
+            raise BilbyPipeError("level_A_labels not set")
 
     @level_A_labels.setter
     def level_A_labels(self, labels):
@@ -303,6 +306,18 @@ class MainInput(Input):
             self.level_A_labels = ['injection_{}'.format(x) for x in range(n_injection)]
         else:
             self._n_injection = None
+
+    @property
+    def gracedb(self):
+        return self._gracedb
+
+    @gracedb.setter
+    def gracedb(self, gracedb):
+        if gracedb is not None:
+            self._gracedb = gracedb
+            self.level_A_labels = [gracedb]
+        else:
+            self._gracedb = None
 
 
 class Dag(object):
