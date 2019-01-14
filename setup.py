@@ -80,7 +80,8 @@ setup(name='bilby_pipe',
           'ligo-gracedb',
           'gwdatafind',
           'urllib3',
-          'deepdish'],
+          'deepdish',
+          'pesummary'],
       entry_points={
           'console_scripts': [
               'bilby_pipe=bilby_pipe.main:main',
