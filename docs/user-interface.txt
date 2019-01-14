@@ -80,6 +80,40 @@ is the entry for GW150915.
 
 .. literalinclude:: ../example_ini_files/GW150914.ini
 
+Summary webpage
+---------------
+
+:code:`bilby_pipe` allows the user to visualise the posterior samples through
+a 'summary' webpage. This is implemented using `PESummary
+<https://git.ligo.org/charlie.hoy/pesummary>`_ (documentation `here
+<https://docs.ligo.org/charlie.hoy/pesummary/>`_). 
+
+To generate a summary webpage, the :code:`create-summary` option must be passed
+in the configuration file. Additionally, you can specifiy a web directory where
+you would like the output from :code:`PESummary` to be stored; by default this
+is placed in :code:`outdir/results_page`. If you are working on an LDG cluster,
+then the web directory should be in your public_html. Below is an example of
+the additional lines to put in your configuration file to generate 'summary'
+webpages:
+
+.. code-block:: text
+
+    create-summary = True
+    email = albert.einstein
+    webdir = /home/albert.einstein/public_html/project
+
+If you have already generated a webpage in the past using :code:`PESummary`,
+then you are able to pass the :code:`existing-dir` options to add further
+results files to a single webpage. This includes all histograms for each
+results file as well as comparison plots. Below is an example of the additional
+lines in the configuration file that will add to an existing webpage:
+
+.. code-block:: text
+
+    create-summary = True
+    email = albert.einstein
+    existing-dir = /home/albert.einstein/public_html/project
+
 Running on GPS times
 --------------------
 
