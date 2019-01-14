@@ -59,7 +59,7 @@ def get_long_description():
     return long_description
 
 
-version = '0.0.2'
+version = '0.0.3'
 version_file = write_version_file(version)
 long_description = get_long_description()
 
@@ -67,7 +67,7 @@ setup(name='bilby_pipe',
       description='Automating the running of bilby for gravitational wave signals',
       long_description=long_description,
       url='https://lscsoft.docs.ligo.org/bilby_pipe/index.html',
-      author='Gregory Ashton, Isobel Romero-Shaw, Colm Talbot',
+      author='Gregory Ashton, Isobel Romero-Shaw, Colm Talbot, Charlie Hoy',
       author_email='gregory.ashton@ligo.org',
       license='MIT',
       version=version,

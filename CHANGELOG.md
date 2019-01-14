@@ -4,7 +4,17 @@
 
 Changes currently on master, but not under a tag.
 
-### Changes
+## [0.0.3] 2018-01-14
+
+### Added
+- Support for pesummary module to produce summary files
+
+### Changed
+- Minor bug fixes for argument passing and result file naming
+
+## [0.0.2] 2018-01-10
+
+### Added
 - Added singularity containers
 - Add testing in python 3.5, 3.6, and 3.7
 - Add a `--local` flag for testing/debug (runs the code on the host rather than submitting to a queue)
