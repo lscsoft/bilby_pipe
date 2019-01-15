@@ -88,7 +88,7 @@ def create_parser():
         help=('Option to either grab the data locally or on the compute nodes.'
               'Note that if you are running on a cluster where the compute '
               'nodes do not have internet access (ARCCA), you will need to '
-              'grab data locally.')) 
+              'grab data locally.'))
 
     injection_parser = parser.add_argument_group(title='Injection arguments')
     injection_parser.add(
