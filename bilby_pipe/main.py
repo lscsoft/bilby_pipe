@@ -519,7 +519,7 @@ class Dag(object):
             submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
+            universe="local", initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
