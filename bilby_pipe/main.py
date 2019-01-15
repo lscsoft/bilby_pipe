@@ -179,7 +179,7 @@ class MainInput(Input):
 
         self.gracedb = args.gracedb
 
-        self.grab_data_locally = args.grab-data-locally
+        self.grab_data_locally = args.grab_data_locally
 
         # These keys are used in the webpages summary
         self.meta_keys = ['label', 'outdir', 'ini',
