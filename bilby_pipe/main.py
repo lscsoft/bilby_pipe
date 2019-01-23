@@ -81,14 +81,14 @@ def create_parser():
         '--local', action='store_true',
         help='Run the job locally, i.e., not through a batch submission')
     parser.add(
+        '--local-generation', action='store_true',
+        help=('Run the data generation job locally. Note that if you are '
+              'running on a cluster where the compute nodes do not have '
+              'internet access, e.g. on ARCCA, you will need to run the data '
+              'generation job locally.'))
+    parser.add(
         '--singularity-image', type=str, default=None,
         help='Singularity image to use')
-    parser.add(
-        '--grab-data-locally', action='store_true', default=True,
-        help=('Option to either grab the data locally or on the compute nodes.'
-              'Note that if you are running on a cluster where the compute '
-              'nodes do not have internet access (ARCCA), you will need to '
-              'grab data locally.'))
 
     injection_parser = parser.add_argument_group(title='Injection arguments')
     injection_parser.add(
@@ -170,6 +170,7 @@ class MainInput(Input):
         self.existing_dir = args.existing_dir
 
         self.run_local = args.local
+        self.local_generation = args.local_generation
 
         self.gps_file = args.gps_file
 
@@ -178,8 +179,6 @@ class MainInput(Input):
         self.n_injection = args.n_injection
 
         self.gracedb = args.gracedb
-
-        self.grab_data_locally = args.grab_data_locally
 
         # These keys are used in the webpages summary
         self.meta_keys = ['label', 'outdir', 'ini',
@@ -494,7 +493,7 @@ class Dag(object):
 
     def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
-        if self.inputs.grab_data_locally:
+        if self.inputs.local_generation:
             universe = "local"
         else:
             universe = self.universe
