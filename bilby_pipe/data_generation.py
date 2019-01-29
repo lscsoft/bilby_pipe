@@ -192,11 +192,12 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             try:
                 urllib.request.urlopen("https://google.com", timeout=0.1)
-            except:
-                raise BilbyPipeError('Unable to grab graceDB entry because '
-                  'the network is unreachable. Please specify the '
-                  'local-generation argument either in the configuration file '
-                  'or by passing the --local-generation command line argument')
+            except OSError:
+                raise BilbyPipeError(
+                    'Unable to grab graceDB entry because the network is '
+                    'unreachable. Please specify the local-generation argument '
+                    'either in the configuration file or by passing the'
+                    '--local-generation command line argument')
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
                 gracedb, self.data_directory, self.duration,
                 self.calibration, self.detectors, self.query_types)

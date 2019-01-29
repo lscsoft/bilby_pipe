@@ -497,8 +497,8 @@ class Dag(object):
             logger.warn("All data will be grabbed in the local universe")
             universe = "local"
         else:
-            logger.warn("All data will be grabbed in the %s universe"
-                %(self.universe))
+            logger.warn("All data will be grabbed in the {} universe".format(
+                self.universe))
             universe = self.universe
         idx = job_input.idx
         job_name = '_'.join([self.inputs.label, 'generation', str(idx)])
