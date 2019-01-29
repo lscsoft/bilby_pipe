@@ -494,8 +494,11 @@ class Dag(object):
     def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
         if self.inputs.local_generation:
+            logger.warn("All data will be grabbed in the local universe")
             universe = "local"
         else:
+            logger.warn("All data will be grabbed in the %s universe"
+                %(self.universe))
             universe = self.universe
         idx = job_input.idx
         job_name = '_'.join([self.inputs.label, 'generation', str(idx)])
