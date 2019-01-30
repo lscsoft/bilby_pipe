@@ -4,6 +4,12 @@
 
 Changes currently on master, but not under a tag.
 
+### Added
+- Flag for running the data generation step on the local head node
+
+### Changes
+- Moved all command line argument logic to a single module with switches
+
 ## [0.0.3] 2018-01-14
 
 ### Added
