@@ -6,6 +6,7 @@ from __future__ import division, print_function
 
 import sys
 import os
+import urllib
 import urllib.request
 
 import bilby
@@ -192,7 +193,7 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             try:
                 urllib.request.urlopen("https://google.com", timeout=0.1)
-            except OSError:
+            except urllib.error.URLError:
                 raise BilbyPipeError(
                     'Unable to grab graceDB entry because the network is '
                     'unreachable. Please specify the local-generation argument '
