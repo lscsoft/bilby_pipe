@@ -308,9 +308,11 @@ class Dag(object):
         self.verbose = verbose
         self.inputs = inputs
 
+        self.dag_name = 'dag_{}'.format(inputs.label)
         self.dag = pycondor.Dagman(
-            name='dag_' + inputs.label,
+            name=self.dag_name,
             submit=self.inputs.submit_directory)
+
         self.generation_jobs = []
         self.generation_job_labels = []
         self.analysis_jobs = []
@@ -651,10 +653,25 @@ class Dag(object):
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
+        submitted = False
         if self.inputs.submit:
-            self.dag.build_submit()
+            try:
+                self.dag.build_submit()
+                submitted = True
+            except OSError:
+                logger.warning("Unable to submit files")
+                self.dag.build()
         else:
             self.dag.build()
+
+        if submitted:
+            logger.info("DAG generation complete and submitted")
+        else:
+            command_line = "$ condor_submit_dag {}/{}.submit".format(
+                self.inputs.submit_directory, self.dag_name)
+            logger.info(
+                "DAG generation complete, to submit jobs run:\n  {}".format(
+                    command_line))
 
 
 class ArgumentsString(object):

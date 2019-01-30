@@ -60,8 +60,7 @@ class TestDag(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ['test_label']
         inputs.submit = True
-        with self.assertRaises(OSError):
-            bilby_pipe.main.Dag(inputs)
+        bilby_pipe.main.Dag(inputs)
 
     def test_injection_from_file(self):
         test_args = self.test_args
