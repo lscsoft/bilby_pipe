@@ -6,7 +6,7 @@ import bilby
 from bilby_pipe.main import parse_args
 from bilby_pipe.utils import BilbyPipeError
 from bilby_pipe.data_analysis import (
-    DataAnalysisInput, create_parser)
+    DataAnalysisInput, create_analysis_parser)
 
 
 class TestDataAnalysisInput(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestDataAnalysisInput(unittest.TestCase):
         self.outdir = 'test_outdir'
         self.default_args_list = ['--ini', 'tests/test_data_analysis.ini',
                                   '--outdir', self.outdir]
-        self.parser = create_parser()
+        self.parser = create_analysis_parser()
         self.inputs = DataAnalysisInput(
             *parse_args(self.default_args_list, self.parser))
 

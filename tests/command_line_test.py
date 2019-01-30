@@ -7,7 +7,7 @@ class TestDagCommandLine(unittest.TestCase):
 
     def setUp(self):
         self.default_args = ['tests/test_dag_ini_file.ini']
-        self.parser = bilby_pipe.main.create_parser()
+        self.parser = bilby_pipe.main.create_main_parser()
 
     def tearDown(self):
         pass

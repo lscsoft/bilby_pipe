@@ -17,97 +17,9 @@ from .utils import logger, parse_args, BilbyPipeError
 from . import utils
 from . import create_injections
 from .input import Input
-
-from bilby_pipe.bilbyargparser import BilbyArgParser
-
-__version__ = utils.get_version_information()
+from .parser import create_parser
 
 JobInput = namedtuple('level_A_job_input', 'idx meta_label kwargs')
-
-
-def create_parser():
-    """ Creates the BilbyArgParser for bilby_pipe """
-    parser = BilbyArgParser(
-        usage=__doc__, ignore_unknown_config_file_keys=True,
-        allow_abbrev=False)
-    parser.add(
-        'ini', type=str, is_config_file=True, help='The ini file')
-    parser.add(
-        '--submit', action='store_true',
-        help='Attempt to submit the job after the build')
-    parser.add(
-        '--sampler', nargs='+', default='dynesty',
-        help='Sampler to use, or list of sampler to use')
-    parser.add(
-        '--detectors', nargs='+', default=['H1', 'L1'],
-        help='The names of detectors to include {H1, L1}')
-    parser.add(
-        '--coherence-test', action='store_true',
-        help=('Run the analysis for all detectors together and for each '
-              'detector separately'))
-    parser.add(
-        '--label', type=str, default='LABEL', help='The output label')
-    parser.add(
-        '--outdir', type=str, default='.', help='The output directory')
-    parser.add(
-        '--create-summary', action='store_true',
-        help='If true, create a summary page')
-    parser.add(
-        '--webdir', type=str, default=None,
-        help=('Directory to store summary pages. If not given, defaults to '
-              'outdir/results_page'))
-    parser.add(
-        '--email', type=str,
-        help='Email for notifications')
-    parser.add(
-        '--existing-dir', type=str, default=None,
-        help=('If given, add results to an directory with an an existing'
-              ' summary.html file'))
-    parser.add(
-        '--accounting', type=str, required=True,
-        help='The accounting group to use')
-    parser.add(
-        '--X509', type=str, default=None,
-        help=('The path to the users X509 certificate file.'
-              'If not given, a copy of the file at the env. variable '
-              '$X509_USER_PROXY will be made in outdir and linked in '
-              'the condor jobs submission'))
-    parser.add(
-        '-v', '--verbose', action='store_true', help='verbose')
-    parser.add(
-        '--version', action='version',
-        version='%(prog)s {version}'.format(version=__version__))
-    parser.add(
-        '--local', action='store_true',
-        help='Run the job locally, i.e., not through a batch submission')
-    parser.add(
-        '--local-generation', action='store_true',
-        help=('Run the data generation job locally. Note that if you are '
-              'running on a cluster where the compute nodes do not have '
-              'internet access, e.g. on ARCCA, you will need to run the data '
-              'generation job locally.'))
-    parser.add(
-        '--singularity-image', type=str, default=None,
-        help='Singularity image to use')
-
-    injection_parser = parser.add_argument_group(title='Injection arguments')
-    injection_parser.add(
-        '--injection', action='store_true', default=False,
-        help='Create data from an injection file')
-    injection_parser.add(
-        '--injection-file', type=str, default=None,
-        help='An injection file: overrides `n-injection`.')
-    injection_parser.add_arg(
-        '--n-injection', type=int,
-        help='The number of injections to generate by sampling from the prior')
-
-    data_gen_pars = parser.add_argument_group(
-        title='Data generation arguments')
-    data_gen_pars.add(
-        '--gps-file', type=str, help='File containing GPS times')
-    data_gen_pars.add(
-        '--gracedb', type=str, help='Gracedb UID', default=None)
-    return parser
 
 
 class MainInput(Input):
@@ -517,7 +429,7 @@ class Dag(object):
         if self.inputs.use_singularity:
             arguments.append(
                 'run --app generation {}'.format(self.inputs.singularity_image))
-        arguments.add('ini', self.inputs.ini)
+        arguments.add_positional_argument(self.inputs.ini)
         arguments.add('label', job_name)
         self.generation_job_labels.append(job_name)
         arguments.add('idx', idx)
@@ -613,7 +525,7 @@ class Dag(object):
         if self.inputs.use_singularity:
             arguments.append(
                 'run --app analysis {}'.format(self.inputs.singularity_image))
-        arguments.add('ini', self.inputs.ini)
+        arguments.add_positional_argument(self.inputs.ini)
         for detector in detectors:
             arguments.add('detectors', detector)
         arguments.add('label', job_name)
@@ -753,6 +665,9 @@ class ArgumentsString(object):
     def append(self, argument):
         self.argument_list.append(argument)
 
+    def add_positional_argument(self, value):
+        self.argument_list.append('{}'.format(value))
+
     def add(self, argument, value):
         self.argument_list.append('--{}'.format(argument))
         self.argument_list.append('{}'.format(value))
@@ -807,10 +722,16 @@ class DataDump():
         return res
 
 
+def create_main_parser():
+    return create_parser(pipe_args=True, job_args=True, run_spec=True,
+                         pe_summary=True, injection=True, data_gen=True,
+                         waveform=False, generation=False, analysis=False)
+
+
 def main():
     """ Top-level interface for bilby_pipe """
     args, unknown_args = parse_args(
-        utils.get_command_line_arguments(), create_parser())
+        utils.get_command_line_arguments(), create_main_parser())
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
     Dag(inputs)

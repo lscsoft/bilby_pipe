@@ -11,5 +11,6 @@ estimation on computing clusters.
 from . import main
 from . import bilbyargparser
 from . import utils
+from . import parser
 
 __version__ = utils.get_version_information()

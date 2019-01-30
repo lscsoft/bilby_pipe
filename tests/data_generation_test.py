@@ -9,7 +9,7 @@ import deepdish
 from bilby_pipe.main import parse_args
 from bilby_pipe import create_injections
 from bilby_pipe.data_generation import (
-    DataGenerationInput, create_parser)
+    DataGenerationInput, create_generation_parser)
 
 
 class TestDataGenerationInput(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestDataGenerationInput(unittest.TestCase):
         self.outdir = 'test_outdir'
         self.default_args_list = ['--ini', 'tests/test_data_generation.ini',
                                   '--outdir', self.outdir]
-        self.parser = create_parser()
+        self.parser = create_generation_parser()
         self.inputs = DataGenerationInput(
             *parse_args(self.default_args_list, self.parser))
         self.gps_file = 'tests/gps_file.txt'

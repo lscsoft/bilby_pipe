@@ -12,68 +12,8 @@ import bilby
 
 from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.parser import create_parser
 from bilby_pipe.input import Input
-from bilby_pipe.bilbyargparser import BilbyArgParser
-
-
-def create_parser():
-    """ Generate a parser for the data_analysis.py script
-
-    Additional options can be added to the returned parser before calling
-    `parser.parse_args` to generate the arguments`
-
-    Returns
-    -------
-    parser: BilbyArgParser
-        A parser with all the default options already added
-
-    """
-    parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
-    parser.add('--ini', is_config_file=True, help='The ini-style config file')
-    parser.add('--idx', type=int, help="The level A job index", default=0)
-    parser.add('--cluster', type=str,
-               help='The condor cluster ID', default=None)
-    parser.add('--process', type=str,
-               help='The condor process ID', default=None)
-    parser.add(
-        '--detectors', action='append',
-        help=('The names of detectors to analyse. If given in the ini file, '
-              'multiple detectors are specified by `detectors=[H1, L1]`. If '
-              'given at the command line, as `--detectors H1 --detectors L1`'))
-    parser.add("--prior-file", default=None, help="The prior file")
-    parser.add("--deltaT", type=float, default=0.1,
-               help=("The symmetric width (in s) around the trigger time to"
-                     " search over the coalesence time"))
-    parser.add('--reference-frequency', default=20, type=float,
-               help="The reference frequency")
-    parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
-               help="The name of the waveform approximant")
-    parser.add('--default-prior', default='BBHPriorDict', type=str,
-               help="The name of the prior set to base the prior on. Can be one of"
-                    "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]")
-    parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
-               type=str, help="Name of the frequency domain source model. Can be one of"
-                              "[lal_binary_black_hole, lal_binary_neutron_star,"
-                              "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
-                              "supernova, supernova_pca_model]")
-    parser.add(
-        '--distance-marginalization', action='store_true', default=False,
-        help='Boolean. If true, use a distance-marginalized likelihood')
-    parser.add(
-        '--phase-marginalization', action='store_true', default=False,
-        help='Boolean. If true, use a phase-marginalized likelihood')
-    parser.add(
-        '--time-marginalization', action='store_true', default=False,
-        help='Boolean. If true, use a time-marginalized likelihood')
-    parser.add('--sampler', default=None)
-    parser.add('--sampler-kwargs', default=None)
-    parser.add('--outdir', default='.', help='Output directory')
-    parser.add('--label', default='label', help='Output label')
-    parser.add('--data-label', default=None, help='Label used for the data dump', required=True)
-    parser.add('--sampling-seed', default=None, type=int, help='Random sampling seed')
-    parser.add('--create-output', action='store_true',
-               help='If true, create plots')
-    return parser
 
 
 class DataAnalysisInput(Input):
@@ -285,7 +225,16 @@ class DataAnalysisInput(Input):
             **self.sampler_kwargs)
 
 
+def create_analysis_parser():
+    return create_parser(pipe_args=False, job_args=True, run_spec=True,
+                         pe_summary=False, injection=False, data_gen=False,
+                         waveform=True, generation=False, analysis=True)
+
+
 def main():
-    args, unknown_args = parse_args(sys.argv[1:], create_parser())
+    args, unknown_args = parse_args(sys.argv[1:], create_analysis_parser())
     analysis = DataAnalysisInput(args, unknown_args)
     analysis.run_sampler()
+    if args.create_plots:
+        analysis.result.plot_corner()
+        analysis.result.plot_marginals()

@@ -15,69 +15,7 @@ import deepdish
 from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
-from bilby_pipe.bilbyargparser import BilbyArgParser
-
-
-def create_parser():
-    """ Generate a parser for the data_generation.py script
-
-    Additional options can be added to the returned parser beforing calling
-    `parser.parse_args` to generate the arguments`
-
-    Returns
-    -------
-    parser: BilbyArgParser
-        A parser with all the default options already added
-
-    """
-    parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
-    parser.add('--ini', is_config_file=True, help='The ini-style config file')
-    parser.add('--idx', type=int, help="The level A job index", default=0)
-    parser.add('--cluster', type=str,
-               help='The condor cluster ID', default=None)
-    parser.add('--process', type=str,
-               help='The condor process ID', default=None)
-    parser.add('--outdir', default='.', help='Output directory')
-    parser.add('--label', default='label', help='Output label')
-
-    det_parser = parser.add_argument_group(title='Detector arguments')
-    det_parser.add(
-        '--detectors', action='append',
-        help=('The names of detectors to include. If given in the ini file, '
-              'multiple detectors are specified by `detectors=[H1, L1]`. If '
-              'given at the command line, as `--detectors H1 --detectors L1`'))
-    det_parser.add('--calibration', type=int, default=2,
-                   help='Which calibration to use')
-    det_parser.add('--duration', type=int, default=4,
-                   help='The duration of data around the event to use')
-    det_parser.add("--trigger-time", default=None, type=float,
-                   help="The trigger time")
-    det_parser.add("--sampling-frequency", default=4096, type=int)
-    det_parser.add("--channel-names", default=None, nargs="*",
-                   help="Channel names to use, if not provided known "
-                   "channel names will be tested.")
-    det_parser.add("--query-types", default=None, nargs="*", help="Query types to "
-                   "use. If not provided known query types will be tested.")
-    det_parser.add('--psd-duration', default=500, type=int,
-                   help='Time used to generate the PSD, default is 500.')
-    det_parser.add('--minimum-frequency', default=20, type=float)
-    det_parser.add('--frequency-domain-source-model', default='lal_binary_black_hole',
-                   type=str, help="Name of the frequency domain source model. Can be one of"
-                                  "[lal_binary_black_hole, lal_binary_neutron_star,"
-                                  "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
-                                  "supernova, supernova_pca_model]")
-
-    # Method specific options below here
-    data_parser = parser.add_argument_group(title='Data setting methods')
-    data_parser.add('--gracedb', type=str, help='Gracedb UID', default=None)
-    data_parser.add('--gps-file', type=str, help='File containing GPS times')
-    data_parser.add('--injection-file', type=str, default=None,
-                    help='Path to an injection file')
-    data_parser.add('--waveform-approximant', default='IMRPhenomPv2', type=str,
-                    help="Name of the waveform approximant for injection")
-    data_parser.add('--reference-frequency', default=20, type=float,
-                    help="The reference frequency")
-    return parser
+from bilby_pipe.parser import create_parser
 
 
 class DataGenerationInput(Input):
@@ -335,7 +273,13 @@ class DataGenerationInput(Input):
         data_dump.to_hdf5()
 
 
+def create_generation_parser():
+    return create_parser(pipe_args=False, job_args=True, run_spec=True,
+                         pe_summary=False, injection=True, data_gen=True,
+                         waveform=True, generation=True, analysis=False)
+
+
 def main():
-    args, unknown_args = parse_args(sys.argv[1:], create_parser())
+    args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     data = DataGenerationInput(args, unknown_args)
     data.save_interferometer_list()
