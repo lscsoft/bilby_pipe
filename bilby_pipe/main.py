@@ -81,6 +81,12 @@ def create_parser():
         '--local', action='store_true',
         help='Run the job locally, i.e., not through a batch submission')
     parser.add(
+        '--local-generation', action='store_true',
+        help=('Run the data generation job locally. Note that if you are '
+              'running on a cluster where the compute nodes do not have '
+              'internet access, e.g. on ARCCA, you will need to run the data '
+              'generation job locally.'))
+    parser.add(
         '--singularity-image', type=str, default=None,
         help='Singularity image to use')
 
@@ -164,6 +170,7 @@ class MainInput(Input):
         self.existing_dir = args.existing_dir
 
         self.run_local = args.local
+        self.local_generation = args.local_generation
 
         self.gps_file = args.gps_file
 
@@ -486,6 +493,13 @@ class Dag(object):
 
     def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
+        if self.inputs.local_generation:
+            logger.warn("All data will be grabbed in the local universe")
+            universe = "local"
+        else:
+            logger.warn("All data will be grabbed in the {} universe".format(
+                self.universe))
+            universe = self.universe
         idx = job_input.idx
         job_name = '_'.join([self.inputs.label, 'generation', str(idx)])
         if job_input.meta_label is not None:
@@ -519,7 +533,7 @@ class Dag(object):
             submit=submit,
             request_memory=self.request_memory, request_disk=self.request_disk,
             request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
+            universe=universe, initialdir=self.initialdir,
             notification=self.notification, requirements=self.requirements,
             queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
             arguments=arguments.print(), retry=self.retry, verbose=self.verbose)

@@ -6,11 +6,13 @@ from __future__ import division, print_function
 
 import sys
 import os
+import urllib
+import urllib.request
 
 import bilby
 import deepdish
 
-from bilby_pipe.utils import logger
+from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.bilbyargparser import BilbyArgParser
@@ -189,9 +191,17 @@ class DataGenerationInput(Input):
             self._gracedb = None
         else:
             logger.info("Setting gracedb id to {}".format(gracedb))
+            try:
+                urllib.request.urlopen("https://google.com", timeout=0.1)
+            except urllib.error.URLError:
+                raise BilbyPipeError(
+                    'Unable to grab graceDB entry because the network is '
+                    'unreachable. Please specify the local-generation argument '
+                    'either in the configuration file or by passing the'
+                    '--local-generation command line argument')
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
-                gracedb, self.data_directory, self.duration, self.calibration,
-                self.detectors, self.query_types)
+                gracedb, self.data_directory, self.duration,
+                self.calibration, self.detectors, self.query_types)
             self.meta_data['gracedb_candidate'] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate['gpstime']
