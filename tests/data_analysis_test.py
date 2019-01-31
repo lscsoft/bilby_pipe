@@ -25,6 +25,22 @@ class TestDataAnalysisInput(unittest.TestCase):
         del self.inputs
         shutil.rmtree(self.outdir)
 
+    def test_cluster_setting(self):
+        args_list = self.default_args_list
+        args_list.append('--cluster')
+        args_list.append('10')
+        self.inputs = DataAnalysisInput(
+            *parse_args(args_list, self.parser))
+        self.assertEqual(self.inputs.cluster, 10)
+
+    def test_process_setting(self):
+        args_list = self.default_args_list
+        args_list.append('--process')
+        args_list.append('10')
+        self.inputs = DataAnalysisInput(
+            *parse_args(args_list, self.parser))
+        self.assertEqual(self.inputs.process, 10)
+
     def test_unset_sampling_seed(self):
         self.assertEqual(type(self.inputs.sampling_seed), int)
 
@@ -40,7 +56,27 @@ class TestDataAnalysisInput(unittest.TestCase):
             *parse_args(args_list, self.parser))
         self.assertEqual(inputs.reference_frequency, 10)
 
-    def test_set_sampler(self):
+    def test_set_sampler_ini(self):
+        self.inputs = DataAnalysisInput(
+            *parse_args(self.default_args_list, self.parser))
+        self.assertEqual(self.inputs.sampler, 'nestle')
+
+    def test_set_sampler_command_line(self):
+        args_list = self.default_args_list
+        args_list.append('--sampler')
+        args_list.append('emcee')
+        self.inputs = DataAnalysisInput(
+            *parse_args(args_list, self.parser))
+        self.assertEqual(self.inputs.sampler, 'emcee')
+
+    def test_set_sampler_command_line_multiple_fail(self):
+        args_list = self.default_args_list
+        self.inputs = DataAnalysisInput(
+            *parse_args(args_list, self.parser))
+        with self.assertRaises(BilbyPipeError):
+            self.inputs.sampler = ['dynesty', 'nestle']
+
+    def test_direct_set_sampler(self):
         self.inputs.sampler = 'dynesty'
         self.assertEqual(self.inputs.sampler, 'dynesty')
 
