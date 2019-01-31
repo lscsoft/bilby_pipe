@@ -29,15 +29,20 @@ def create_parser():
 
     """
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
-    parser.add('ini', type=str, is_config_file=True, help='The ini file')
-    parser.add('--label', type=str, default='LABEL',
-               help='The output label')
-    parser.add('--outdir', type=str, default='bilby_outdir',
-               help='The output directory')
-    parser.add_arg('--prior-file', type=str, default=None,
-                   help='The prior file from which to generate injections')
-    parser.add_arg('--n-injection', type=int,
-                   help='The number of injections to generate')
+    parser.add("ini", type=str, is_config_file=True, help="The ini file")
+    parser.add("--label", type=str, default="LABEL", help="The output label")
+    parser.add(
+        "--outdir", type=str, default="bilby_outdir", help="The output directory"
+    )
+    parser.add_arg(
+        "--prior-file",
+        type=str,
+        default=None,
+        help="The prior file from which to generate injections",
+    )
+    parser.add_arg(
+        "--n-injection", type=int, help="The number of injections to generate"
+    )
     return parser
 
 
@@ -54,8 +59,8 @@ class CreateInjectionInput(Input):
     """
 
     def __init__(self, args, unknown_args):
-        logger.debug('Creating new CreateInjectionInput object')
-        logger.info('Command line arguments: {}'.format(args))
+        logger.debug("Creating new CreateInjectionInput object")
+        logger.info("Command line arguments: {}".format(args))
 
         self.prior_file = args.prior_file
         self.n_injection = args.n_injection
@@ -100,8 +105,11 @@ class CreateInjectionInput(Input):
             raise BilbyPipeError("Input prior not understood")
 
     def create_injection_file(self, filename):
-        logger.info("Generating injection file with prior={}, n_injection={}"
-                    .format(self.prior, self.n_injection))
+        logger.info(
+            "Generating injection file with prior={}, n_injection={}".format(
+                self.prior, self.n_injection
+            )
+        )
         injection_values = pd.DataFrame.from_dict(self.prior.sample(self.n_injection))
         injections = dict(injections=injection_values, prior=self.prior)
         deepdish.io.save(filename, injections)

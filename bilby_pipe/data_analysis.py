@@ -29,7 +29,7 @@ class DataAnalysisInput(Input):
     """
 
     def __init__(self, args, unknown_args):
-        logger.info('Command line arguments: {}'.format(args))
+        logger.info("Command line arguments: {}".format(args))
 
         self.ini = args.ini
         self.idx = args.idx
@@ -63,7 +63,7 @@ class DataAnalysisInput(Input):
         try:
             self._cluster = int(cluster)
         except (ValueError, TypeError):
-            logger.debug('Unable to convert input `cluster` to type int')
+            logger.debug("Unable to convert input `cluster` to type int")
             self._cluster = cluster
 
     @property
@@ -75,7 +75,7 @@ class DataAnalysisInput(Input):
         try:
             self._process = int(process)
         except (ValueError, TypeError):
-            logger.debug('Unable to convert input `process` to type int')
+            logger.debug("Unable to convert input `process` to type int")
             self._process = process
 
     @property
@@ -96,7 +96,7 @@ class DataAnalysisInput(Input):
             sampling_seed = np.random.randint(1, 1e6)
         self._samplng_seed = sampling_seed
         np.random.seed(sampling_seed)
-        logger.info('Sampling seed set to {}'.format(sampling_seed))
+        logger.info("Sampling seed set to {}".format(sampling_seed))
 
     @property
     def sampler_kwargs(self):
@@ -109,8 +109,10 @@ class DataAnalysisInput(Input):
                 self._sampler_kwargs = eval(sampler_kwargs)
             except (NameError, TypeError) as e:
                 raise BilbyPipeError(
-                    "Error {}. Unable to parse sampler_kwargs: {}"
-                    .format(e, sampler_kwargs))
+                    "Error {}. Unable to parse sampler_kwargs: {}".format(
+                        e, sampler_kwargs
+                    )
+                )
         else:
             self._sampler_kwargs = None
 
@@ -143,7 +145,8 @@ class DataAnalysisInput(Input):
         except AttributeError:
             filename = os.path.join(
                 self.data_directory,
-                '_'.join([self.data_label, str(self.idx), 'data_dump.h5']))
+                "_".join([self.data_label, str(self.idx), "data_dump.h5"]),
+            )
             self._data_dump = DataDump.from_hdf5(filename)
             return self._data_dump
 
@@ -161,21 +164,24 @@ class DataAnalysisInput(Input):
             else:
                 logger.info("No prior {} found.").format(self.default_prior)
                 logger.info("Defaulting to BBHPriorDict")
-                self._priors = bilby.gw.prior.BBHPriorDict(
-                    filename=self.prior_file
-                )
-            if isinstance(self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)):
-                self._priors['geocent_time'] = bilby.core.prior.Uniform(
+                self._priors = bilby.gw.prior.BBHPriorDict(filename=self.prior_file)
+            if isinstance(
+                self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)
+            ):
+                self._priors["geocent_time"] = bilby.core.prior.Uniform(
                     minimum=self.trigger_time - self.deltaT / 2,
                     maximum=self.trigger_time + self.deltaT / 2,
-                    name='geocent_time', latex_label='$t_c$', unit='$s$')
+                    name="geocent_time",
+                    latex_label="$t_c$",
+                    unit="$s$",
+                )
         return self._priors
 
     @property
     def parameter_conversion(self):
-        if 'binary_neutron_star' in self._frequency_domain_source_model:
+        if "binary_neutron_star" in self._frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif 'binary_black_hole' in self._frequency_domain_source_model:
+        elif "binary_black_hole" in self._frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
             return None
@@ -188,7 +194,8 @@ class DataAnalysisInput(Input):
             frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
             start_time=self.interferometers.start_time,
-            waveform_arguments=self.waveform_arguments)
+            waveform_arguments=self.waveform_arguments,
+        )
         return waveform_generator
 
     @property
@@ -196,22 +203,25 @@ class DataAnalysisInput(Input):
         return dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
-            minimum_frequency=self.interferometers[0].minimum_frequency)  # FIXME
+            minimum_frequency=self.interferometers[0].minimum_frequency,
+        )  # FIXME
 
     @property
     def likelihood(self):
         return bilby.gw.likelihood.GravitationalWaveTransient(
             interferometers=self.interferometers,
-            waveform_generator=self.waveform_generator, priors=self.priors,
+            waveform_generator=self.waveform_generator,
+            priors=self.priors,
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
-            time_marginalization=self.time_marginalization)
+            time_marginalization=self.time_marginalization,
+        )
 
     @property
     def parameter_generation(self):
-        if 'binary_neutron_star' in self._frequency_domain_source_model:
+        if "binary_neutron_star" in self._frequency_domain_source_model:
             return bilby.gw.conversion.generate_all_bns_parameters
-        elif 'binary_black_hole' in self._frequency_domain_source_model:
+        elif "binary_black_hole" in self._frequency_domain_source_model:
             return bilby.gw.conversion.generate_all_bbh_parameters
         else:
             return None
@@ -227,17 +237,30 @@ class DataAnalysisInput(Input):
 
     def run_sampler(self):
         self.result = bilby.run_sampler(
-            likelihood=self.likelihood, priors=self.priors,
-            sampler=self.sampler, label=self.label, outdir=self.result_directory,
+            likelihood=self.likelihood,
+            priors=self.priors,
+            sampler=self.sampler,
+            label=self.label,
+            outdir=self.result_directory,
             conversion_function=self.parameter_generation,
-            injection_parameters=self.data_dump.meta_data['injection_parameters'],
-            result_class=self.result_class, **self.sampler_kwargs)
+            injection_parameters=self.data_dump.meta_data["injection_parameters"],
+            result_class=self.result_class,
+            **self.sampler_kwargs
+        )
 
 
 def create_analysis_parser():
-    return create_parser(pipe_args=False, job_args=True, run_spec=True,
-                         pe_summary=False, injection=False, data_gen=False,
-                         waveform=True, generation=False, analysis=True)
+    return create_parser(
+        pipe_args=False,
+        job_args=True,
+        run_spec=True,
+        pe_summary=False,
+        injection=False,
+        data_gen=False,
+        waveform=True,
+        generation=False,
+        analysis=True,
+    )
 
 
 def main():

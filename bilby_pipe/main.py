@@ -19,7 +19,7 @@ from . import create_injections
 from .input import Input
 from .parser import create_parser
 
-JobInput = namedtuple('level_A_job_input', 'idx meta_label kwargs')
+JobInput = namedtuple("level_A_job_input", "idx meta_label kwargs")
 
 
 class MainInput(Input):
@@ -58,10 +58,10 @@ class MainInput(Input):
     """
 
     def __init__(self, args, unknown_args):
-        logger.debug('Creating new Input object')
-        logger.info('Command line arguments: {}'.format(args))
+        logger.debug("Creating new Input object")
+        logger.info("Command line arguments: {}".format(args))
 
-        logger.debug('Known detector list = {}'.format(self.known_detectors))
+        logger.debug("Known detector list = {}".format(self.known_detectors))
 
         self.unknown_args = unknown_args
         self.ini = args.ini
@@ -93,9 +93,15 @@ class MainInput(Input):
         self.gracedb = args.gracedb
 
         # These keys are used in the webpages summary
-        self.meta_keys = ['label', 'outdir', 'ini',
-                          'detectors', 'coherence_test',
-                          'sampler', 'accounting']
+        self.meta_keys = [
+            "label",
+            "outdir",
+            "ini",
+            "detectors",
+            "coherence_test",
+            "sampler",
+            "accounting",
+        ]
 
     @property
     def ini(self):
@@ -104,7 +110,7 @@ class MainInput(Input):
     @ini.setter
     def ini(self, ini):
         if os.path.isfile(ini) is False:
-            raise BilbyPipeError('ini file is not a file')
+            raise BilbyPipeError("ini file is not a file")
         self._ini = os.path.abspath(ini)
 
     @property
@@ -121,14 +127,14 @@ class MainInput(Input):
             self._singularity_image = os.path.abspath(singularity_image)
             self.use_singularity = True
         else:
-            raise BilbyPipeError(
-                "simg={} not understood".format(singularity_image))
+            raise BilbyPipeError("simg={} not understood".format(singularity_image))
 
     def _verify_singularity(self, singularity_image):
         """ Verify the singularity image exists """
         if os.path.isfile(singularity_image) is False:
             raise FileNotFoundError(
-                "singularity_image={} is not a file".format(singularity_image))
+                "singularity_image={} is not a file".format(singularity_image)
+            )
 
     @property
     def use_singularity(self):
@@ -137,11 +143,12 @@ class MainInput(Input):
     @use_singularity.setter
     def use_singularity(self, use_singularity):
         if isinstance(use_singularity, bool):
-            logger.debug('Setting use_singularity={}'.format(use_singularity))
+            logger.debug("Setting use_singularity={}".format(use_singularity))
             self._use_singularity = use_singularity
         else:
             raise BilbyPipeError(
-                "use_singularity={} not understood".format(use_singularity))
+                "use_singularity={} not understood".format(use_singularity)
+            )
 
     @property
     def n_level_A_jobs(self):
@@ -175,38 +182,44 @@ class MainInput(Input):
         except AttributeError:
             raise BilbyPipeError(
                 "The X509 user proxy has not been correctly set, please check"
-                " the logs")
+                " the logs"
+            )
 
     @x509userproxy.setter
     def x509userproxy(self, x509userproxy):
         if x509userproxy is None:
-            cert_alias = 'X509_USER_PROXY'
+            cert_alias = "X509_USER_PROXY"
             try:
                 cert_path = os.environ[cert_alias]
                 new_cert_path = os.path.join(
-                    self.outdir, '.' + os.path.basename(cert_path))
+                    self.outdir, "." + os.path.basename(cert_path)
+                )
                 shutil.copyfile(cert_path, new_cert_path)
                 self._x509userproxy = new_cert_path
             except FileNotFoundError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY does not point to a"
-                    " file. Try running `$ ligo-proxy-init albert.einstein`")
+                    " file. Try running `$ ligo-proxy-init albert.einstein`"
+                )
             except KeyError:
                 logger.warning(
                     "Environment variable X509_USER_PROXY not set"
-                    " Try running `$ ligo-proxy-init albert.einstein`")
+                    " Try running `$ ligo-proxy-init albert.einstein`"
+                )
                 self._x509userproxy = None
         elif os.path.isfile(x509userproxy):
             self._x509userproxy = x509userproxy
         else:
-            raise BilbyPipeError('Input X509 not a file or not understood')
+            raise BilbyPipeError("Input X509 not a file or not understood")
 
     def _parse_gps_file(self):
         gpstimes = self.read_gps_file()
         n = len(gpstimes)
         logger.info(
-            "{} times found in gps_file={}, setting level A jobs"
-            .format(n, self.gps_file))
+            "{} times found in gps_file={}, setting level A jobs".format(
+                n, self.gps_file
+            )
+        )
 
         self.n_level_A_jobs = n
         self.level_A_labels = [str(x) for x in gpstimes]
@@ -218,11 +231,10 @@ class MainInput(Input):
     @n_injection.setter
     def n_injection(self, n_injection):
         if n_injection is not None:
-            logger.info(
-                "n_injection={}, setting level A jobs".format(n_injection))
+            logger.info("n_injection={}, setting level A jobs".format(n_injection))
             self.n_level_A_jobs = n_injection
             self._n_injection = n_injection
-            self.level_A_labels = ['injection_{}'.format(x) for x in range(n_injection)]
+            self.level_A_labels = ["injection_{}".format(x) for x in range(n_injection)]
         else:
             self._n_injection = None
 
@@ -292,10 +304,20 @@ class Dag(object):
 
     """
 
-    def __init__(self, inputs, request_memory=None, request_disk=None,
-                 request_cpus=None, getenv=True, universe='vanilla',
-                 initialdir=None, notification='never', requirements=None,
-                 retry=None, verbose=0):
+    def __init__(
+        self,
+        inputs,
+        request_memory=None,
+        request_disk=None,
+        request_cpus=None,
+        getenv=True,
+        universe="vanilla",
+        initialdir=None,
+        notification="never",
+        requirements=None,
+        retry=None,
+        verbose=0,
+    ):
         self.request_memory = request_memory
         self.request_disk = request_disk
         self.request_cpus = request_disk
@@ -308,10 +330,10 @@ class Dag(object):
         self.verbose = verbose
         self.inputs = inputs
 
-        self.dag_name = 'dag_{}'.format(inputs.label)
+        self.dag_name = "dag_{}".format(inputs.label)
         self.dag = pycondor.Dagman(
-            name=self.dag_name,
-            submit=self.inputs.submit_directory)
+            name=self.dag_name, submit=self.inputs.submit_directory
+        )
 
         self.generation_jobs = []
         self.generation_job_labels = []
@@ -333,33 +355,35 @@ class Dag(object):
         if exe is not None:
             return exe
         else:
-            raise OSError("{} not installed on this system, unable to proceed"
-                          .format(exe_name))
+            raise OSError(
+                "{} not installed on this system, unable to proceed".format(exe_name)
+            )
 
     @property
     def generation_executable(self):
         if self.inputs.use_singularity:
             # This hard-codes the path to singularity: TODO infer this from the users env
-            return '/bin/singularity'
+            return "/bin/singularity"
         else:
-            return self._get_executable_path('bilby_pipe_generation')
+            return self._get_executable_path("bilby_pipe_generation")
 
     @property
     def analysis_executable(self):
         if self.inputs.use_singularity:
             # This hard-codes the path to singularity: TODO infer this from the users env
-            return '/bin/singularity'
+            return "/bin/singularity"
         else:
-            return self._get_executable_path('bilby_pipe_analysis')
+            return self._get_executable_path("bilby_pipe_analysis")
 
     @property
     def summary_executable(self):
-        return self._get_executable_path('summarypages.py')
+        return self._get_executable_path("summarypages.py")
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
-        default_injection_file_name = '{}/{}_injection_file.h5'.format(
-            self.inputs.data_directory, self.inputs.label)
+        default_injection_file_name = "{}/{}_injection_file.h5".format(
+            self.inputs.data_directory, self.inputs.label
+        )
         if self.inputs.injection_file is not None:
             logger.info("Using injection file {}".format(self.inputs.injection_file))
         elif os.path.isfile(default_injection_file_name):
@@ -369,9 +393,11 @@ class Dag(object):
         else:
             logger.info("No injection file found, generating one now")
             inj_args, inj_unknown_args = parse_args(
-                sys.argv[1:], create_injections.create_parser())
+                sys.argv[1:], create_injections.create_parser()
+            )
             inj_inputs = create_injections.CreateInjectionInput(
-                inj_args, inj_unknown_args)
+                inj_args, inj_unknown_args
+            )
             inj_inputs.create_injection_file(default_injection_file_name)
             self.inputs.injection_file = default_injection_file_name
 
@@ -392,8 +418,8 @@ class Dag(object):
             jobs_inputs = []
             for idx in jobs_numbers:
                 ji = JobInput(
-                    idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                    kwargs=dict())
+                    idx=idx, meta_label=self.inputs.level_A_labels[idx], kwargs=dict()
+                )
                 jobs_inputs.append(ji)
             logger.debug("List of job inputs = {}".format(jobs_inputs))
             self._generation_jobs_inputs = jobs_inputs
@@ -402,8 +428,7 @@ class Dag(object):
     def create_generation_jobs(self):
         """ Create all the condor jobs and add them to the dag """
         for job_input in self.generation_jobs_inputs:
-            self.generation_jobs.append(
-                self._create_generation_job(job_input))
+            self.generation_jobs.append(self._create_generation_job(job_input))
 
     def _create_generation_job(self, job_input):
         """ Create a job to generate the data """
@@ -411,51 +436,64 @@ class Dag(object):
             logger.warn("All data will be grabbed in the local universe")
             universe = "local"
         else:
-            logger.warn("All data will be grabbed in the {} universe".format(
-                self.universe))
+            logger.warn(
+                "All data will be grabbed in the {} universe".format(self.universe)
+            )
             universe = self.universe
         idx = job_input.idx
-        job_name = '_'.join([self.inputs.label, 'generation', str(idx)])
+        job_name = "_".join([self.inputs.label, "generation", str(idx)])
         if job_input.meta_label is not None:
-            job_name = '_'.join([job_name, job_input.meta_label])
-        job_logs_base = os.path.join(self.inputs.data_generation_log_directory, job_name)
+            job_name = "_".join([job_name, job_input.meta_label])
+        job_logs_base = os.path.join(
+            self.inputs.data_generation_log_directory, job_name
+        )
         submit = self.inputs.submit_directory
-        extra_lines = ''
-        for arg in ['error', 'log', 'output']:
-            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
-                arg, job_logs_base, arg[:3])
-        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
-        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        extra_lines = ""
+        for arg in ["error", "log", "output"]:
+            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                arg, job_logs_base, arg[:3]
+            )
+        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
             arguments.append(
-                'run --app generation {}'.format(self.inputs.singularity_image))
+                "run --app generation {}".format(self.inputs.singularity_image)
+            )
         arguments.add_positional_argument(self.inputs.ini)
-        arguments.add('label', job_name)
+        arguments.add("label", job_name)
         self.generation_job_labels.append(job_name)
-        arguments.add('idx', idx)
-        arguments.add('cluster', '$(Cluster)')
-        arguments.add('process', '$(Process)')
+        arguments.add("idx", idx)
+        arguments.add("cluster", "$(Cluster)")
+        arguments.add("process", "$(Process)")
         if self.inputs.injection_file is not None:
-            arguments.add('injection-file', self.inputs.injection_file)
+            arguments.add("injection-file", self.inputs.injection_file)
         arguments.add_unknown_args(self.inputs.unknown_args)
         arguments.add_command_line_arguments()
         generation_job = pycondor.Job(
             name=job_name,
             executable=self.generation_executable,
             submit=submit,
-            request_memory=self.request_memory, request_disk=self.request_disk,
-            request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
-        logger.debug('Adding job: {}'.format(job_name))
+            request_memory=self.request_memory,
+            request_disk=self.request_disk,
+            request_cpus=self.request_cpus,
+            getenv=self.getenv,
+            universe=universe,
+            initialdir=self.initialdir,
+            notification=self.notification,
+            requirements=self.requirements,
+            queue=self.inputs.queue,
+            extra_lines=extra_lines,
+            dag=self.dag,
+            arguments=arguments.print(),
+            retry=self.retry,
+            verbose=self.verbose,
+        )
+        logger.debug("Adding job: {}".format(job_name))
 
         if self.inputs.run_local:
-            subprocess.run(
-                [self.generation_executable] + arguments.argument_list)
+            subprocess.run([self.generation_executable] + arguments.argument_list)
 
         return generation_job
 
@@ -488,8 +526,12 @@ class Dag(object):
         for idx in list(level_A_jobs_numbers):
             for detectors, sampler in level_B_prod_list:
                 jobs_inputs.append(
-                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                             kwargs=dict(detectors=detectors, sampler=sampler)))
+                    JobInput(
+                        idx=idx,
+                        meta_label=self.inputs.level_A_labels[idx],
+                        kwargs=dict(detectors=detectors, sampler=sampler),
+                    )
+                )
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -505,56 +547,66 @@ class Dag(object):
             The sampler to use for the job
 
         """
-        detectors = job_input.kwargs['detectors']
-        sampler = job_input.kwargs['sampler']
+        detectors = job_input.kwargs["detectors"]
+        sampler = job_input.kwargs["sampler"]
         idx = job_input.idx
         if not isinstance(detectors, list):
             raise BilbyPipeError("`detectors must be a list")
 
-        job_name = '_'.join([self.inputs.label, ''.join(detectors), sampler])
+        job_name = "_".join([self.inputs.label, "".join(detectors), sampler])
         if job_input.meta_label is not None:
-            job_name = '_'.join([job_name, job_input.meta_label])
+            job_name = "_".join([job_name, job_input.meta_label])
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
         submit = self.inputs.submit_directory
-        extra_lines = ''
-        for arg in ['error', 'log', 'output']:
-            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
-                arg, job_logs_base, arg[:3])
-        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
-        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        extra_lines = ""
+        for arg in ["error", "log", "output"]:
+            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                arg, job_logs_base, arg[:3]
+            )
+        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
             arguments.append(
-                'run --app analysis {}'.format(self.inputs.singularity_image))
+                "run --app analysis {}".format(self.inputs.singularity_image)
+            )
         arguments.add_positional_argument(self.inputs.ini)
         for detector in detectors:
-            arguments.add('detectors', detector)
-        arguments.add('label', job_name)
-        arguments.add('data-label', self.generation_job_labels[idx])
-        arguments.add('idx', idx)
-        arguments.add('sampler', sampler)
-        arguments.add('cluster', '$(Cluster)')
-        arguments.add('process', '$(Process)')
+            arguments.add("detectors", detector)
+        arguments.add("label", job_name)
+        arguments.add("data-label", self.generation_job_labels[idx])
+        arguments.add("idx", idx)
+        arguments.add("sampler", sampler)
+        arguments.add("cluster", "$(Cluster)")
+        arguments.add("process", "$(Process)")
         arguments.add_unknown_args(self.inputs.unknown_args)
         arguments.add_command_line_arguments()
         job = pycondor.Job(
             name=job_name,
             executable=self.analysis_executable,
             submit=submit,
-            request_memory=self.request_memory, request_disk=self.request_disk,
-            request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
+            request_memory=self.request_memory,
+            request_disk=self.request_disk,
+            request_cpus=self.request_cpus,
+            getenv=self.getenv,
+            universe=self.universe,
+            initialdir=self.initialdir,
+            notification=self.notification,
+            requirements=self.requirements,
+            queue=self.inputs.queue,
+            extra_lines=extra_lines,
+            dag=self.dag,
+            arguments=arguments.print(),
+            retry=self.retry,
+            verbose=self.verbose,
+        )
         job.add_parent(self.generation_jobs[idx])
-        logger.debug('Adding job: {}'.format(job_name))
-        self.results_pages[job_name] = 'result/{}.html'.format(job_name)
+        logger.debug("Adding job: {}".format(job_name))
+        self.results_pages[job_name] = "result/{}.html".format(job_name)
 
         if self.inputs.run_local:
-            subprocess.run(
-                [self.analysis_executable] + arguments.argument_list)
+            subprocess.run([self.analysis_executable] + arguments.argument_list)
 
         return job
 
@@ -593,10 +645,18 @@ class Dag(object):
         for idx in list(level_A_jobs_numbers):
             for detectors, sampler in level_B_prod_list:
                 jobs_inputs.append(
-                    JobInput(idx=idx, meta_label=self.inputs.level_A_labels[idx],
-                             kwargs=dict(detectors=detectors, sampler=sampler,
-                                         webdir=webdir, email=email,
-                                         existing_dir=existing_dir)))
+                    JobInput(
+                        idx=idx,
+                        meta_label=self.inputs.level_A_labels[idx],
+                        kwargs=dict(
+                            detectors=detectors,
+                            sampler=sampler,
+                            webdir=webdir,
+                            email=email,
+                            existing_dir=existing_dir,
+                        ),
+                    )
+                )
 
         logger.debug("List of job inputs = {}".format(jobs_inputs))
         return jobs_inputs
@@ -604,37 +664,44 @@ class Dag(object):
     def create_summary_jobs(self):
         """ Generate job to generate summary pages """
         for job_input in self.summary_jobs_inputs:
-            self.summary_jobs.append(
-                self._create_summary_job(job_input))
+            self.summary_jobs.append(self._create_summary_job(job_input))
 
     def _create_summary_job(self, job_input):
         """ Create a condor job and add it to the dag """
-        webdir = job_input.kwargs['webdir']
-        email = job_input.kwargs['email']
+        webdir = job_input.kwargs["webdir"]
+        email = job_input.kwargs["email"]
         detectors = job_input.kwargs["detectors"]
         sampler = job_input.kwargs["sampler"]
-        existing_dir = job_input.kwargs['existing_dir']
+        existing_dir = job_input.kwargs["existing_dir"]
         idx = job_input.idx
-        result_file = '_'.join([self.inputs.label, ''.join(detectors), sampler,
-                                job_input.meta_label, "result"])
-        job_name = '_'.join([self.inputs.label, 'results_page', str(idx)])
+        result_file = "_".join(
+            [
+                self.inputs.label,
+                "".join(detectors),
+                sampler,
+                job_input.meta_label,
+                "result",
+            ]
+        )
+        job_name = "_".join([self.inputs.label, "results_page", str(idx)])
         if job_input.meta_label is not None:
-            job_name = '_'.join([job_name, job_input.meta_label])
+            job_name = "_".join([job_name, job_input.meta_label])
         job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
         submit = self.inputs.submit_directory
-        extra_lines = ''
-        for arg in ['error', 'log', 'output']:
-            extra_lines += '\n{} = {}_$(Cluster)_$(Process).{}'.format(
-                arg, job_logs_base, arg[:3])
-        extra_lines += '\naccounting_group = {}'.format(self.inputs.accounting)
-        extra_lines += '\nx509userproxy = {}'.format(self.inputs.x509userproxy)
+        extra_lines = ""
+        for arg in ["error", "log", "output"]:
+            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                arg, job_logs_base, arg[:3]
+            )
+        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
         arguments = ArgumentsString()
         arguments.add("webdir", webdir)
         arguments.add("email", email)
         arguments.add("config", self.inputs.ini)
-        arguments.add("samples",
-                      "{}/{}.h5".format(self.inputs.result_directory,
-                                        result_file))
+        arguments.add(
+            "samples", "{}/{}.h5".format(self.inputs.result_directory, result_file)
+        )
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
 
@@ -642,14 +709,23 @@ class Dag(object):
             name=job_name,
             executable=self.summary_executable,
             submit=submit,
-            request_memory=self.request_memory, request_disk=self.request_disk,
-            request_cpus=self.request_cpus, getenv=self.getenv,
-            universe=self.universe, initialdir=self.initialdir,
-            notification=self.notification, requirements=self.requirements,
-            queue=self.inputs.queue, extra_lines=extra_lines, dag=self.dag,
-            arguments=arguments.print(), retry=self.retry, verbose=self.verbose)
+            request_memory=self.request_memory,
+            request_disk=self.request_disk,
+            request_cpus=self.request_cpus,
+            getenv=self.getenv,
+            universe=self.universe,
+            initialdir=self.initialdir,
+            notification=self.notification,
+            requirements=self.requirements,
+            queue=self.inputs.queue,
+            extra_lines=extra_lines,
+            dag=self.dag,
+            arguments=arguments.print(),
+            retry=self.retry,
+            verbose=self.verbose,
+        )
         job.add_parent(self.analysis_jobs[idx])
-        logger.debug('Adding job: {}'.format(job_name))
+        logger.debug("Adding job: {}".format(job_name))
 
     def build_submit(self):
         """ Build the dag, optionally submit them if requested in inputs """
@@ -668,14 +744,18 @@ class Dag(object):
             logger.info("DAG generation complete and submitted")
         else:
             command_line = "$ condor_submit_dag {}/{}.submit".format(
-                self.inputs.submit_directory, self.dag_name)
+                self.inputs.submit_directory, self.dag_name
+            )
             logger.info(
                 "DAG generation complete, to submit jobs run:\n  {}".format(
-                    command_line))
+                    command_line
+                )
+            )
 
 
 class ArgumentsString(object):
     """ A convienience object to aid in the creation of argument strings """
+
     def __init__(self):
         self.argument_list = []
 
@@ -683,11 +763,11 @@ class ArgumentsString(object):
         self.argument_list.append(argument)
 
     def add_positional_argument(self, value):
-        self.argument_list.append('{}'.format(value))
+        self.argument_list.append("{}".format(value))
 
     def add(self, argument, value):
-        self.argument_list.append('--{}'.format(argument))
-        self.argument_list.append('{}'.format(value))
+        self.argument_list.append("--{}".format(argument))
+        self.argument_list.append("{}".format(value))
 
     def add_unknown_args(self, unknown_args):
         self.argument_list += unknown_args
@@ -700,12 +780,11 @@ class ArgumentsString(object):
         self.argument_list += command_line_args_list
 
     def print(self):
-        return ' '.join(self.argument_list)
+        return " ".join(self.argument_list)
 
 
-class DataDump():
-    def __init__(self, label, outdir, trigger_time, interferometers, meta_data,
-                 idx):
+class DataDump:
+    def __init__(self, label, outdir, trigger_time, interferometers, meta_data, idx):
         self.trigger_time = trigger_time
         self.label = label
         self.outdir = outdir
@@ -716,7 +795,8 @@ class DataDump():
     @property
     def filename(self):
         return os.path.join(
-            self.outdir, '_'.join([self.label, str(self.idx), 'data_dump.h5']))
+            self.outdir, "_".join([self.label, str(self.idx), "data_dump.h5"])
+        )
 
     def to_hdf5(self):
         deepdish.io.save(self.filename, self)
@@ -735,20 +815,29 @@ class DataDump():
         if res.__class__ == list:
             res = cls(res)
         if res.__class__ != cls:
-            raise TypeError('The loaded object is not a DataDump')
+            raise TypeError("The loaded object is not a DataDump")
         return res
 
 
 def create_main_parser():
-    return create_parser(pipe_args=True, job_args=True, run_spec=True,
-                         pe_summary=True, injection=True, data_gen=True,
-                         waveform=False, generation=False, analysis=False)
+    return create_parser(
+        pipe_args=True,
+        job_args=True,
+        run_spec=True,
+        pe_summary=True,
+        injection=True,
+        data_gen=True,
+        waveform=False,
+        generation=False,
+        analysis=False,
+    )
 
 
 def main():
     """ Top-level interface for bilby_pipe """
     args, unknown_args = parse_args(
-        utils.get_command_line_arguments(), create_main_parser())
+        utils.get_command_line_arguments(), create_main_parser()
+    )
     inputs = MainInput(args, unknown_args)
     # Create a Directed Acyclic Graph (DAG) of the workflow
     Dag(inputs)

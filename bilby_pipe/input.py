@@ -30,7 +30,7 @@ class Input(object):
         try:
             return self._known_detectors
         except AttributeError:
-            return ['H1', 'L1', 'V1']
+            return ["H1", "L1", "V1"]
 
     @known_detectors.setter
     def known_detectors(self, known_detectors):
@@ -56,7 +56,8 @@ class Input(object):
                 det_list = detectors
         else:
             raise BilbyPipeError(
-                'Input `detectors` = {} not understood'.format(detectors))
+                "Input `detectors` = {} not understood".format(detectors)
+            )
 
         det_list.sort()
         det_list = [det.upper() for det in det_list]
@@ -67,22 +68,22 @@ class Input(object):
             if element not in self.known_detectors:
                 raise BilbyPipeError(
                     'detectors contains "{}" not in the known '
-                    'detectors list: {} '.format(
-                        element, self.known_detectors))
+                    "detectors list: {} ".format(element, self.known_detectors)
+                )
 
     @staticmethod
     def _split_string_by_space(string):
         """ Converts "H1 L1" to ["H1", "L1"] """
-        return string.split(' ')
+        return string.split(" ")
 
     @staticmethod
     def _convert_string_to_list(string):
         """ Converts various strings to a list """
-        string = string.replace(',', ' ')
-        string = string.replace('[', '')
-        string = string.replace(']', '')
-        string = string.replace('"', '')
-        string = string.replace("'", '')
+        string = string.replace(",", " ")
+        string = string.replace("[", "")
+        string = string.replace("]", "")
+        string = string.replace('"', "")
+        string = string.replace("'", "")
         string_list = string.split()
         return string_list
 
@@ -94,41 +95,46 @@ class Input(object):
     @outdir.setter
     def outdir(self, outdir):
         self._outdir = os.path.abspath(outdir)
-        for dr in [outdir, self.submit_directory,
-                   self.data_generation_log_directory,
-                   self.data_analysis_log_directory, self.data_directory,
-                   self.summary_log_directory, self.result_directory]:
+        for dr in [
+            outdir,
+            self.submit_directory,
+            self.data_generation_log_directory,
+            self.data_analysis_log_directory,
+            self.data_directory,
+            self.summary_log_directory,
+            self.result_directory,
+        ]:
             utils.check_directory_exists_and_if_not_mkdir(dr)
 
     @property
     def submit_directory(self):
         """ The path to the directory where submit output will be stored """
-        return os.path.join(self._outdir, 'submit')
+        return os.path.join(self._outdir, "submit")
 
     @property
     def data_generation_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'log_data_generation')
+        return os.path.join(self._outdir, "log_data_generation")
 
     @property
     def data_analysis_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'log_data_analysis')
+        return os.path.join(self._outdir, "log_data_analysis")
 
     @property
     def summary_log_directory(self):
         """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, 'log_results_page')
+        return os.path.join(self._outdir, "log_results_page")
 
     @property
     def data_directory(self):
         """ The path to the directory where data output will be stored """
-        return os.path.join(self._outdir, 'data')
+        return os.path.join(self._outdir, "data")
 
     @property
     def result_directory(self):
         """ The path to the directory where result output will be stored """
-        return os.path.join(self._outdir, 'result')
+        return os.path.join(self._outdir, "result")
 
     @property
     def webdir(self):
@@ -137,7 +143,7 @@ class Input(object):
     @webdir.setter
     def webdir(self, webdir):
         if webdir is None:
-            self._webdir = os.path.join(self.outdir, 'results_page')
+            self._webdir = os.path.join(self.outdir, "results_page")
         else:
             self._webdir = webdir
 
@@ -160,7 +166,8 @@ class Input(object):
             self._gps_file = os.path.abspath(gps_file)
         else:
             raise FileNotFoundError(
-                "Input file gps_file={} not understood".format(gps_file))
+                "Input file gps_file={} not understood".format(gps_file)
+            )
 
         try:
             self._parse_gps_file()
@@ -178,8 +185,8 @@ class Input(object):
             return bilby.gw.source.__dict__[self._frequency_domain_source_model]
         else:
             raise BilbyPipeError(
-                "No source model {} found.".format(
-                    self._frequency_domain_source_model))
+                "No source model {} found.".format(self._frequency_domain_source_model)
+            )
 
     @property
     def frequency_domain_source_model(self):

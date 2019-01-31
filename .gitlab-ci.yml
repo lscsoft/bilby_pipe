@@ -17,8 +17,11 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - pip install lalsuite gwpy bilby
+    - pip install lalsuite gwpy bilby black
     - python setup.py install
+
+    # Run black check
+    - black --check bilby_pipe/
 
     # Run pyflakes
     - flake8 .

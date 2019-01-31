@@ -29,13 +29,16 @@ class DataGenerationInput(Input):
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
 
     """
+
     def __init__(self, args, unknown_args):
 
-        logger.info('Command line arguments: {}'.format(args))
-        logger.info('Unknown command line arguments: {}'.format(unknown_args))
-        self.meta_data = dict(command_line_args=args,
-                              unknown_command_line_args=unknown_args,
-                              injection_parameters=None)
+        logger.info("Command line arguments: {}".format(args))
+        logger.info("Unknown command line arguments: {}".format(unknown_args))
+        self.meta_data = dict(
+            command_line_args=args,
+            unknown_command_line_args=unknown_args,
+            injection_parameters=None,
+        )
         self.ini = args.ini
         self.cluster = args.cluster
         self.process = args.process
@@ -69,7 +72,7 @@ class DataGenerationInput(Input):
         try:
             self._cluster = int(cluster)
         except (ValueError, TypeError):
-            logger.debug('Unable to convert input `cluster` to type int')
+            logger.debug("Unable to convert input `cluster` to type int")
             self._cluster = cluster
 
     @property
@@ -81,7 +84,7 @@ class DataGenerationInput(Input):
         try:
             self._process = int(process)
         except (ValueError, TypeError):
-            logger.debug('Unable to convert input `process` to type int')
+            logger.debug("Unable to convert input `process` to type int")
             self._process = process
 
     @property
@@ -106,8 +109,7 @@ class DataGenerationInput(Input):
             else:
                 det_list = detectors
         else:
-            raise ValueError('Input `detectors` = {} not understood'
-                             .format(detectors))
+            raise ValueError("Input `detectors` = {} not understood".format(detectors))
 
         det_list.sort()
         det_list = [det.upper() for det in det_list]
@@ -133,16 +135,22 @@ class DataGenerationInput(Input):
                 urllib.request.urlopen("https://google.com", timeout=0.1)
             except urllib.error.URLError:
                 raise BilbyPipeError(
-                    'Unable to grab graceDB entry because the network is '
-                    'unreachable. Please specify the local-generation argument '
-                    'either in the configuration file or by passing the'
-                    '--local-generation command line argument')
+                    "Unable to grab graceDB entry because the network is "
+                    "unreachable. Please specify the local-generation argument "
+                    "either in the configuration file or by passing the"
+                    "--local-generation command line argument"
+                )
             candidate, frame_caches = bilby.gw.utils.get_gracedb(
-                gracedb, self.data_directory, self.duration,
-                self.calibration, self.detectors, self.query_types)
-            self.meta_data['gracedb_candidate'] = candidate
+                gracedb,
+                self.data_directory,
+                self.duration,
+                self.calibration,
+                self.detectors,
+                self.query_types,
+            )
+            self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
-            self.trigger_time = candidate['gpstime']
+            self.trigger_time = candidate["gpstime"]
             self.frame_caches = frame_caches
 
     def _parse_gps_file(self):
@@ -154,9 +162,15 @@ class DataGenerationInput(Input):
     def generate_frame_cache_list_from_gpstime(self, gps_start_time):
         cache_files = []
         for det in self.detectors:
-            cache_files.append(bilby.gw.utils.gw_data_find(
-                det, gps_start_time=gps_start_time, duration=self.duration,
-                calibration=self.calibration, outdir=self.data_directory))
+            cache_files.append(
+                bilby.gw.utils.gw_data_find(
+                    det,
+                    gps_start_time=gps_start_time,
+                    duration=self.duration,
+                    calibration=self.calibration,
+                    outdir=self.data_directory,
+                )
+            )
         return cache_files
 
     @property
@@ -194,17 +208,21 @@ class DataGenerationInput(Input):
             self.channel_names = [None] * len(frame_caches)
         for cache_file, channel_name in zip(frame_caches, self.channel_names):
             interferometer = bilby.gw.detector.load_data_from_cache_file(
-                cache_file, self.trigger_time, self.duration,
-                self.psd_duration, channel_name)
+                cache_file,
+                self.trigger_time,
+                self.duration,
+                self.psd_duration,
+                channel_name,
+            )
             interferometer.minimum_frequency = self.minimum_frequency
             interferometers.append(interferometer)
         self.interferometers = interferometers
 
     @property
     def parameter_conversion(self):
-        if 'binary_neutron_star' in self.frequency_domain_source_model:
+        if "binary_neutron_star" in self.frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif 'binary_black_hole' in self.frequency_domain_source_model:
+        elif "binary_black_hole" in self.frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
             return None
@@ -221,34 +239,42 @@ class DataGenerationInput(Input):
         elif os.path.isfile(injection_file):
             self._injection_file = os.path.abspath(injection_file)
             injection_dict = deepdish.io.load(injection_file)
-            injection_df = injection_dict['injections']
+            injection_df = injection_dict["injections"]
             self.injection_parameters = injection_df.iloc[self.idx].to_dict()
-            self.meta_data['injection_parameters'] = self.injection_parameters
+            self.meta_data["injection_parameters"] = self.injection_parameters
             if self.trigger_time is None:
-                self.trigger_time = self.injection_parameters['geocent_time']
+                self.trigger_time = self.injection_parameters["geocent_time"]
             self._set_interferometers_from_simulation()
         else:
             raise FileNotFoundError(
-                "Injection file {} not found".format(injection_file))
+                "Injection file {} not found".format(injection_file)
+            )
 
     def _set_interferometers_from_simulation(self):
-        waveform_arguments = dict(waveform_approximant=self.waveform_approximant,
-                                  reference_frequency=self.reference_frequency,
-                                  minimum_frequency=self.minimum_frequency)
+        waveform_arguments = dict(
+            waveform_approximant=self.waveform_approximant,
+            reference_frequency=self.reference_frequency,
+            minimum_frequency=self.minimum_frequency,
+        )
 
         waveform_generator = bilby.gw.WaveformGenerator(
-            duration=self.duration, sampling_frequency=self.sampling_frequency,
+            duration=self.duration,
+            sampling_frequency=self.sampling_frequency,
             frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
-            waveform_arguments=waveform_arguments)
+            waveform_arguments=waveform_arguments,
+        )
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
         ifos.set_strain_data_from_power_spectral_densities(
-            sampling_frequency=self.sampling_frequency, duration=self.duration,
-            start_time=self.trigger_time - self.duration / 2)
+            sampling_frequency=self.sampling_frequency,
+            duration=self.duration,
+            start_time=self.trigger_time - self.duration / 2,
+        )
 
-        ifos.inject_signal(waveform_generator=waveform_generator,
-                           parameters=self.injection_parameters)
+        ifos.inject_signal(
+            waveform_generator=waveform_generator, parameters=self.injection_parameters
+        )
 
         self.interferometers = ifos
 
@@ -258,25 +284,38 @@ class DataGenerationInput(Input):
         try:
             return self._interferometers
         except AttributeError:
-            raise ValueError("interferometers unset, did you provide a set-data method?")
+            raise ValueError(
+                "interferometers unset, did you provide a set-data method?"
+            )
 
     @interferometers.setter
     def interferometers(self, interferometers):
         self._interferometers = interferometers
 
     def save_interferometer_list(self):
-        data_dump = DataDump(outdir=self.data_directory, label=self.label,
-                             idx=self.idx,
-                             trigger_time=self.trigger_time,
-                             interferometers=self.interferometers,
-                             meta_data=self.meta_data)
+        data_dump = DataDump(
+            outdir=self.data_directory,
+            label=self.label,
+            idx=self.idx,
+            trigger_time=self.trigger_time,
+            interferometers=self.interferometers,
+            meta_data=self.meta_data,
+        )
         data_dump.to_hdf5()
 
 
 def create_generation_parser():
-    return create_parser(pipe_args=False, job_args=True, run_spec=True,
-                         pe_summary=False, injection=True, data_gen=True,
-                         waveform=True, generation=True, analysis=False)
+    return create_parser(
+        pipe_args=False,
+        job_args=True,
+        run_spec=True,
+        pe_summary=False,
+        injection=True,
+        data_gen=True,
+        waveform=True,
+        generation=True,
+        analysis=False,
+    )
 
 
 def main():

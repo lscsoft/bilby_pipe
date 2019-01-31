@@ -99,6 +99,43 @@ analysed.
 
 See the table of contents below for an overview of the API.
 
+
+Code Format
+-----------
+To ensure a consistent style across the project, :code:`bilby_pipe` uses two
+linting tools: `flake8 <https://pypi.org/project/flake8/>`_ and `black
+<https://github.com/ambv/black>`_. Practically speaking, when you submit a
+merge request, these commands are run by the CI
+
+.. code-block:: console
+
+   $ black --check bilby_pipe/
+   $ flake8 .
+
+which check a number of small stylistic and formatting issues. Often, you will
+find the CI fails due to difference between your style and those accepted by
+these commands. Usually these can be resolved by simply running
+
+.. code-block:: console
+
+   $ black bilby_pipe/
+
+prior to committing (or run it, add the changes and add another commit). This
+will reformat the code in the accepted style. To avoid having to do this, you
+can use the `pre-commit hook
+<https://github.com/ambv/black#version-control-integration>`_. To use this
+feature, run the following commands from the :code:`bilby_pipe` directory:
+
+.. code-block:: console
+
+   $ pip install pre-commit
+   $ pre-commit install
+
+For a detailed discussion of why we use :code:`flake8` and :code:`black`, you
+be wish to `read this article
+<https://www.mattlayman.com/blog/2018/python-code-black/>`_.
+
+
 Submodules API
 --------------
 .. toctree::

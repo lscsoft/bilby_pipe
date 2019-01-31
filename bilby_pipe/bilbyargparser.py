@@ -14,9 +14,9 @@ from collections import OrderedDict
 
 
 class BilbyArgParser(configargparse.ArgParser):
-
-    def parse_known_args(self, args=None, namespace=None,
-                         config_file_contents=None, env_vars=os.environ):
+    def parse_known_args(
+        self, args=None, namespace=None, config_file_contents=None, env_vars=os.environ
+    ):
         """Supports all the same args as the ArgumentParser.parse_args(..),
         as well as the following additional args.
 
@@ -37,7 +37,8 @@ class BilbyArgParser(configargparse.ArgParser):
             argparse._StoreFalseAction,
             argparse._CountAction,
             argparse._StoreConstAction,
-            argparse._AppendConstAction)
+            argparse._AppendConstAction,
+        )
 
         if args is None:
             args = sys.argv[1:]
@@ -49,8 +50,8 @@ class BilbyArgParser(configargparse.ArgParser):
         # normalize args by converting args like --key=value to --key value
         normalized_args = list()
         for arg in args:
-            if arg and arg[0] in self.prefix_chars and '=' in arg:
-                key, value = arg.split('=', 1)
+            if arg and arg[0] in self.prefix_chars and "=" in arg:
+                key, value = arg.split("=", 1)
                 key = key.replace("_", "-")
                 normalized_args.append(key)
                 normalized_args.append(value)
@@ -70,7 +71,7 @@ class BilbyArgParser(configargparse.ArgParser):
         self._source_to_settings = OrderedDict()
         if args:
             a_v_pair = (None, list(args))  # copy args list to isolate changes
-            self._source_to_settings[_COMMAND_LINE_SOURCE_KEY] = {'': a_v_pair}
+            self._source_to_settings[_COMMAND_LINE_SOURCE_KEY] = {"": a_v_pair}
 
         # handle auto_env_var_prefix __init__ arg by setting a.env_var as needed
         if self._auto_env_var_prefix is not None:
@@ -81,9 +82,14 @@ class BilbyArgParser(configargparse.ArgParser):
                         if not (a.is_config_file_arg):
                             if not (a.is_write_out_config_file_arg):
                                 if not (isinstance(a, argparse._HelpAction)):
-                                    stripped_config_file_key = config_file_keys[0].strip(self.prefix_chars)
-                                    a.env_var = (self._auto_env_var_prefix + stripped_config_file_key)
-                                    a.env_var = a.env_var.replace('-', '_').upper()
+                                    stripped_config_file_key = config_file_keys[
+                                        0
+                                    ].strip(self.prefix_chars)
+                                    a.env_var = (
+                                        self._auto_env_var_prefix
+                                        + stripped_config_file_key
+                                    )
+                                    a.env_var = a.env_var.replace("-", "_").upper()
 
         # add env var settings to the commandline that aren't there already
         env_var_args = []
@@ -92,8 +98,9 @@ class BilbyArgParser(configargparse.ArgParser):
             if not a.is_positional_arg:
                 if a.env_var:
                     if a.env_var in env_vars:
-                        if not configargparse.already_on_command_line(args,
-                                                                      a.option_strings):
+                        if not configargparse.already_on_command_line(
+                            args, a.option_strings
+                        ):
                             actions_with_env_var_values.append(a)
 
         for action in actions_with_env_var_values:
@@ -101,28 +108,39 @@ class BilbyArgParser(configargparse.ArgParser):
             value = env_vars[key]
             # Make list-string into list.
             if action.nargs or isinstance(action, argparse._AppendAction):
-                element_capture = re.match('\[(.*)\]', value)  # noqa
+                element_capture = re.match("\[(.*)\]", value)  # noqa
                 if element_capture:
-                    value = [val.strip() for val in element_capture.group(1).split(',') if val.strip()]
-            env_var_args += self.convert_item_to_command_line_arg(
-                action, key, value)
+                    value = [
+                        val.strip()
+                        for val in element_capture.group(1).split(",")
+                        if val.strip()
+                    ]
+            env_var_args += self.convert_item_to_command_line_arg(action, key, value)
 
         args = args + env_var_args
 
         if env_var_args:
             self._source_to_settings[_ENV_VAR_SOURCE_KEY] = OrderedDict(
-                [(a.env_var, (a, env_vars[a.env_var]))
-                    for a in actions_with_env_var_values])
+                [
+                    (a.env_var, (a, env_vars[a.env_var]))
+                    for a in actions_with_env_var_values
+                ]
+            )
 
         # before parsing any config files, check if -h was specified.
         supports_help_arg = any(
-            a for a in self._actions if isinstance(a, argparse._HelpAction))
+            a for a in self._actions if isinstance(a, argparse._HelpAction)
+        )
         skip_config_file_parsing = supports_help_arg and (
-            "-h" in args or "--help" in args)
+            "-h" in args or "--help" in args
+        )
 
         # prepare for reading config file(s)
-        known_config_keys = dict((config_key, action) for action in self._actions
-                                 for config_key in self.get_possible_config_keys(action))
+        known_config_keys = dict(
+            (config_key, action)
+            for action in self._actions
+            for config_key in self.get_possible_config_keys(action)
+        )
 
         # open the config file(s)
         config_streams = []
@@ -150,17 +168,26 @@ class BilbyArgParser(configargparse.ArgParser):
                 if key in known_config_keys:
                     action = known_config_keys[key]
                     discard_this_key = configargparse.already_on_command_line(
-                        args, action.option_strings)
+                        args, action.option_strings
+                    )
                 else:
                     action = None
-                    discard_this_key = self._ignore_unknown_config_file_keys or \
-                        configargparse.already_on_command_line(
+                    discard_this_key = (
+                        self._ignore_unknown_config_file_keys
+                        or configargparse.already_on_command_line(
                             args,
-                            [self.get_command_line_key_for_unknown_config_file_setting(key)])
+                            [
+                                self.get_command_line_key_for_unknown_config_file_setting(
+                                    key
+                                )
+                            ],
+                        )
+                    )
 
                 if not discard_this_key:
                     config_args += self.convert_item_to_command_line_arg(
-                        action, key, value)
+                        action, key, value
+                    )
                     source_key = "%s|%s" % (_CONFIG_FILE_SOURCE_KEY, stream.name)
                     if source_key not in self._source_to_settings:
                         self._source_to_settings[source_key] = OrderedDict()
@@ -171,14 +198,17 @@ class BilbyArgParser(configargparse.ArgParser):
         # save default settings for use by print_values()
         default_settings = OrderedDict()
         for action in self._actions:
-            cares_about_default_value = (not action.is_positional_arg or
-                                         action.nargs in [argparse.OPTIONAL,
-                                                          argparse.ZERO_OR_MORE])
-            if (configargparse.already_on_command_line(args, action.option_strings) or
-                    not cares_about_default_value or
-                    action.default is None or
-                    action.default == argparse.SUPPRESS or
-                    isinstance(action, ACTION_TYPES_THAT_DONT_NEED_A_VALUE)):
+            cares_about_default_value = (
+                not action.is_positional_arg
+                or action.nargs in [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
+            )
+            if (
+                configargparse.already_on_command_line(args, action.option_strings)
+                or not cares_about_default_value
+                or action.default is None
+                or action.default == argparse.SUPPRESS
+                or isinstance(action, ACTION_TYPES_THAT_DONT_NEED_A_VALUE)
+            ):
                 continue
             else:
                 if action.option_strings:
@@ -192,11 +222,15 @@ class BilbyArgParser(configargparse.ArgParser):
 
         # parse all args (including commandline, config file, and env var)
         namespace, unknown_args = argparse.ArgumentParser.parse_known_args(
-            self, args=args, namespace=namespace)
+            self, args=args, namespace=namespace
+        )
         # handle any args that have is_write_out_config_file_arg set to true
         # check if the user specified this arg on the commandline
-        output_file_paths = [getattr(namespace, a.dest, None) for a in self._actions
-                             if getattr(a, "is_write_out_config_file_arg", False)]
+        output_file_paths = [
+            getattr(namespace, a.dest, None)
+            for a in self._actions
+            if getattr(a, "is_write_out_config_file_arg", False)
+        ]
         output_file_paths = [a for a in output_file_paths if a is not None]
         self.write_config_file(namespace, output_file_paths, exit_after=True)
         return namespace, unknown_args
