@@ -196,3 +196,33 @@ class Input(object):
     @frequency_domain_source_model.setter
     def frequency_domain_source_model(self, frequency_domain_source_model):
         self._frequency_domain_source_model = frequency_domain_source_model
+
+    @property
+    def trigger_time(self):
+        return self._trigger_time
+
+    @trigger_time.setter
+    def trigger_time(self, trigger_time):
+        self._trigger_time = trigger_time
+        if trigger_time is not None:
+            logger.info("Setting trigger time {}".format(trigger_time))
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @start_time.setter
+    def start_time(self, start_time):
+        self._start_time = start_time
+        if start_time is not None:
+            logger.info("Setting segment start time {}".format(start_time))
+
+    @property
+    def duration(self):
+        return self._duration
+
+    @duration.setter
+    def duration(self, duration):
+        self._duration = duration
+        if duration is not None:
+            logger.info("Setting segment duration {}".format(duration))
