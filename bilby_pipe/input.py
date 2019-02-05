@@ -169,9 +169,9 @@ class Input(object):
                 "Input file gps_file={} not understood".format(gps_file)
             )
 
-        try:
+        if hasattr(self, "_parse_gps_file"):
             self._parse_gps_file()
-        except AttributeError:
+        else:
             logger.debug("No _parse_gps_file method present")
 
     def read_gps_file(self):
