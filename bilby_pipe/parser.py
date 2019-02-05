@@ -170,7 +170,9 @@ def create_parser(
 
     if data_gen:
         data_gen_pars = parser.add_argument_group(title="Data generation arguments")
-        data_gen_pars.add("--gps-file", type=str, help="File containing GPS times")
+        data_gen_pars.add(
+            "--gps-file", type=str, help="File containing segment GPS start times"
+        )
         data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
 
     if waveform:
@@ -208,6 +210,16 @@ def create_parser(
             type=int,
             default=4,
             help="The duration of data around the event to use",
+        )
+        det_parser.add(
+            "--post-trigger-duration",
+            type=int,
+            default=2,
+            help=(
+                "Used to set the segment start in relation to the trigger time."
+                " The segment start time is given by "
+                " trigger_time + post_trigger_duration - duration"
+            ),
         )
         det_parser.add(
             "--trigger-time", default=None, type=float, help="The trigger time"

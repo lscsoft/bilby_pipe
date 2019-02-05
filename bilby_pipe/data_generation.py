@@ -49,6 +49,7 @@ class DataGenerationInput(Input):
         self.query_types = args.query_types
         self.duration = args.duration
         self.trigger_time = args.trigger_time
+        self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
         self.psd_duration = args.psd_duration
         self.minimum_frequency = args.minimum_frequency
@@ -151,21 +152,24 @@ class DataGenerationInput(Input):
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate["gpstime"]
+            self.start_time = (
+                self.trigger_time + self.post_trigger_duration - self.duration
+            )
             self.frame_caches = frame_caches
 
     def _parse_gps_file(self):
         gps_start_times = self.read_gps_file()
-        gps_start_time = gps_start_times[self.idx]
-        self.trigger_time = gps_start_time + self.duration / 2.0
-        self.frame_caches = self.generate_frame_cache_list_from_gpstime(gps_start_time)
+        self.start_time = gps_start_times[self.idx]
+        self.trigger_time = self.start_time + self.duration / 2.0
+        self.frame_caches = self.generate_frame_cache_list_from_gpstime()
 
-    def generate_frame_cache_list_from_gpstime(self, gps_start_time):
+    def generate_frame_cache_list_from_gpstime(self):
         cache_files = []
         for det in self.detectors:
             cache_files.append(
                 bilby.gw.utils.gw_data_find(
                     det,
-                    gps_start_time=gps_start_time,
+                    gps_start_time=self.start_time,
                     duration=self.duration,
                     calibration=self.calibration,
                     outdir=self.data_directory,
@@ -208,11 +212,12 @@ class DataGenerationInput(Input):
             self.channel_names = [None] * len(frame_caches)
         for cache_file, channel_name in zip(frame_caches, self.channel_names):
             interferometer = bilby.gw.detector.load_data_from_cache_file(
-                cache_file,
-                self.trigger_time,
-                self.duration,
-                self.psd_duration,
-                channel_name,
+                cache_file=cache_file,
+                start_time=self.start_time,
+                segment_duration=self.duration,
+                psd_duration=self.psd_duration,
+                channel_name=channel_name,
+                sampling_frequency=self.sampling_frequency,
             )
             interferometer.minimum_frequency = self.minimum_frequency
             interferometers.append(interferometer)
