@@ -273,17 +273,18 @@ class DataGenerationInput(Input):
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
-        if self.psd_file == "None":
-            ifos.set_strain_data_from_power_spectral_densities(
-                sampling_frequency=self.sampling_frequency,
-                duration=self.duration,
-                start_time=self.trigger_time - self.duration / 2,
-            )
-        else:
+        if self.psd_file is not None:
             for ifo in ifos:
                 ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
                     psd_file=self.psd_file
                 )
+
+        ifos.set_strain_data_from_power_spectral_densities(
+            sampling_frequency=self.sampling_frequency,
+            duration=self.duration,
+            start_time=self.trigger_time - self.duration / 2,
+        )
+
         ifos.inject_signal(
             waveform_generator=waveform_generator, parameters=self.injection_parameters
         )
