@@ -63,6 +63,7 @@ class DataGenerationInput(Input):
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
         self.injection_file = args.injection_file
+        self.psd_file = args.psd_file
 
     @property
     def cluster(self):
@@ -271,12 +272,18 @@ class DataGenerationInput(Input):
         )
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
-        ifos.set_strain_data_from_power_spectral_densities(
-            sampling_frequency=self.sampling_frequency,
-            duration=self.duration,
-            start_time=self.trigger_time - self.duration / 2,
-        )
 
+        if self.psd_file is None:
+            ifos.set_strain_data_from_power_spectral_densities(
+                sampling_frequency=self.sampling_frequency,
+                duration=self.duration,
+                start_time=self.trigger_time - self.duration / 2,
+            )
+        else:
+            for ifo in ifos:
+                ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
+                    psd_file=self.psd_file
+                )
         ifos.inject_signal(
             waveform_generator=waveform_generator, parameters=self.injection_parameters
         )

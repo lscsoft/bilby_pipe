@@ -174,6 +174,12 @@ def create_parser(
             "--gps-file", type=str, help="File containing segment GPS start times"
         )
         data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
+        data_gen_pars.add(
+            "--psd-file",
+            type=str,
+            help="File containing a frequency domain detector noise PSD",
+            default=None,
+        )
 
     if waveform:
         parser.add(
