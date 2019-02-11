@@ -52,7 +52,7 @@ class DataGenerationInput(Input):
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
         self.psd_duration = args.psd_duration
-        self.psd_file = args.psd_file
+        self.psd_files = args.psd_files
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
         self.label = args.label
@@ -273,10 +273,14 @@ class DataGenerationInput(Input):
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
-        if self.psd_file is not None:
-            for ifo in ifos:
+        if self.psd_files is not None:
+            psd_file_dict = {}
+            for psd_file in self.psd_files:
+                ifo_name, file_path = psd_file.split(":")
+                psd_file_dict[ifo_name] = file_path
+            for ifo in [ifo for ifo in ifos if ifo.name in psd_file_dict.keys()]:
                 ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
-                    psd_file=self.psd_file
+                    psd_file=psd_file_dict[ifo.name]
                 )
 
         ifos.set_strain_data_from_power_spectral_densities(

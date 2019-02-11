@@ -175,10 +175,10 @@ def create_parser(
         )
         data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
         data_gen_pars.add(
-            "--psd-file",
-            type=str,
-            help="File containing a frequency domain detector noise PSD",
+            "--psd-files",
             default=None,
+            nargs="*",
+            help="PSD files to use, if not provided known PSDs will be used",
         )
 
     if waveform:
