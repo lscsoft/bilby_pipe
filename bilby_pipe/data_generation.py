@@ -256,6 +256,16 @@ class DataGenerationInput(Input):
                 "Injection file {} not found".format(injection_file)
             )
 
+    def _set_psds_from_files(self, ifos):
+        psd_file_dict = {}
+        for psd_file in self.psd_files:
+            ifo_name, file_path = psd_file.split(":")
+            psd_file_dict[ifo_name] = file_path
+        for ifo in [ifo for ifo in ifos if ifo.name in psd_file_dict.keys()]:
+            ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
+                psd_file=psd_file_dict[ifo.name]
+            )
+
     def _set_interferometers_from_simulation(self):
         waveform_arguments = dict(
             waveform_approximant=self.waveform_approximant,
@@ -274,14 +284,7 @@ class DataGenerationInput(Input):
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
         if self.psd_files is not None:
-            psd_file_dict = {}
-            for psd_file in self.psd_files:
-                ifo_name, file_path = psd_file.split(":")
-                psd_file_dict[ifo_name] = file_path
-            for ifo in [ifo for ifo in ifos if ifo.name in psd_file_dict.keys()]:
-                ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
-                    psd_file=psd_file_dict[ifo.name]
-                )
+            self._set_psds_from_files(ifos)
 
         ifos.set_strain_data_from_power_spectral_densities(
             sampling_frequency=self.sampling_frequency,
