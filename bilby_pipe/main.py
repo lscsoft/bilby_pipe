@@ -427,19 +427,23 @@ class Dag(object):
 
     def create_generation_jobs(self):
         """ Create all the condor jobs and add them to the dag """
-        for job_input in self.generation_jobs_inputs:
-            self.generation_jobs.append(self._create_generation_job(job_input))
 
-    def _create_generation_job(self, job_input):
-        """ Create a job to generate the data """
         if self.inputs.local_generation:
-            logger.warn("All data will be grabbed in the local universe")
+            logger.info("All data will be grabbed in the local universe")
             universe = "local"
         else:
-            logger.warn(
+            logger.info(
                 "All data will be grabbed in the {} universe".format(self.universe)
             )
             universe = self.universe
+
+        for job_input in self.generation_jobs_inputs:
+            self.generation_jobs.append(
+                self._create_generation_job(job_input, universe=universe)
+            )
+
+    def _create_generation_job(self, job_input, universe):
+        """ Create a job to generate the data """
         idx = job_input.idx
         job_name = "_".join([self.inputs.label, "generation", str(idx)])
         if job_input.meta_label is not None:
