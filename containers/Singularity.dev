@@ -6,6 +6,8 @@ A singularity container for running bilby_pipe with the development versions
 of bilby, bilby_pipe, and pesummary as of 2019-02-13.
 
 %post
+pip install numpy==1.15
+pip install pandas==0.23
 export PATH=/opt/conda/bin:${PATH}
 pip install ligo-gracedb pesummary
 git clone https://github.com/lscsoft/bilby.git
