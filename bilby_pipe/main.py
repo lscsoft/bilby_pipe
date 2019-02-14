@@ -630,7 +630,6 @@ class Dag(object):
         logger.debug("Generating list of jobs")
 
         # Create level B inputs
-        detectors = self.inputs.detectors
         sampler = self.inputs.sampler
         webdir = self.inputs.webdir
         email = self.inputs.email
@@ -641,19 +640,18 @@ class Dag(object):
         if self.inputs.coherence_test:
             for detector in self.inputs.detectors:
                 detectors_list.append([detector])
-        sampler_list = self.inputs.sampler
-        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
+        level_B_prod_list = self.inputs.sampler
 
         level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
         for idx in list(level_A_jobs_numbers):
-            for detectors, sampler in level_B_prod_list:
+            for sampler in level_B_prod_list:
                 jobs_inputs.append(
                     JobInput(
                         idx=idx,
                         meta_label=self.inputs.level_A_labels[idx],
                         kwargs=dict(
-                            detectors=detectors,
+                            detectors_list=detectors_list,
                             sampler=sampler,
                             webdir=webdir,
                             email=email,
@@ -674,19 +672,19 @@ class Dag(object):
         """ Create a condor job and add it to the dag """
         webdir = job_input.kwargs["webdir"]
         email = job_input.kwargs["email"]
-        detectors = job_input.kwargs["detectors"]
+        detectors_list = job_input.kwargs["detectors_list"]
         sampler = job_input.kwargs["sampler"]
         existing_dir = job_input.kwargs["existing_dir"]
         idx = job_input.idx
-        result_file = "_".join(
-            [
-                self.inputs.label,
-                "".join(detectors),
-                sampler,
-                job_input.meta_label,
-                "result",
-            ]
-        )
+        base_path = self.inputs.result_directory + "/"
+        result_files = [
+            base_path
+            + "_".join(
+                [self.inputs.label, "".join(i), sampler, job_input.meta_label, "result"]
+            )
+            + ".h5"
+            for i in detectors_list
+        ]
         job_name = "_".join([self.inputs.label, "results_page", str(idx)])
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
@@ -702,10 +700,8 @@ class Dag(object):
         arguments = ArgumentsString()
         arguments.add("webdir", webdir)
         arguments.add("email", email)
-        arguments.add("config", self.inputs.ini)
-        arguments.add(
-            "samples", "{}/{}.h5".format(self.inputs.result_directory, result_file)
-        )
+        arguments.add("config", " ".join([self.inputs.ini] * len(result_files)))
+        arguments.add("samples", " ".join(result_files))
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
 
