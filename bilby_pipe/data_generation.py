@@ -323,6 +323,8 @@ class DataGenerationInput(Input):
         )
         data_dump.to_hdf5()
 
+        self.interferometers.plot_data(outdir=self.data_directory, label=self.label)
+
 
 def create_generation_parser():
     return create_parser(
