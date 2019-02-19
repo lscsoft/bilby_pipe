@@ -214,7 +214,7 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_generator(self):
-        if likelihood_type == 'GravitationalWaveTransient':
+        if self.likelihood_type == 'GravitationalWaveTransient':
             waveform_generator = bilby.gw.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
@@ -224,7 +224,7 @@ class DataAnalysisInput(Input):
                 waveform_arguments=self.waveform_arguments,
             )
 
-        elif likelihood_type == 'ROQGravitationalWaveTransient':
+        elif self.likelihood_type == 'ROQGravitationalWaveTransient':
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
 
