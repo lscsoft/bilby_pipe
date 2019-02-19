@@ -206,6 +206,12 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
+        if self.likelihood_type == 'ROQGravitationalWaveTransient':
+            # FIXME this is temporary given that the SNR cannot be computed
+            # for the roq source model, as it passes mode==linear to
+            # antenna_detector_response
+            return None
+
         if "binary_neutron_star" in self._frequency_domain_source_model:
             return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
         elif "binary_black_hole" in self._frequency_domain_source_model:
