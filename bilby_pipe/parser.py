@@ -280,7 +280,7 @@ def create_parser(
             "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]",
         )
         parser.add("--prior-file", default=None, help="The prior file")
-        parser.add("--likelihood", default="GravitationalWaveTransient",
+        parser.add("--likelihood-type", default="GravitationalWaveTransient",
                    help="The likelihood. Can be one of"
                    "[GravitationalWaveTransient, ROQGravitationalWaveTransient]"
                    "Need to specify --roq-folder if ROQ likelihood used"

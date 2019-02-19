@@ -53,7 +53,7 @@ class DataAnalysisInput(Input):
         self.data_label = args.data_label
         self.default_prior = args.default_prior
         self.frequency_domain_source_model = args.frequency_domain_source_model
-        self.likelihood_type = args.likelihood
+        self.likelihood_type = args.likelihood_type
         self.roq_folder = args.roq_folder
         self.result = None
 
@@ -206,18 +206,19 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
+        print(self.likelihood_type)
         if self.likelihood_type == 'ROQGravitationalWaveTransient':
             # FIXME this is temporary given that the SNR cannot be computed
-            # for the roq source model, as it passes mode==linear to
+            # for the roq source model, as it passes mode=linear to
             # antenna_detector_response
             return None
-
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
-            return None
+            if "binary_neutron_star" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+            elif "binary_black_hole" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+            else:
+                return None
 
     @property
     def waveform_generator(self):
