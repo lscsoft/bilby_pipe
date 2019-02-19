@@ -52,7 +52,7 @@ class DataAnalysisInput(Input):
         self.data_label = args.data_label
         self.default_prior = args.default_prior
         self.frequency_domain_source_model = args.frequency_domain_source_model
-        self.likelihood = args.likelihood
+        self.likelihood_type = args.likelihood
         self.roq_folder = args.roq_folder
         self.result = None
 
@@ -214,7 +214,7 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_generator(self):
-        if likelihood == 'GravitationalWaveTransient':
+        if likelihood_type == 'GravitationalWaveTransient':
             waveform_generator = bilby.gw.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
@@ -224,7 +224,7 @@ class DataAnalysisInput(Input):
                 waveform_arguments=self.waveform_arguments,
             )
 
-        elif likelihood == 'ROQGravitationalWaveTransient':
+        elif likelihood_type == 'ROQGravitationalWaveTransient':
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
 
@@ -256,7 +256,7 @@ class DataAnalysisInput(Input):
 
     @property
     def likelihood(self):
-        if self.likelihood == 'GravitationalWaveTransient':
+        if self.likelihood_type == 'GravitationalWaveTransient':
             return bilby.gw.likelihood.GravitationalWaveTransient(
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
@@ -266,7 +266,7 @@ class DataAnalysisInput(Input):
                 time_marginalization=self.time_marginalization,
             )
 
-        elif self.likelihood == 'ROQGravitationalWaveTransient':
+        elif self.likelihood_type == 'ROQGravitationalWaveTransient':
             basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
             basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
 
