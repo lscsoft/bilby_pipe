@@ -261,10 +261,9 @@ class DataAnalysisInput(Input):
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
                 priors=self.priors,
-                phase_marginalization=self.phase_marginalization,
-                distance_marginalization=self.distance_marginalization,
-                time_marginalization=self.time_marginalization,
             )
+            # TODO tell the user that if the marginalizations are turned on they
+            # are not used
 
         elif self.likelihood_type == 'ROQGravitationalWaveTransient':
             basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
