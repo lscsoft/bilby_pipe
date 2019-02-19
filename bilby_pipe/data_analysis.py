@@ -231,13 +231,14 @@ class DataAnalysisInput(Input):
             waveform_arguments = self.waveform_arguments.copy()
             waveform_arguments['frequency_nodes_linear'] = freq_nodes_linear
             waveform_arguments['frequency_nodes_quadratic'] = freq_nodes_quadratic
+            waveform_arguments['approximant'] = 'IMRPhenomPv2'
 
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
                 frequency_domain_source_model=bilby.gw.source.roq,
-                #parameter_conversion=self.parameter_conversion,
                 start_time=self.interferometers.start_time,
+                parameter_conversion=self.parameter_conversion,
                 waveform_arguments=waveform_arguments,
             )
 
