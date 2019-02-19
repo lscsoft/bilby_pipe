@@ -232,13 +232,11 @@ class DataAnalysisInput(Input):
             waveform_arguments['frequency_nodes_linear'] = freq_nodes_linear
             waveform_arguments['frequency_nodes_quadratic'] = freq_nodes_quadratic
 
-            print(waveform_arguments)
-
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
                 frequency_domain_source_model=bilby.gw.source.roq,
-                parameter_conversion=self.parameter_conversion,
+                #parameter_conversion=self.parameter_conversion,
                 start_time=self.interferometers.start_time,
                 waveform_arguments=waveform_arguments,
             )
