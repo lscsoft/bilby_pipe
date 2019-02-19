@@ -233,10 +233,6 @@ class DataAnalysisInput(Input):
             waveform_arguments['frequency_nodes_linear'] = freq_nodes_linear
             waveform_arguments['frequency_nodes_quadratic'] = freq_nodes_quadratic
 
-            versions = dict(IMRPhenomPv2=lalsim.IMRPhenomPv2_V)
-            version = versions[getattr(waveform_arguments, 'version', 'IMRPhenomPv2')]
-            print(version)
-
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
