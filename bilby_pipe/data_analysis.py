@@ -205,7 +205,7 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if self.likelihood_type == 'ROQGravitationalWaveTransient':
+        if self.likelihood_type == "ROQGravitationalWaveTransient":
             # FIXME this is temporary given that the SNR cannot be computed
             # for the roq source model, as it passes mode=linear to
             # antenna_detector_response
@@ -220,7 +220,7 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_generator(self):
-        if self.likelihood_type == 'GravitationalWaveTransient':
+        if self.likelihood_type == "GravitationalWaveTransient":
             waveform_generator = bilby.gw.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
@@ -230,13 +230,13 @@ class DataAnalysisInput(Input):
                 waveform_arguments=self.waveform_arguments,
             )
 
-        elif self.likelihood_type == 'ROQGravitationalWaveTransient':
+        elif self.likelihood_type == "ROQGravitationalWaveTransient":
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
 
             waveform_arguments = self.waveform_arguments.copy()
-            waveform_arguments['frequency_nodes_linear'] = freq_nodes_linear
-            waveform_arguments['frequency_nodes_quadratic'] = freq_nodes_quadratic
+            waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
+            waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
@@ -248,7 +248,7 @@ class DataAnalysisInput(Input):
             )
 
         else:
-            raise ValueError('Unknown likelihood function')
+            raise ValueError("Unknown likelihood function")
 
         return waveform_generator
 
@@ -262,7 +262,7 @@ class DataAnalysisInput(Input):
 
     @property
     def likelihood(self):
-        if self.likelihood_type == 'GravitationalWaveTransient':
+        if self.likelihood_type == "GravitationalWaveTransient":
             return bilby.gw.likelihood.GravitationalWaveTransient(
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
@@ -272,7 +272,7 @@ class DataAnalysisInput(Input):
                 time_marginalization=self.time_marginalization,
             )
 
-        elif self.likelihood_type == 'ROQGravitationalWaveTransient':
+        elif self.likelihood_type == "ROQGravitationalWaveTransient":
             basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
             basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
 
@@ -287,11 +287,11 @@ class DataAnalysisInput(Input):
             # are not used
 
         else:
-            raise ValueError('Unknown likelihood function')
+            raise ValueError("Unknown likelihood function")
 
     @property
     def parameter_generation(self):
-        if self.likelihood_type == 'ROQGravitationalWaveTransient':
+        if self.likelihood_type == "ROQGravitationalWaveTransient":
             # FIXME this is temporary given that the SNR cannot be computed
             # for the roq source model, as it passes mode=linear to
             # antenna_detector_response
