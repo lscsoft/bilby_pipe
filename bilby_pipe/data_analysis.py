@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 import bilby
+import lalsimulation as lalsim
 
 from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
