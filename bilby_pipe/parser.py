@@ -230,7 +230,7 @@ def create_parser(
         det_parser.add(
             "--trigger-time", default=None, type=float, help="The trigger time"
         )
-        det_parser.add("--sampling-frequency", default=4096, type=int)
+        det_parser.add("--sampling-frequency", default=2048, type=int)
         det_parser.add(
             "--channel-names",
             default=None,
