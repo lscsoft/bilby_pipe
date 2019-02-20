@@ -298,9 +298,9 @@ class DataAnalysisInput(Input):
             return None
         else:
             if "binary_neutron_star" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+                return bilby.gw.conversion.generate_all_bns_parameters
             elif "binary_black_hole" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+                return bilby.gw.conversion.generate_all_bbh_parameters
             else:
                 return None
 
