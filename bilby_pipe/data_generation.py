@@ -238,7 +238,7 @@ class DataGenerationInput(Input):
             self.channel_names = [None] * len(frame_caches)
         for cache_file, channel_name in zip(frame_caches, self.channel_names):
             interferometer = bilby.gw.detector.load_data_from_cache_file(
-                cache_file,
+                cache_file=cache_file,
                 start_time=self.start_time,
                 segment_duration=self.duration,
                 psd_duration=self.psd_duration,
