@@ -281,6 +281,14 @@ def create_parser(
         )
         parser.add("--prior-file", default=None, help="The prior file")
         parser.add(
+            "--likelihood-type",
+            default="GravitationalWaveTransient",
+            help="The likelihood. Can be one of"
+            "[GravitationalWaveTransient, ROQGravitationalWaveTransient]"
+            "Need to specify --roq-folder if ROQ likelihood used",
+        )
+        parser.add("--roq-folder", default=None, help="The data for ROQ")
+        parser.add(
             "--deltaT",
             type=float,
             default=0.1,

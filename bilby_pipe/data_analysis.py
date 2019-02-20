@@ -52,6 +52,8 @@ class DataAnalysisInput(Input):
         self.data_label = args.data_label
         self.default_prior = args.default_prior
         self.frequency_domain_source_model = args.frequency_domain_source_model
+        self.likelihood_type = args.likelihood_type
+        self.roq_folder = args.roq_folder
         self.result = None
 
     @property
@@ -203,23 +205,51 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-        else:
+        if self.likelihood_type == "ROQGravitationalWaveTransient":
+            # FIXME this is temporary given that the SNR cannot be computed
+            # for the roq source model, as it passes mode=linear to
+            # antenna_detector_response
             return None
+        else:
+            if "binary_neutron_star" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+            elif "binary_black_hole" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+            else:
+                return None
 
     @property
     def waveform_generator(self):
-        waveform_generator = bilby.gw.WaveformGenerator(
-            sampling_frequency=self.interferometers.sampling_frequency,
-            duration=self.interferometers.duration,
-            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
-            parameter_conversion=self.parameter_conversion,
-            start_time=self.interferometers.start_time,
-            waveform_arguments=self.waveform_arguments,
-        )
+        if self.likelihood_type == "GravitationalWaveTransient":
+            waveform_generator = bilby.gw.WaveformGenerator(
+                sampling_frequency=self.interferometers.sampling_frequency,
+                duration=self.interferometers.duration,
+                frequency_domain_source_model=self.bilby_frequency_domain_source_model,
+                parameter_conversion=self.parameter_conversion,
+                start_time=self.interferometers.start_time,
+                waveform_arguments=self.waveform_arguments,
+            )
+
+        elif self.likelihood_type == "ROQGravitationalWaveTransient":
+            freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
+            freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
+
+            waveform_arguments = self.waveform_arguments.copy()
+            waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
+            waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
+
+            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+                sampling_frequency=self.interferometers.sampling_frequency,
+                duration=self.interferometers.duration,
+                frequency_domain_source_model=bilby.gw.source.roq,
+                start_time=self.interferometers.start_time,
+                parameter_conversion=self.parameter_conversion,
+                waveform_arguments=waveform_arguments,
+            )
+
+        else:
+            raise ValueError("Unknown likelihood function")
+
         return waveform_generator
 
     @property
@@ -232,23 +262,47 @@ class DataAnalysisInput(Input):
 
     @property
     def likelihood(self):
-        return bilby.gw.likelihood.GravitationalWaveTransient(
-            interferometers=self.interferometers,
-            waveform_generator=self.waveform_generator,
-            priors=self.priors,
-            phase_marginalization=self.phase_marginalization,
-            distance_marginalization=self.distance_marginalization,
-            time_marginalization=self.time_marginalization,
-        )
+        if self.likelihood_type == "GravitationalWaveTransient":
+            return bilby.gw.likelihood.GravitationalWaveTransient(
+                interferometers=self.interferometers,
+                waveform_generator=self.waveform_generator,
+                priors=self.priors,
+                phase_marginalization=self.phase_marginalization,
+                distance_marginalization=self.distance_marginalization,
+                time_marginalization=self.time_marginalization,
+            )
+
+        elif self.likelihood_type == "ROQGravitationalWaveTransient":
+            basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
+            basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
+
+            return bilby.gw.likelihood.ROQGravitationalWaveTransient(
+                interferometers=self.interferometers,
+                waveform_generator=self.waveform_generator,
+                priors=self.priors,
+                linear_matrix=basis_matrix_linear,
+                quadratic_matrix=basic_matrix_quadratic,
+            )
+            # FIXME tell the user that if the marginalizations are turned on they
+            # are not used
+
+        else:
+            raise ValueError("Unknown likelihood function")
 
     @property
     def parameter_generation(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.generate_all_bns_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.generate_all_bbh_parameters
-        else:
+        if self.likelihood_type == "ROQGravitationalWaveTransient":
+            # FIXME this is temporary given that the SNR cannot be computed
+            # for the roq source model, as it passes mode=linear to
+            # antenna_detector_response
             return None
+        else:
+            if "binary_neutron_star" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+            elif "binary_black_hole" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+            else:
+                return None
 
     @property
     def result_class(self):
