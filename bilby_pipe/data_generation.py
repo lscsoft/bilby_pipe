@@ -94,10 +94,10 @@ class DataGenerationInput(Input):
     def psd_duration(self):
         return self._psd_duration
 
-    @psd_duration
+    @psd_duration.setter
     def psd_duration(self, psd_duration):
         if psd_duration is None:
-            self._psd_duration = 32 * self.duration
+            self._psd_duration = 33 * self.duration
         else:
             self._psd_duration = psd_duration
         logger.debug("PSD duration set to {}".format(self.psd_duration))
@@ -106,7 +106,7 @@ class DataGenerationInput(Input):
     def psd_start_time(self):
         return self._psd_start_time
 
-    @psd_start_time
+    @psd_start_time.setter
     def psd_start_time(self, psd_start_time):
         if psd_start_time is None:
             self._psd_start_time = self.trigger_time - self.psd_duration / 2.0
