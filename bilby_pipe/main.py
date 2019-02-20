@@ -743,8 +743,8 @@ class Dag(object):
         if submitted:
             logger.info("DAG generation complete and submitted")
         else:
-            command_line = "$ condor_submit_dag {}/{}.submit".format(
-                self.inputs.submit_directory, self.dag_name
+            command_line = "$ condor_submit_dag {}".format(
+                os.path.relpath(self.dag.submit_file)
             )
             logger.info(
                 "DAG generation complete, to submit jobs run:\n  {}".format(
