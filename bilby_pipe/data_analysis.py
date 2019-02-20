@@ -154,7 +154,20 @@ class DataAnalysisInput(Input):
             names_to_use = [ifo.name for ifo in ifos_to_use]
             logger.info("Using data for detectors = {}".format(names_to_use))
             self._interferometers = bilby.gw.detector.InterferometerList(ifos_to_use)
+            self.print_detector_information(self._interferometers)
             return self._interferometers
+
+    @staticmethod
+    def print_detector_information(interferometers):
+        for ifo in interferometers:
+            logger.info(
+                "{}: sampling-frequency={}, segment-start-time={}, duration={}".format(
+                    ifo.name,
+                    ifo.strain_data.sampling_frequency,
+                    ifo.strain_data.start_time,
+                    ifo.strain_data.duration,
+                )
+            )
 
     @property
     def meta_data(self):
@@ -205,18 +218,12 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if self.likelihood_type == "ROQGravitationalWaveTransient":
-            # FIXME this is temporary given that the SNR cannot be computed
-            # for the roq source model, as it passes mode=linear to
-            # antenna_detector_response
-            return None
+        if "binary_neutron_star" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif "binary_black_hole" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
-            if "binary_neutron_star" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-            elif "binary_black_hole" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-            else:
-                return None
+            return None
 
     @property
     def waveform_generator(self):
@@ -231,6 +238,9 @@ class DataAnalysisInput(Input):
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
+            logger.info(
+                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+            )
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
 
@@ -273,6 +283,9 @@ class DataAnalysisInput(Input):
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
+            logger.info(
+                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+            )
             basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
             basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
 
