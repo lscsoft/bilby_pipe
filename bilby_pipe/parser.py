@@ -247,9 +247,18 @@ def create_parser(
         )
         det_parser.add(
             "--psd-duration",
-            default=500,
+            default=None,
             type=int,
-            help="Time used to generate the PSD, default is 500.",
+            help="Time used to generate the PSD, default is 32x the sample duration.",
+        )
+        det_parser.add(
+            "--psd-start-time",
+            default=None,
+            type=int,
+            help=(
+                "Start time of data used to generate the PSD. If not given, "
+                "defaults to psd-duration/2 before the trigger time"
+            ),
         )
         det_parser.add("--minimum-frequency", default=20, type=float)
 
