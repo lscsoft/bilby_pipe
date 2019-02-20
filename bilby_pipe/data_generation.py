@@ -100,19 +100,23 @@ class DataGenerationInput(Input):
             self._psd_duration = 33 * self.duration
         else:
             self._psd_duration = psd_duration
-        logger.debug("PSD duration set to {}".format(self.psd_duration))
+        logger.info("PSD duration set to {}".format(self.psd_duration))
 
     @property
     def psd_start_time(self):
-        return self._psd_start_time
+        if self._psd_start_time is not None:
+            return self._psd_start_time
+        elif self.trigger_time is not None:
+            psd_start_time = self.trigger_time - self.psd_duration / 2.0
+            logger.info("Using default PSD start time {}".format(psd_start_time))
+            return psd_start_time
+        else:
+            raise BilbyPipeError("PSD start time not set")
 
     @psd_start_time.setter
     def psd_start_time(self, psd_start_time):
-        if psd_start_time is None:
-            self._psd_start_time = self.trigger_time - self.psd_duration / 2.0
-        else:
-            self._psd_start_time = psd_start_time
-        logger.debug("PSD duration set to {}".format(self.psd_duration))
+        self._psd_start_time = psd_start_time
+        logger.info("PSD start-time set to {}".format(self._psd_start_time))
 
     @property
     def minimum_frequency(self):
