@@ -52,6 +52,7 @@ class DataGenerationInput(Input):
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
         self.psd_duration = args.psd_duration
+        self.psd_start_time = args.psd_start_time
         self.psd_files = args.psd_files
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
@@ -88,6 +89,30 @@ class DataGenerationInput(Input):
         except (ValueError, TypeError):
             logger.debug("Unable to convert input `process` to type int")
             self._process = process
+
+    @property
+    def psd_duration(self):
+        return self._psd_duration
+
+    @psd_duration.setter
+    def psd_duration(self, psd_duration):
+        if psd_duration is None:
+            self._psd_duration = 33 * self.duration
+        else:
+            self._psd_duration = psd_duration
+        logger.debug("PSD duration set to {}".format(self.psd_duration))
+
+    @property
+    def psd_start_time(self):
+        return self._psd_start_time
+
+    @psd_start_time.setter
+    def psd_start_time(self, psd_start_time):
+        if psd_start_time is None:
+            self._psd_start_time = self.trigger_time - self.psd_duration / 2.0
+        else:
+            self._psd_start_time = psd_start_time
+        logger.debug("PSD duration set to {}".format(self.psd_duration))
 
     @property
     def minimum_frequency(self):
@@ -217,9 +242,14 @@ class DataGenerationInput(Input):
                 start_time=self.start_time,
                 segment_duration=self.duration,
                 psd_duration=self.psd_duration,
-                channel_name=channel_name,
+                psd_start_time=self.psd_start_time,
+                channel_name=None,
                 sampling_frequency=self.sampling_frequency,
+                roll_off=0.2,
+                overlap=0,
+                outdir=None,
             )
+
             interferometer.minimum_frequency = self.minimum_frequency
             interferometers.append(interferometer)
         self.interferometers = interferometers
