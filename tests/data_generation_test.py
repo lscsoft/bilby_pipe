@@ -22,7 +22,7 @@ class TestDataGenerationInput(unittest.TestCase):
         ]
         self.parser = create_generation_parser()
         self.inputs = DataGenerationInput(
-            *parse_args(self.default_args_list, self.parser)
+            *parse_args(self.default_args_list, self.parser), error=False
         )
         self.gps_file = "tests/gps_file.txt"
 
@@ -50,30 +50,30 @@ class TestDataGenerationInput(unittest.TestCase):
 
     def test_script_inputs_detectors_from_command_line(self):
         args_list = self.default_args_list + ["--detectors", "H1", "--detectors", "L1"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
         args_list = self.default_args_list + ["--detectors", "H1 L1"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
         args_list = self.default_args_list + ["--detectors", "L1 H1"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
         args_list = self.default_args_list + ["--detectors", "[L1, H1]"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
 
         args_list = self.default_args_list + ["--detectors", "[L1 H1]"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
         args_list = self.default_args_list + ["--detectors", '["L1", "H1"]']
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
         args_list = self.default_args_list + ["--detectors", "['L1', 'H1']"]
-        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser), error=False)
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
     def test_detectors_not_understood(self):

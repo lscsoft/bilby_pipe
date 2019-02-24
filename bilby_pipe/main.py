@@ -91,6 +91,7 @@ class MainInput(Input):
         self.n_injection = args.n_injection
 
         self.gracedb = args.gracedb
+        self.trigger_time = args.trigger_time
 
         # These keys are used in the webpages summary
         self.meta_keys = [
@@ -249,6 +250,18 @@ class MainInput(Input):
             self.level_A_labels = [gracedb]
         else:
             self._gracedb = None
+
+    @property
+    def trigger_time(self):
+        return self._trigger_time
+
+    @trigger_time.setter
+    def trigger_time(self, trigger_time):
+        if trigger_time is not None:
+            self._trigger_time = trigger_time
+            self.level_A_labels = [str(trigger_time)]
+        else:
+            self._trigger_time = None
 
 
 class Dag(object):
