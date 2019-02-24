@@ -6,10 +6,13 @@ from __future__ import division, print_function
 
 import sys
 
-import bilby
-from bilby.gw.prior import BBHPriorDict
 import deepdish
 import pandas as pd
+import matplotlib
+
+matplotlib.use("agg")  # noqa
+import bilby
+from bilby.gw.prior import BBHPriorDict
 
 from .input import Input
 from .utils import parse_args, logger, BilbyPipeError

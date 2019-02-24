@@ -8,6 +8,9 @@ import sys
 import os
 
 import numpy as np
+import matplotlib
+
+matplotlib.use("agg")  # noqa
 import bilby
 
 from bilby_pipe.utils import logger, BilbyPipeError

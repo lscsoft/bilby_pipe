@@ -9,8 +9,11 @@ import os
 import urllib
 import urllib.request
 
-import bilby
 import deepdish
+import matplotlib
+
+matplotlib.use("agg")  # noqa
+import bilby
 
 from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
