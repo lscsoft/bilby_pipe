@@ -169,12 +169,18 @@ def create_parser(
         )
 
     if data_gen:
-        data_gen_pars = parser.add_argument_group(title="Data generation arguments")
+        data_gen_pars = parser.add_mutually_exclusive_group()
         data_gen_pars.add(
-            "--gps-file", type=str, help="File containing segment GPS start times"
+            "--trigger-time", default=None, type=float, help="The trigger time"
+        )
+        data_gen_pars.add(
+            "--gps-file",
+            type=str,
+            help="File containing segment GPS start times",
+            default=None,
         )
         data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
-        data_gen_pars.add(
+        parser.add(
             "--psd-files",
             default=None,
             nargs="*",
@@ -227,9 +233,6 @@ def create_parser(
                 " trigger_time + post_trigger_duration - duration"
             ),
         )
-        det_parser.add(
-            "--trigger-time", default=None, type=float, help="The trigger time"
-        )
         det_parser.add("--sampling-frequency", default=2048, type=int)
         det_parser.add(
             "--channel-names",
@@ -248,13 +251,13 @@ def create_parser(
         det_parser.add(
             "--psd-duration",
             default=None,
-            type=int,
+            type=float,
             help="Time used to generate the PSD, default is 32x the sample duration.",
         )
         det_parser.add(
             "--psd-start-time",
             default=None,
-            type=int,
+            type=float,
             help=(
                 "Start time of data used to generate the PSD. If not given, "
                 "defaults to psd-duration/2 before the trigger time"

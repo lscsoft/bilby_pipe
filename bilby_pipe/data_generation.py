@@ -27,10 +27,12 @@ class DataGenerationInput(Input):
         The parser containing the command line / ini file inputs
     args_list: list, optional
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
+    error: bool
+        If true, raise an Error if the data has not been generated
 
     """
 
-    def __init__(self, args, unknown_args):
+    def __init__(self, args, unknown_args, error=True):
 
         logger.info("Command line arguments: {}".format(args))
         logger.info("Unknown command line arguments: {}".format(unknown_args))
@@ -48,7 +50,6 @@ class DataGenerationInput(Input):
         self.channel_names = args.channel_names
         self.query_types = args.query_types
         self.duration = args.duration
-        self.trigger_time = args.trigger_time
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
         self.psd_duration = args.psd_duration
@@ -58,13 +59,18 @@ class DataGenerationInput(Input):
         self.outdir = args.outdir
         self.label = args.label
         self.frequency_domain_source_model = args.frequency_domain_source_model
-
-        self.gracedb = args.gracedb
-        self.gps_file = args.gps_file
-
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
+
+        self.data_set = False
+        # The following are all mutually exclusive methods to set the data
+        self.gracedb = args.gracedb
+        self.gps_file = args.gps_file
         self.injection_file = args.injection_file
+        if args.trigger_time is not None:
+            self.set_data_from_trigger_time(args.trigger_time)
+        if self.data_set is False and error:
+            raise BilbyPipeError("No data setting method provided")
 
     @property
     def cluster(self):
@@ -115,8 +121,11 @@ class DataGenerationInput(Input):
 
     @psd_start_time.setter
     def psd_start_time(self, psd_start_time):
-        self._psd_start_time = psd_start_time
-        logger.info("PSD start-time set to {}".format(self._psd_start_time))
+        if psd_start_time is None:
+            self._psd_start_time = None
+        else:
+            self._psd_start_time = psd_start_time
+            logger.info("PSD start-time set to {}".format(self._psd_start_time))
 
     @property
     def minimum_frequency(self):
@@ -145,6 +154,14 @@ class DataGenerationInput(Input):
         det_list.sort()
         det_list = [det.upper() for det in det_list]
         self._detectors = det_list
+
+    @property
+    def trigger_time(self):
+        return self._trigger_time
+
+    @trigger_time.setter
+    def trigger_time(self, trigger_time):
+        self._trigger_time = trigger_time
 
     @property
     def gracedb(self):
@@ -186,6 +203,23 @@ class DataGenerationInput(Input):
                 self.trigger_time + self.post_trigger_duration - self.duration
             )
             self.frame_caches = frame_caches
+
+    def set_data_from_trigger_time(self, trigger_time):
+        self.trigger_time = trigger_time
+        frame_caches = []
+        gps_start_time = trigger_time - self.duration
+        for det in self.detectors:
+            output_cache_file = bilby.gw.utils.gw_data_find(
+                observatory=det,
+                gps_start_time=gps_start_time,
+                duration=self.duration,
+                calibration=self.calibration,
+                outdir=self.data_directory,
+                query_type=None,
+            )
+            frame_caches.append(output_cache_file)
+        self.start_time = trigger_time + self.post_trigger_duration - self.duration
+        self.frame_caches = frame_caches
 
     def _parse_gps_file(self):
         gps_start_times = self.read_gps_file()
@@ -251,7 +285,7 @@ class DataGenerationInput(Input):
                 sampling_frequency=self.sampling_frequency,
                 roll_off=0.2,
                 overlap=0,
-                outdir=None,
+                outdir=self.data_directory,
             )
 
             interferometer.minimum_frequency = self.minimum_frequency
@@ -282,8 +316,7 @@ class DataGenerationInput(Input):
             injection_df = injection_dict["injections"]
             self.injection_parameters = injection_df.iloc[self.idx].to_dict()
             self.meta_data["injection_parameters"] = self.injection_parameters
-            if self.trigger_time is None:
-                self.trigger_time = self.injection_parameters["geocent_time"]
+            self.trigger_time = self.injection_parameters["geocent_time"]
             self._set_interferometers_from_simulation()
         else:
             raise FileNotFoundError(
@@ -345,6 +378,7 @@ class DataGenerationInput(Input):
     @interferometers.setter
     def interferometers(self, interferometers):
         self._interferometers = interferometers
+        self.data_set = True
 
     def save_interferometer_list(self):
         data_dump = DataDump(
