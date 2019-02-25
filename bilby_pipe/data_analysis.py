@@ -292,15 +292,20 @@ class DataAnalysisInput(Input):
             basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
             basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
 
+            if self.time_marginalization:
+                logger.warning(
+                    "Time marginalization not implemented for "
+                    "ROQGravitationalWaveTransient: option ignored"
+                )
             return bilby.gw.likelihood.ROQGravitationalWaveTransient(
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
                 priors=self.priors,
                 linear_matrix=basis_matrix_linear,
                 quadratic_matrix=basic_matrix_quadratic,
+                phase_marginalization=self.phase_marginalization,
+                distance_marginalization=self.distance_marginalization,
             )
-            # FIXME tell the user that if the marginalizations are turned on they
-            # are not used
 
         else:
             raise ValueError("Unknown likelihood function")
