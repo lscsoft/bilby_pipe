@@ -106,7 +106,7 @@ class DataGenerationInput(Input):
     @psd_duration.setter
     def psd_duration(self, psd_duration):
         if psd_duration is None:
-            self._psd_duration = 33 * self.duration
+            self._psd_duration = 32 * self.duration
         else:
             self._psd_duration = psd_duration
         logger.info("PSD duration set to {}".format(self.psd_duration))
@@ -116,7 +116,7 @@ class DataGenerationInput(Input):
         if self._psd_start_time is not None:
             return self._psd_start_time
         elif self.trigger_time is not None:
-            psd_start_time = self.trigger_time - self.psd_duration / 2.0
+            psd_start_time = self.start_time - self.psd_duration
             logger.info("Using default PSD start time {}".format(psd_start_time))
             return psd_start_time
         else:
