@@ -171,7 +171,10 @@ def create_parser(
     if data_gen:
         data_gen_pars = parser.add_mutually_exclusive_group()
         data_gen_pars.add(
-            "--trigger-time", default=None, type=float, help="The trigger time"
+            "--trigger-time",
+            default=None,
+            type=float,
+            help="The trigger time, alternative to --gracedb",
         )
         data_gen_pars.add(
             "--gps-file",

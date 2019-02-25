@@ -80,6 +80,22 @@ is the entry for GW150915.
 
 .. literalinclude:: ../example_ini_files/GW150914.ini
 
+Alternatively, the :code:`trigger-time` argument can be given directly
+specifying the trigger time of interest.
+
+Running on GPS times
+--------------------
+
+Here is an example ini file for running on a list of GPS times
+
+.. literalinclude:: ../example_ini_files/gps_times.ini
+
+Note, the ini file provides an argument `gps-times` which points to a file
+`gps_times.txt` which is a simple list of the GPS times to analyse. Here are
+its contents:
+
+.. literalinclude:: ../example_ini_files/gps_times.txt
+
 Summary webpage
 ---------------
 
@@ -114,18 +130,6 @@ lines in the configuration file that will add to an existing webpage:
     email = albert.einstein
     existing-dir = /home/albert.einstein/public_html/project
 
-Running on GPS times
---------------------
-
-Here is an example ini file for running on a list of GPS times
-
-.. literalinclude:: ../example_ini_files/gps_times.ini
-
-Note, the ini file provides an argument `gps-times` which points to a file
-`gps_times.txt` which is a simple list of the GPS times to analyse. Here are
-its contents:
-
-.. literalinclude:: ../example_ini_files/gps_times.txt
 
 Running on injections
 ---------------------
