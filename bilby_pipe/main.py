@@ -77,6 +77,8 @@ class MainInput(Input):
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
 
+        self.waveform_approximant = args.waveform_approximant
+
         self.webdir = args.webdir
         self.email = args.email
         self.existing_dir = args.existing_dir
@@ -682,7 +684,7 @@ class Dag(object):
             self.summary_jobs.append(self._create_summary_job(job_input))
 
     def _create_summary_job(self, job_input):
-        """ Create a condor job and add it to the dag """
+        """ Create a condor job for pesummary and add it to the dag """
         webdir = job_input.kwargs["webdir"]
         email = job_input.kwargs["email"]
         detectors_list = job_input.kwargs["detectors_list"]
@@ -715,6 +717,9 @@ class Dag(object):
         arguments.add("email", email)
         arguments.add("config", " ".join([self.inputs.ini] * len(result_files)))
         arguments.add("samples", " ".join(result_files))
+        arguments.append(
+            "-a {}".format(" ".join([self.waveform_approximant] * len(result_files)))
+        )
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
 
@@ -840,7 +845,7 @@ def create_main_parser():
         pe_summary=True,
         injection=True,
         data_gen=True,
-        waveform=False,
+        waveform=True,
         generation=False,
         analysis=False,
     )
