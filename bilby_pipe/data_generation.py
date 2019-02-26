@@ -316,7 +316,9 @@ class DataGenerationInput(Input):
         elif os.path.isfile(injection_file):
             self._injection_file = os.path.abspath(injection_file)
             with open(injection_file, "r") as file:
-                injection_dict = json.load(file)
+                injection_dict = json.load(
+                    file, object_hook=bilby.core.result.decode_bilby_json_result
+                )
             injection_df = injection_dict["injections"]
             self.injection_parameters = injection_df.iloc[self.idx].to_dict()
             self.meta_data["injection_parameters"] = self.injection_parameters

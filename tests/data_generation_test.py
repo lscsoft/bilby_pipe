@@ -5,6 +5,8 @@ from argparse import Namespace
 import subprocess
 import json
 
+import bilby
+
 from bilby_pipe.main import parse_args
 from bilby_pipe import create_injections
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
@@ -138,7 +140,9 @@ class TestDataGenerationInput(unittest.TestCase):
 
         # Check the injections match by idx
         with open(injection_file_name, "r") as file:
-            injection_file_dict = json.load(file)
+            injection_file_dict = json.load(
+                file, object_hook=bilby.core.result.decode_bilby_json_result
+            )
         self.assertEqual(
             self.inputs.meta_data["injection_parameters"],
             injection_file_dict["injections"].iloc[self.inputs.idx].to_dict(),
@@ -150,7 +154,7 @@ class TestDataGenerationInput(unittest.TestCase):
                 os.path.join(
                     self.outdir,
                     "data",
-                    "{}_{}_data_dump.h5".format(self.inputs.label, self.inputs.idx),
+                    "{}_{}_data_dump.pickle".format(self.inputs.label, self.inputs.idx),
                 )
             )
         )
