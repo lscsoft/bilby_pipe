@@ -5,8 +5,8 @@ Module containing the tools for creating injection files
 from __future__ import division, print_function
 
 import sys
+import json
 
-import deepdish
 import pandas as pd
 import matplotlib
 
@@ -114,8 +114,11 @@ class CreateInjectionInput(Input):
             )
         )
         injection_values = pd.DataFrame.from_dict(self.prior.sample(self.n_injection))
-        injections = dict(injections=injection_values, prior=self.prior)
-        deepdish.io.save(filename, injections)
+        injections = dict(injections=injection_values)
+        with open(filename, "w") as file:
+            json.dump(
+                injections, file, indent=2, cls=bilby.core.result.BilbyResultJsonEncoder
+            )
         logger.info("Created injection file {}".format(filename))
 
 

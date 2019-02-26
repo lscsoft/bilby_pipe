@@ -34,6 +34,7 @@ class TestDag(unittest.TestCase):
             existing_dir=None,
             local_generation=False,
             trigger_time=None,
+            waveform_approximant="IMRPhenomPV2",
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)

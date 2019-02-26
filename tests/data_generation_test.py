@@ -2,9 +2,8 @@ import unittest
 import shutil
 import os
 from argparse import Namespace
-
 import subprocess
-import deepdish
+import json
 
 from bilby_pipe.main import parse_args
 from bilby_pipe import create_injections
@@ -138,7 +137,8 @@ class TestDataGenerationInput(unittest.TestCase):
         self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 
         # Check the injections match by idx
-        injection_file_dict = deepdish.io.load(injection_file_name)
+        with open(injection_file_name, "r") as file:
+            injection_file_dict = json.load(file)
         self.assertEqual(
             self.inputs.meta_data["injection_parameters"],
             injection_file_dict["injections"].iloc[self.inputs.idx].to_dict(),
