@@ -392,9 +392,7 @@ class DataGenerationInput(Input):
             interferometers=self.interferometers,
             meta_data=self.meta_data,
         )
-        data_dump.to_hdf5()
-
-        self.interferometers.plot_data(outdir=self.data_directory, label=self.label)
+        data_dump.to_pickle()
 
 
 def create_generation_parser():
@@ -415,3 +413,5 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     data = DataGenerationInput(args, unknown_args)
     data.save_interferometer_list()
+    if args.create_plots:
+        data.interferometers.plot_data(outdir=data.data_directory, label=data.label)

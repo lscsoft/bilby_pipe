@@ -53,6 +53,11 @@ def create_parser(
         parser.add("--idx", type=int, help="The level A job index", default=0)
         parser.add("--cluster", type=str, help="The condor cluster ID", default=None)
         parser.add("--process", type=str, help="The condor process ID", default=None)
+        parser.add(
+            "--create-plots",
+            action="store_true",
+            help="Create diagnostic and posterior plots",
+        )
 
     if pipe_args:
         parser.add(
@@ -322,10 +327,5 @@ def create_parser(
             help="Boolean. If true, use a time-marginalized likelihood",
         )
         parser.add("--sampler-kwargs", default=None)
-        parser.add(
-            "--create-plots",
-            action="store_true",
-            help="Create marginal 1D and corner plot after the analysis job",
-        )
 
     return parser

@@ -9,9 +9,10 @@ import sys
 import shutil
 import subprocess
 import itertools
-import pycondor
-import deepdish
 from collections import namedtuple
+import pickle
+
+import pycondor
 
 from .utils import logger, parse_args, BilbyPipeError
 from . import utils
@@ -718,7 +719,9 @@ class Dag(object):
         arguments.add("config", " ".join([self.inputs.ini] * len(result_files)))
         arguments.add("samples", " ".join(result_files))
         arguments.append(
-            "-a {}".format(" ".join([self.waveform_approximant] * len(result_files)))
+            "-a {}".format(
+                " ".join([self.inputs.waveform_approximant] * len(result_files))
+            )
         )
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
@@ -801,7 +804,7 @@ class ArgumentsString(object):
         return " ".join(self.argument_list)
 
 
-class DataDump:
+class DataDump(object):
     def __init__(self, label, outdir, trigger_time, interferometers, meta_data, idx):
         self.trigger_time = trigger_time
         self.label = label
@@ -810,17 +813,20 @@ class DataDump:
         self.meta_data = meta_data
         self.idx = idx
 
+    @staticmethod
+    def get_filename(outdir, label, idx):
+        return os.path.join(outdir, "_".join([label, str(idx), "data_dump.pickle"]))
+
     @property
     def filename(self):
-        return os.path.join(
-            self.outdir, "_".join([self.label, str(self.idx), "data_dump.h5"])
-        )
+        return self.get_filename(self.outdir, self.label, self.idx)
 
-    def to_hdf5(self):
-        deepdish.io.save(self.filename, self)
+    def to_pickle(self):
+        with open(self.filename, "wb+") as file:
+            pickle.dump(self, file)
 
     @classmethod
-    def from_hdf5(cls, filename=None):
+    def from_pickle(cls, filename=None):
         """ Loads in a data dump
 
         Parameters
@@ -829,7 +835,8 @@ class DataDump:
             If given, try to load from this filename
 
         """
-        res = deepdish.io.load(filename)
+        with open(filename, "rb") as file:
+            res = pickle.load(file)
         if res.__class__ == list:
             res = cls(res)
         if res.__class__ != cls:

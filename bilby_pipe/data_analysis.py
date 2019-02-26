@@ -5,7 +5,6 @@ Script to analyse the stored data
 from __future__ import division, print_function
 
 import sys
-import os
 
 import numpy as np
 import matplotlib
@@ -185,11 +184,10 @@ class DataAnalysisInput(Input):
         try:
             return self._data_dump
         except AttributeError:
-            filename = os.path.join(
-                self.data_directory,
-                "_".join([self.data_label, str(self.idx), "data_dump.h5"]),
+            filename = DataDump.get_filename(
+                self.data_directory, self.data_label, str(self.idx)
             )
-            self._data_dump = DataDump.from_hdf5(filename)
+            self._data_dump = DataDump.from_pickle(filename)
             return self._data_dump
 
     @property
