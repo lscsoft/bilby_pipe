@@ -5,6 +5,7 @@ Script to analyse the stored data
 from __future__ import division, print_function
 
 import sys
+import os
 
 import numpy as np
 import matplotlib
@@ -338,7 +339,7 @@ class DataAnalysisInput(Input):
             priors=self.priors,
             sampler=self.sampler,
             label=self.label,
-            outdir=self.result_directory,
+            outdir=os.path.relpath(self.result_directory),
             conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data["injection_parameters"],
             result_class=self.result_class,
