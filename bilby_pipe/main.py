@@ -464,6 +464,7 @@ class Dag(object):
         job_name = "_".join([self.inputs.label, "generation", str(idx)])
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
+        job_name = job_name.replace(".", "-")
         job_logs_base = os.path.join(
             self.inputs.data_generation_log_directory, job_name
         )
@@ -576,6 +577,7 @@ class Dag(object):
         job_name = "_".join([self.inputs.label, "".join(detectors), sampler])
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
+        job_name = job_name.replace(".", "-")
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ""
@@ -704,6 +706,7 @@ class Dag(object):
         job_name = "_".join([self.inputs.label, "results_page", str(idx)])
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
+        job_name = job_name.replace(".", "-")
         job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ""
