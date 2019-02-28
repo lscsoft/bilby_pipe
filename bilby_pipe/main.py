@@ -107,6 +107,9 @@ class MainInput(Input):
             "accounting",
         ]
 
+        self.request_memory = args.request_memory
+        self.request_cpus = args.request_cpus
+
     @property
     def ini(self):
         return self._ini
@@ -266,6 +269,24 @@ class MainInput(Input):
         else:
             self._trigger_time = None
 
+    @property
+    def request_memory(self):
+        return self._request_memory
+
+    @request_memory.setter
+    def request_memory(self, request_memory):
+        logger.info("request_memory = {} GB".format(request_memory))
+        self._request_memory = "{} GB".format(request_memory)
+
+    @property
+    def request_cpus(self):
+        return self._request_cpus
+
+    @request_cpus.setter
+    def request_cpus(self, request_cpus):
+        logger.info("request_cpus = {}".format(request_cpus))
+        self._request_cpus = request_cpus
+
 
 class Dag(object):
     """ A class to handle the creation and building of a DAG
@@ -323,9 +344,7 @@ class Dag(object):
     def __init__(
         self,
         inputs,
-        request_memory=None,
         request_disk=None,
-        request_cpus=None,
         getenv=True,
         universe="vanilla",
         initialdir=None,
@@ -334,9 +353,9 @@ class Dag(object):
         retry=None,
         verbose=0,
     ):
-        self.request_memory = request_memory
+        self.request_memory = inputs.request_memory
         self.request_disk = request_disk
-        self.request_cpus = request_disk
+        self.request_cpus = inputs.request_cpus
         self.getenv = getenv
         self.universe = universe
         self.initialdir = initialdir

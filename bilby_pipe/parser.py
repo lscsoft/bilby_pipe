@@ -100,6 +100,13 @@ def create_parser(
             default=None,
             help="Singularity image to use",
         )
+        parser.add(
+            "--request-memory",
+            type=float,
+            default=4,
+            help="Memory allocation request (GB)",
+        )
+        parser.add("--request-cpus", type=int, default=1, help="CPU allocation request")
 
     if run_spec:
         parser.add("--label", type=str, default="label", help="Output label")
