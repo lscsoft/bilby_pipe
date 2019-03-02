@@ -517,7 +517,7 @@ class Dag(object):
             submit=submit,
             request_memory=self.request_memory,
             request_disk=self.request_disk,
-            request_cpus=self.request_cpus,
+            request_cpus=1,
             getenv=self.getenv,
             universe=universe,
             initialdir=self.initialdir,
