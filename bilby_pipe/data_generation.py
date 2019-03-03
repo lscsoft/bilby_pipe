@@ -284,7 +284,7 @@ class DataGenerationInput(Input):
                 segment_duration=self.duration,
                 psd_duration=self.psd_duration,
                 psd_start_time=self.psd_start_time,
-                channel_name=None,
+                channel_name=channel_name,
                 sampling_frequency=self.sampling_frequency,
                 roll_off=0.2,
                 overlap=0,
