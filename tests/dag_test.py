@@ -35,6 +35,8 @@ class TestDag(unittest.TestCase):
             local_generation=False,
             trigger_time=None,
             waveform_approximant="IMRPhenomPV2",
+            request_memory="4 GB",
+            request_cpus=1,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
