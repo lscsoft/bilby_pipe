@@ -286,11 +286,8 @@ class DataAnalysisInput(Input):
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
             logger.info(
-                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+                "Loading ROQ weights from {}".format(self.roq_weights)
             )
-            basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
-            basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
-
             if self.time_marginalization:
                 logger.warning(
                     "Time marginalization not implemented for "
@@ -300,8 +297,7 @@ class DataAnalysisInput(Input):
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
                 priors=self.priors,
-                linear_matrix=basis_matrix_linear,
-                quadratic_matrix=basic_matrix_quadratic,
+                weights=self.roq_weights,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
             )
@@ -357,6 +353,7 @@ def create_analysis_parser():
         data_gen=False,
         waveform=True,
         generation=False,
+        roq_weights=False,
         analysis=True,
     )
 
