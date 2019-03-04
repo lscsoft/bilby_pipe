@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """
-Module containing the tools for creating injection files
+Module containing the main input class
 """
 from __future__ import division, print_function
 
 import os
+import json
 
 import numpy as np
 import bilby
@@ -209,7 +210,18 @@ class Input(object):
 
     @property
     def start_time(self):
-        return self._start_time
+        try:
+            return self._start_time
+        except AttributeError:
+            logger.info("No start-time set, fall back to default start time")
+        try:
+            self._start_time = (
+                self.trigger_time + self.post_trigger_duration - self.duration
+            )
+            return self._start_time
+        except AttributeError:
+            logger.warning("Unable to calculate default segment start time")
+            return None
 
     @start_time.setter
     def start_time(self, start_time):
@@ -226,3 +238,26 @@ class Input(object):
         self._duration = duration
         if duration is not None:
             logger.info("Setting segment duration {}".format(duration))
+
+    @property
+    def injection_file(self):
+        return self._injection_file
+
+    @injection_file.setter
+    def injection_file(self, injection_file):
+        if injection_file is None:
+            logger.debug("No injection file set")
+            self._injection_file = None
+        elif os.path.isfile(injection_file):
+            self._injection_file = os.path.abspath(injection_file)
+            with open(injection_file, "r") as file:
+                injection_dict = json.load(
+                    file, object_hook=bilby.core.result.decode_bilby_json_result
+                )
+            injection_df = injection_dict["injections"]
+            self.injection_df = injection_df
+            self.total_number_of_injections = len(injection_df)
+        else:
+            raise FileNotFoundError(
+                "Injection file {} not found".format(injection_file)
+            )

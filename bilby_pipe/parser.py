@@ -230,9 +230,6 @@ def create_parser(
     if generation:
         det_parser = parser.add_argument_group(title="Detector arguments")
         det_parser.add(
-            "--calibration", type=int, default=2, help="Which calibration to use"
-        )
-        det_parser.add(
             "--duration",
             type=int,
             default=4,
@@ -250,18 +247,13 @@ def create_parser(
         )
         det_parser.add("--sampling-frequency", default=2048, type=int)
         det_parser.add(
-            "--channel-names",
-            default=None,
+            "--channel-type",
             nargs="*",
-            help="Channel names to use, if not provided known "
-            "channel names will be tested.",
-        )
-        det_parser.add(
-            "--query-types",
-            default=None,
-            nargs="*",
-            help="Query types to "
-            "use. If not provided known query types will be tested.",
+            default=["DCH-CLEAN_STRAIN_C02"],
+            help=(
+                "Channel type to use. Typical options are [DCH-CLEAN_STRAIN_C02, "
+                "DCS-CALIB_STRAIN_C02, DCS-CALIB_STRAIN_C01, GDS-CALIB_STRAIN]"
+            ),
         )
         det_parser.add(
             "--psd-duration",

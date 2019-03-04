@@ -8,24 +8,29 @@ from bilby_pipe.main import BilbyPipeError
 
 
 class TestMainInput(unittest.TestCase):
-
     def setUp(self):
         self.directory = os.path.abspath(os.path.dirname(__file__))
-        self.outdir = 'outdir'
+        self.outdir = "outdir"
         self.known_args_list = [
-            'tests/test_main_input.ini', '--submit', '--outdir', self.outdir,
-            '--X509', os.path.join(self.directory, 'X509.txt')]
-        self.unknown_args_list = ['--argument', 'value']
+            "tests/test_main_input.ini",
+            "--submit",
+            "--outdir",
+            self.outdir,
+            "--X509",
+            os.path.join(self.directory, "X509.txt"),
+        ]
+        self.unknown_args_list = ["--argument", "value"]
         self.all_args_list = self.known_args_list + self.unknown_args_list
         self.parser = bilby_pipe.main.create_main_parser()
         self.args = self.parser.parse_args(self.known_args_list)
         self.inputs = bilby_pipe.main.MainInput(
-            *self.parser.parse_known_args(self.all_args_list))
+            *self.parser.parse_known_args(self.all_args_list)
+        )
 
-        self.test_gps_file = 'tests/gps_file.txt'
-        self.singularity_image_test = os.path.join(self.outdir, 'test.simg')
-        with open(self.singularity_image_test, 'w+') as file:
-            file.write('')
+        self.test_gps_file = "tests/gps_file.txt"
+        self.singularity_image_test = os.path.join(self.outdir, "test.simg")
+        with open(self.singularity_image_test, "w+") as file:
+            file.write("")
 
     def tearDown(self):
         shutil.rmtree(self.outdir)
@@ -37,20 +42,20 @@ class TestMainInput(unittest.TestCase):
 
     def test_ini_not_a_file(self):
         with self.assertRaises(BilbyPipeError):
-            self.inputs.ini = 'not_a_file'
+            self.inputs.ini = "not_a_file"
 
     def test_set_singularity_image(self):
         self.inputs.singularity_image = self.singularity_image_test
         self.assertEqual(
-            self.inputs.singularity_image,
-            os.path.abspath(self.singularity_image_test))
+            self.inputs.singularity_image, os.path.abspath(self.singularity_image_test)
+        )
 
     def test_singularity_image_setting_fail(self):
         with self.assertRaises(BilbyPipeError):
             self.inputs.singularity_image = 10
 
         with self.assertRaises(FileNotFoundError):
-            self.inputs.singularity_image = 'not_a_file'
+            self.inputs.singularity_image = "not_a_file"
 
     def test_use_singularity(self):
         self.inputs.use_singularity = True
@@ -68,8 +73,8 @@ class TestMainInput(unittest.TestCase):
             self.inputs.level_A_labels
 
     def test_setting_level_A_labels(self):
-        self.inputs.level_A_labels = ['a', 'b']
-        self.assertEqual(self.inputs.level_A_labels, ['a', 'b'])
+        self.inputs.level_A_labels = ["a", "b"]
+        self.assertEqual(self.inputs.level_A_labels, ["a", "b"])
 
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)
@@ -78,29 +83,27 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(self.inputs.label, self.args.label)
 
     def test_coherence_test(self):
-        self.assertEqual(self.inputs.coherence_test,
-                         self.args.coherence_test)
+        self.assertEqual(self.inputs.coherence_test, self.args.coherence_test)
 
     def test_accounting(self):
         self.assertEqual(self.inputs.accounting, self.args.accounting)
 
     def test_detectors_single(self):
         # Test the detector set in the ini file
-        self.assertEqual(self.inputs.detectors, ['H1'])
+        self.assertEqual(self.inputs.detectors, ["H1"])
 
         # Test setting a single detector directly in the args as a string
         args = copy.copy(self.args)
-        args.detectors = 'L1'
-        inputs = bilby_pipe.main.MainInput(
-            args, [])
-        self.assertEqual(inputs.detectors, ['L1'])
+        args.detectors = "L1"
+        inputs = bilby_pipe.main.MainInput(args, [])
+        self.assertEqual(inputs.detectors, ["L1"])
 
-        args.detectors = ['L1']
+        args.detectors = ["L1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['L1'])
+        self.assertEqual(inputs.detectors, ["L1"])
 
         with self.assertRaises(BilbyPipeError):
-            args.detectors = 'A1'
+            args.detectors = "A1"
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
         with self.assertRaises(BilbyPipeError):
@@ -109,37 +112,37 @@ class TestMainInput(unittest.TestCase):
 
     def test_detectors_multiple(self):
         args = copy.copy(self.args)
-        args.detectors = 'H1 L1'
+        args.detectors = "H1 L1"
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+        self.assertEqual(inputs.detectors, ["H1", "L1"])
 
-        args.detectors = 'L1 H1'
+        args.detectors = "L1 H1"
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+        self.assertEqual(inputs.detectors, ["H1", "L1"])
 
-        args.detectors = ['L1 H1']
+        args.detectors = ["L1 H1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+        self.assertEqual(inputs.detectors, ["H1", "L1"])
 
-        args.detectors = ['L1', 'H1']
+        args.detectors = ["L1", "H1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+        self.assertEqual(inputs.detectors, ["H1", "L1"])
 
-        args.detectors = ['H1', 'L1']
+        args.detectors = ["H1", "L1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.detectors, ['H1', 'L1'])
+        self.assertEqual(inputs.detectors, ["H1", "L1"])
 
-        args.detectors = ['H1', 'l1']
+        args.detectors = ["H1", "l1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
         with self.assertRaises(BilbyPipeError):
-            args.detectors = ['H1', 'error']
+            args.detectors = ["H1", "error"]
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
     def test_x506_fail(self):
         with self.assertRaises(BilbyPipeError):
             args = copy.copy(self.args)
-            args.X509 = 'random_string'
+            args.X509 = "random_string"
             bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
     def test_x506_from_path(self):
@@ -150,22 +153,20 @@ class TestMainInput(unittest.TestCase):
     def test_x509_environ_unset(self):
         args = copy.copy(self.args)
         args.X509 = None
-        os.environ.unsetenv('X509_USER_PROXY')
+        os.environ.unsetenv("X509_USER_PROXY")
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
         self.assertEqual(inputs.x509userproxy, None)
 
     def test_x509_from_env_variable(self):
         args = copy.copy(self.args)
-        os.environ['X509_USER_PROXY'] = os.path.realpath(args.X509)
+        os.environ["X509_USER_PROXY"] = os.path.realpath(args.X509)
         args.X509 = None
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        X509_cached_copy = os.path.abspath(os.path.join(args.outdir,
-                                                        '.X509.txt'))
+        X509_cached_copy = os.path.abspath(os.path.join(args.outdir, ".X509.txt"))
         self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
     def test_create_summary_page(self):
-        self.assertEqual(self.inputs.create_summary,
-                         self.args.create_summary)
+        self.assertEqual(self.inputs.create_summary, self.args.create_summary)
         self.assertEqual(self.inputs.email, self.args.email)
         self.assertEqual(self.inputs.webdir, self.args.webdir)
         self.assertEqual(self.inputs.existing_dir, self.args.existing_dir)
@@ -175,15 +176,15 @@ class TestMainInput(unittest.TestCase):
         inputs.gps_file = self.test_gps_file
         inputs._parse_gps_file()
         self.assertEqual(len(inputs.read_gps_file()), inputs.n_level_A_jobs)
-        self.assertEqual(inputs.level_A_labels, ['12345.1', '45677.0', '89324.0'])
+        self.assertEqual(inputs.level_A_labels, ["1126259462.0", "1126259466.0"])
 
     def test_n_injection_setting(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
         inputs.n_injection = 1
         self.assertEqual(inputs.n_injection, 1)
         self.assertEqual(inputs.n_level_A_jobs, 1)
-        self.assertEqual(inputs.level_A_labels, ['injection_0'])
+        self.assertEqual(inputs.level_A_labels, ["injection_0"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

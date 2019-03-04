@@ -101,21 +101,21 @@ class TestDag(unittest.TestCase):
         inputs.level_A_labels = ["test_label"]
         bilby_pipe.main.Dag(inputs)
 
-    def test_injection_from_default_existing_file(self):
-        test_args = self.test_args
-        test_args.injection = True
-        test_args.label = "example"
-        inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-        inputs.level_A_labels = ["test_label"]
-        data_dir = os.path.join(self.outdir, "data")
-        try:
-            os.mkdir(data_dir)
-        except FileExistsError:
-            pass
-        shutil.copyfile(
-            self.injection_file, os.path.join(data_dir, "example_injection_file.h5")
-        )
-        bilby_pipe.main.Dag(inputs)
+    # def test_injection_from_default_existing_file(self):
+    #     test_args = self.test_args
+    #     test_args.injection = True
+    #     test_args.label = "example"
+    #     inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
+    #     inputs.level_A_labels = ["test_label"]
+    #     data_dir = os.path.join(self.outdir, "data")
+    #     try:
+    #         os.mkdir(data_dir)
+    #     except FileExistsError:
+    #         pass
+    #     shutil.copyfile(
+    #         self.injection_file, os.path.join(data_dir, "example_injection_file.h5")
+    #     )
+    #     bilby_pipe.main.Dag(inputs)
 
 
 if __name__ == "__main__":

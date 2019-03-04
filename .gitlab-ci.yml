@@ -17,6 +17,7 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
+    - conda install -y -c conda-forge python-nds2-client
     - pip install lalsuite gwpy bilby black
     - python setup.py install
 

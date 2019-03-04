@@ -435,6 +435,10 @@ class Dag(object):
             )
             inj_inputs.create_injection_file(default_injection_file_name)
             self.inputs.injection_file = default_injection_file_name
+        self.inputs.level_A_labels = [
+            "injection{}".format(i)
+            for i in range(self.inputs.total_number_of_injections)
+        ]
 
     @property
     def generation_jobs_inputs(self):

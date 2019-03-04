@@ -20,6 +20,10 @@ ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
 echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
 echo "conda activate base" >> ~/.bashrc
 
+# Install LALtools
+RUN conda install -y -c conda-forge ldas-tools-framecpp
+RUN conda install -y -c conda-forge python-nds2-client
+
 # Install singularity
 RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz\
 && tar xvf singularity-2.5.2.tar.gz\
