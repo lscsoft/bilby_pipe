@@ -23,6 +23,10 @@ echo "conda activate base" >> ~/.bashrc
 # Downgrade to python3.6
 RUN conda install -y python==3.6
 
+# Install LALtools
+RUN conda install -y -c conda-forge ldas-tools-framecpp
+RUN conda install -y -c conda-forge python-nds2-client
+
 # Install singularity
 RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singularity-2.5.2.tar.gz\
 && tar xvf singularity-2.5.2.tar.gz\

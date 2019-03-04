@@ -5,12 +5,11 @@ Module containing the tools for data generation
 from __future__ import division, print_function
 
 import sys
-import os
 import urllib
 import urllib.request
-import json
 
 import matplotlib
+import gwpy
 
 matplotlib.use("agg")  # noqa
 import bilby
@@ -20,9 +19,25 @@ from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
 
+try:
+    import nds2  # noqa
+except ImportError:
+    logger.warning(
+        "You do not have nds2 (python-nds2-client) installed. You may "
+        " experience problems accessing interferometer data."
+    )
+
+try:
+    import LDAStools  # noqa
+except ImportError:
+    logger.warning(
+        "You do not have LDAStools (python-ldas-tools-framecpp) installed."
+        " You may experience problems accessing interferometer data."
+    )
+
 
 class DataGenerationInput(Input):
-    """ Handles user-input and creation of intermediate ifo list
+    """ Handles user-input and creation of intermediate interferometer list
 
     Parameters
     ----------
@@ -30,12 +45,12 @@ class DataGenerationInput(Input):
         The parser containing the command line / ini file inputs
     args_list: list, optional
         A list of the arguments to parse. Defauts to `sys.argv[1:]`
-    error: bool
-        If true, raise an Error if the data has not been generated
+    create_data: bool
+        If false, no data is generated (used for testing)
 
     """
 
-    def __init__(self, args, unknown_args, error=True):
+    def __init__(self, args, unknown_args, create_data=True):
 
         logger.info("Command line arguments: {}".format(args))
         logger.info("Unknown command line arguments: {}".format(unknown_args))
@@ -49,9 +64,7 @@ class DataGenerationInput(Input):
         self.process = args.process
         self.idx = args.idx
         self.detectors = args.detectors
-        self.calibration = args.calibration
-        self.channel_names = args.channel_names
-        self.query_types = args.query_types
+        self.channel_type = args.channel_type
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
@@ -64,15 +77,43 @@ class DataGenerationInput(Input):
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
+        if create_data:
+            self.create_data(args)
+
+    def create_data(self, args):
+        """ Function to iterarate through data generation method
+
+        Note, the data methods are mutually exclusive and only one can given to
+        the parser.
+
+        Parameters
+        ----------
+        args: Namespace
+            Input arguments
+
+        Raises
+        ------
+        BilbyPipeError:
+            If no data is generated
+
+        """
 
         self.data_set = False
         # The following are all mutually exclusive methods to set the data
-        self.gracedb = args.gracedb
-        self.gps_file = args.gps_file
-        self.injection_file = args.injection_file
-        if args.trigger_time is not None:
-            self.set_data_from_trigger_time(args.trigger_time)
-        if self.data_set is False and error:
+        if args.injection_file is not None:
+            self.injection_file = args.injection_file
+            self._set_interferometers_from_injection()
+        elif self.data_set is False and args.gracedb is not None:
+            self.gracedb = args.gracedb
+            self._set_interferometers_from_data()
+        elif self.data_set is False and args.gps_file is not None:
+            self.gps_file = args.gps_file
+            self._set_interferometers_from_data()
+        elif self.data_set is False and args.trigger_time is not None:
+            self.trigger_time = args.trigger_time
+            self._set_interferometers_from_data()
+
+        if self.data_set is False:
             raise BilbyPipeError("No data setting method provided")
 
     @property
@@ -139,6 +180,15 @@ class DataGenerationInput(Input):
         self._minimum_frequency = float(minimum_frequency)
 
     @property
+    def parameter_conversion(self):
+        if "binary_neutron_star" in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif "binary_black_hole" in self.frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+        else:
+            return None
+
+    @property
     def detectors(self):
         """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
         return self._detectors
@@ -177,157 +227,45 @@ class DataGenerationInput(Input):
 
         At setting, will load the json candidate data and path to the frame
         cache file.
+
+        Parameters
+        ----------
+        gracedb: str
+            The gracedb UID string
+
         """
         if gracedb is None:
             self._gracedb = None
         else:
             logger.info("Setting gracedb id to {}".format(gracedb))
-            try:
-                urllib.request.urlopen("https://google.com", timeout=0.1)
-            except urllib.error.URLError:
-                raise BilbyPipeError(
-                    "Unable to grab graceDB entry because the network is "
-                    "unreachable. Please specify the local-generation argument "
-                    "either in the configuration file or by passing the"
-                    "--local-generation command line argument"
-                )
-            candidate, frame_caches = bilby.gw.utils.get_gracedb(
-                gracedb,
-                self.data_directory,
-                self.duration,
-                self.calibration,
-                self.detectors,
-                self.query_types,
+            self.test_connection()
+            candidate = bilby.gw.utils.gracedb_to_json(
+                gracedb, outdir=self.data_directory
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate["gpstime"]
-            self.start_time = (
-                self.trigger_time + self.post_trigger_duration - self.duration
-            )
-            self.frame_caches = frame_caches
 
-    def set_data_from_trigger_time(self, trigger_time):
-        self.trigger_time = trigger_time
-        frame_caches = []
-        gps_start_time = trigger_time - self.duration
-        for det in self.detectors:
-            output_cache_file = bilby.gw.utils.gw_data_find(
-                observatory=det,
-                gps_start_time=gps_start_time,
-                duration=self.duration,
-                calibration=self.calibration,
-                outdir=self.data_directory,
-                query_type=None,
+    def test_connection(self):
+        """ A generic test to see if the network is reachable """
+        try:
+            urllib.request.urlopen("https://google.com", timeout=0.1)
+        except urllib.error.URLError:
+            raise BilbyPipeError(
+                "It appears you are not connected to a network and so won't be "
+                "able to interface with GraceDB. You may wish to specify the "
+                " local-generation argument either in the configuration file "
+                "or by passing the --local-generation command line argument"
             )
-            frame_caches.append(output_cache_file)
-        self.start_time = trigger_time + self.post_trigger_duration - self.duration
-        self.frame_caches = frame_caches
 
     def _parse_gps_file(self):
+        """ Reads in the GPS file selects the required time and set the trigger time
+
+        Note, the gps_file setter method is defined in bilby_pipe.input
+        """
         gps_start_times = self.read_gps_file()
         self.start_time = gps_start_times[self.idx]
         self.trigger_time = self.start_time + self.duration / 2.0
-        self.frame_caches = self.generate_frame_cache_list_from_gpstime()
-
-    def generate_frame_cache_list_from_gpstime(self):
-        cache_files = []
-        for det in self.detectors:
-            cache_files.append(
-                bilby.gw.utils.gw_data_find(
-                    det,
-                    gps_start_time=self.start_time,
-                    duration=self.duration,
-                    calibration=self.calibration,
-                    outdir=self.data_directory,
-                )
-            )
-        return cache_files
-
-    @property
-    def frame_caches(self):
-        """ A list of paths to the frame-cache files """
-        try:
-            return self._frame_caches
-        except AttributeError:
-            raise ValueError("frame_caches list is unset")
-
-    @frame_caches.setter
-    def frame_caches(self, frame_caches):
-        """ Set the frame_caches, if successfull generate the interferometer list """
-        if isinstance(frame_caches, list):
-            self._frame_caches = frame_caches
-            self._set_interferometers_from_frame_caches(frame_caches)
-        elif frame_caches is None:
-            self._frame_caches = None
-        else:
-            raise ValueError("frame_caches list must be a list")
-
-    def _set_interferometers_from_frame_caches(self, frame_caches):
-        """ Helper method to set the interferometers from a list of frame_caches
-
-        If no channel names are supplied, an attempt is made by bilby to
-        infer the correct channel name.
-
-        Parameters
-        ----------
-        frame_caches: list
-            A list of strings pointing to the frame cache file
-        """
-        interferometers = bilby.gw.detector.InterferometerList([])
-        if self.channel_names is None:
-            self.channel_names = [None] * len(frame_caches)
-        for cache_file, channel_name in zip(frame_caches, self.channel_names):
-            interferometer = bilby.gw.detector.load_data_from_cache_file(
-                cache_file=cache_file,
-                start_time=self.start_time,
-                segment_duration=self.duration,
-                psd_duration=self.psd_duration,
-                psd_start_time=self.psd_start_time,
-                channel_name=channel_name,
-                sampling_frequency=self.sampling_frequency,
-                roll_off=0.2,
-                overlap=0,
-                outdir=self.data_directory,
-            )
-
-            interferometer.minimum_frequency = self.minimum_frequency
-            interferometers.append(interferometer)
-        self.interferometers = interferometers
-
-    @property
-    def parameter_conversion(self):
-        if "binary_neutron_star" in self.frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif "binary_black_hole" in self.frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-        else:
-            return None
-
-    @property
-    def injection_file(self):
-        return self._injection_file
-
-    @injection_file.setter
-    def injection_file(self, injection_file):
-        if injection_file is None:
-            logger.debug("No injection file set")
-            self._injection_file = None
-        elif os.path.isfile(injection_file):
-            self._injection_file = os.path.abspath(injection_file)
-            with open(injection_file, "r") as file:
-                injection_dict = json.load(
-                    file, object_hook=bilby.core.result.decode_bilby_json_result
-                )
-            injection_df = injection_dict["injections"]
-            self.injection_parameters = injection_df.iloc[self.idx].to_dict()
-            self.meta_data["injection_parameters"] = self.injection_parameters
-            self.trigger_time = self.injection_parameters["geocent_time"]
-            self._set_interferometers_from_simulation()
-        else:
-            raise FileNotFoundError(
-                "Injection file {} not found".format(injection_file)
-            )
 
     def _set_psds_from_files(self, ifos):
         psd_file_dict = {}
@@ -339,7 +277,13 @@ class DataGenerationInput(Input):
                 psd_file=psd_file_dict[ifo.name]
             )
 
-    def _set_interferometers_from_simulation(self):
+    def _set_interferometers_from_injection(self):
+        """ Method to generate the interferometers data from an injection """
+
+        self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
+        self.meta_data["injection_parameters"] = self.injection_parameters
+        self.trigger_time = self.injection_parameters["geocent_time"]
+
         waveform_arguments = dict(
             waveform_approximant=self.waveform_approximant,
             reference_frequency=self.reference_frequency,
@@ -371,6 +315,83 @@ class DataGenerationInput(Input):
 
         self.interferometers = ifos
 
+    def _set_interferometers_from_data(self):
+        """ Method to generate the interferometers data from data"""
+        end_time = self.start_time + self.duration
+        ifo_list = []
+        for det in self.detectors:
+            logger.info("Getting analysis-segment data for {}".format(det))
+            data = self._get_data(det, self.channel_type, self.start_time, end_time)
+            ifo = bilby.gw.detector.get_empty_interferometer(det)
+            ifo.strain_data.set_from_gwpy_timeseries(data)
+
+            psd_end_time = self.psd_start_time + self.psd_duration
+            logger.info("Getting psd-segment data for {}".format(det))
+            psd_data = self._get_data(
+                det, self.channel_type, self.psd_start_time, psd_end_time
+            )
+            roll_off = 0.2
+            psd_alpha = 2 * roll_off / self.duration
+            logger.info(
+                "Tukey window PSD data with alpha={}, roll off={}".format(
+                    psd_alpha, roll_off
+                )
+            )
+            psd = psd_data.psd(
+                fftlength=self.duration, overlap=0, window=("tukey", psd_alpha)
+            )
+            ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity(
+                frequency_array=psd.frequencies.value, psd_array=psd.value
+            )
+            ifo_list.append(ifo)
+        self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
+
+    def _get_data(self, det, channel_type, start_time, end_time):
+        """ Read in data using gwpy
+
+        This first uses the `gwpy.timeseries.TimeSeries.get()` method to acces
+        the data, if this fails, it then attempts to use `fetch_open_data()` as
+        a fallback.
+
+        Parameters
+        ----------
+        channel_type: str, or list of strings
+            The full channel name is formed from <det>:<channel_type>, see
+            bilby_pipe_generation --help for more information. If given as a
+            list each type will be tried and the first success returned.
+        start_time, end_time: float
+            GPS start and end time of segment
+        """
+        data = None
+        for ct in list(channel_type):
+            channel = "{}:{}".format(det, ct)
+            try:
+                data = self._gwpy_get(det, channel, start_time, end_time)
+                break
+            except RuntimeError as e:
+                logger.info("Unable to read data for channel {}".format(channel))
+                logger.debug("Error message {}".format(e))
+            except ImportError:
+                logger.info("Unable to read data as NDS2 is not installed")
+        if data is None:
+            logger.warning(
+                "Attempts to download data failed, trying with `fetch_open_data`"
+            )
+            data = gwpy.timeseries.TimeSeries.fetch_open_data(det, start_time, end_time)
+
+        return data
+
+    def _gwpy_get(self, det, channel, start_time, end_time):
+        logger.info(
+            "Calling TimeSeries.get({}, start_time={}, end_time={})".format(
+                channel, start_time, end_time
+            )
+        )
+        data = gwpy.timeseries.TimeSeries.get(
+            channel, start_time, end_time, verbose=True
+        )
+        return data
+
     @property
     def interferometers(self):
         """ A bilby.gw.detector.InterferometerList """
@@ -387,6 +408,7 @@ class DataGenerationInput(Input):
         self.data_set = True
 
     def save_interferometer_list(self):
+        """ Method to dump the saved data to disk for later analysis """
         data_dump = DataDump(
             outdir=self.data_directory,
             label=self.label,
