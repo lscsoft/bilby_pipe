@@ -416,7 +416,7 @@ class Dag(object):
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
-        default_injection_file_name = "{}/{}_injection_file.h5".format(
+        default_injection_file_name = "{}/{}_injection_file.json".format(
             self.inputs.data_directory, self.inputs.label
         )
         if self.inputs.injection_file is not None:
@@ -719,7 +719,7 @@ class Dag(object):
             + "_".join(
                 [self.inputs.label, "".join(i), sampler, job_input.meta_label, "result"]
             )
-            + ".h5"
+            + ".json"
             for i in detectors_list
         ]
         job_name = "_".join([self.inputs.label, "results_page", str(idx)])
