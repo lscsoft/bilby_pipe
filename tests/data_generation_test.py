@@ -53,13 +53,15 @@ class TestDataGenerationInput(unittest.TestCase):
             bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters,
         )
 
-    def test_psd_duration_set(self):
-        self.inputs.psd_duration = 100
-        self.assertEqual(100, self.inputs.psd_duration)
+    def test_psd_length_set(self):
+        self.inputs.psd_length = 10
+        self.assertEqual(10, self.inputs.psd_length)
+        self.assertEqual(
+            10 * self.inputs.duration, self.inputs.psd_length * self.inputs.duration
+        )
 
-    def test_psd_duration_default(self):
+    def test_psd_length_default(self):
         self.inputs.duration = 4
-        self.inputs.psd_duration = None
         self.assertEqual(32 * 4, self.inputs.psd_duration)
 
     def test_psd_start_time_set(self):
@@ -68,10 +70,8 @@ class TestDataGenerationInput(unittest.TestCase):
 
     def test_psd_start_time_default(self):
         self.inputs.psd_duration = 4
-        self.inputs.start_time = 10
         self.inputs.trigger_time = 12
-        self.inputs.psd_start_time = None
-        self.assertEqual(10 - 4, self.inputs.psd_start_time)
+        self.assertEqual(-4, self.inputs.psd_start_time)
 
     def test_psd_start_time_fail(self):
         self.inputs.psd_duration = 4

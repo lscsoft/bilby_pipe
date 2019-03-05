@@ -72,8 +72,10 @@ class DataGenerationInput(Input):
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
-        self.psd_duration = args.psd_duration
+        self.psd_length = args.psd_length
+        self.psd_fractional_overlap = args.psd_fractional_overlap
         self.psd_start_time = args.psd_start_time
+        self.psd_method = args.psd_method
         self.psd_files = args.psd_files
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
@@ -145,23 +147,30 @@ class DataGenerationInput(Input):
             self._process = process
 
     @property
-    def psd_duration(self):
-        return self._psd_duration
+    def psd_length(self):
+        """ Integer number of durations to use for generating the PSD """
+        return self._psd_length
 
-    @psd_duration.setter
-    def psd_duration(self, psd_duration):
-        if psd_duration is None:
-            self._psd_duration = 32 * self.duration
+    @psd_length.setter
+    def psd_length(self, psd_length):
+        if isinstance(psd_length, int):
+            self._psd_length = psd_length
+            self.psd_duration = psd_length * self.duration
+            logger.info(
+                "PSD duration set to {}s, {}x the duration {}s".format(
+                    self.psd_duration, psd_length, self.duration
+                )
+            )
         else:
-            self._psd_duration = psd_duration
-        logger.info("PSD duration set to {}".format(self.psd_duration))
+            raise BilbyPipeError("Unable to set the psd length")
 
     @property
     def psd_start_time(self):
+        """ The PSD start time relative to segment start time """
         if self._psd_start_time is not None:
             return self._psd_start_time
         elif self.trigger_time is not None:
-            psd_start_time = self.start_time - self.psd_duration
+            psd_start_time = -self.psd_duration
             logger.info("Using default PSD start time {}".format(psd_start_time))
             return psd_start_time
         else:
@@ -173,7 +182,11 @@ class DataGenerationInput(Input):
             self._psd_start_time = None
         else:
             self._psd_start_time = psd_start_time
-            logger.info("PSD start-time set to {}".format(self._psd_start_time))
+            logger.info(
+                "PSD start-time set to {} relative to segment start time".format(
+                    self._psd_start_time
+                )
+            )
 
     @property
     def minimum_frequency(self):
@@ -343,20 +356,28 @@ class DataGenerationInput(Input):
                 self._set_psd_from_file(ifo)
             else:
                 logger.info("Setting PSD for {} from data".format(det))
-                psd_end_time = self.psd_start_time + self.psd_duration
+                # psd_start_time is given relative to the segment start time
+                # so here we calculate the actual start time
+                actual_psd_start_time = self.start_time + self.psd_start_time
+                actual_psd_end_time = actual_psd_start_time + self.psd_duration
                 logger.info("Getting psd-segment data for {}".format(det))
                 psd_data = self._get_data(
-                    det, self.channel_type, self.psd_start_time, psd_end_time
+                    det, self.channel_type, actual_psd_start_time, actual_psd_end_time
                 )
                 roll_off = 0.2
                 psd_alpha = 2 * roll_off / self.duration
+                overlap = self.psd_fractional_overlap * self.duration
                 logger.info(
-                    "Tukey window PSD data with alpha={}, roll off={}".format(
-                        psd_alpha, roll_off
+                    "PSD settings: window=Tukey, Tukey-alpha={} roll-off={},"
+                    " overlap={}, method={}".format(
+                        psd_alpha, roll_off, overlap, self.psd_method
                     )
                 )
                 psd = psd_data.psd(
-                    fftlength=self.duration, overlap=0, window=("tukey", psd_alpha)
+                    fftlength=self.duration,
+                    overlap=overlap,
+                    window=("tukey", psd_alpha),
+                    method=self.psd_method,
                 )
                 ifo.power_spectral_density = PowerSpectralDensity(
                     frequency_array=psd.frequencies.value, psd_array=psd.value
