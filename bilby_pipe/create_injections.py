@@ -8,6 +8,7 @@ import sys
 import json
 
 import pandas as pd
+import numpy as np
 import matplotlib
 
 matplotlib.use("agg")  # noqa
@@ -46,6 +47,13 @@ def create_parser():
     parser.add_arg(
         "--n-injection", type=int, help="The number of injections to generate"
     )
+    parser.add(
+        "--generation-seed",
+        default=None,
+        type=int,
+        help="Random seed used during data generation",
+    )
+
     return parser
 
 
@@ -62,6 +70,7 @@ class CreateInjectionInput(Input):
     """
 
     def __init__(self, args, unknown_args):
+        np.random.seed(args.generation_seed)
         logger.debug("Creating new CreateInjectionInput object")
         logger.info("Command line arguments: {}".format(args))
 

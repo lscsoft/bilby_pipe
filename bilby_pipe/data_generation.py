@@ -9,6 +9,7 @@ import urllib
 import urllib.request
 
 import matplotlib
+import numpy as np
 import gwpy
 
 matplotlib.use("agg")  # noqa
@@ -51,6 +52,8 @@ class DataGenerationInput(Input):
     """
 
     def __init__(self, args, unknown_args, create_data=True):
+
+        np.random.seed(args.generation_seed)
 
         logger.info("Command line arguments: {}".format(args))
         logger.info("Unknown command line arguments: {}".format(unknown_args))

@@ -191,6 +191,7 @@ class TestDataGenerationInput(unittest.TestCase):
             n_injection=3,
             outdir=self.outdir,
             label="label",
+            generation_seed=None,
         )
         inj_inputs = create_injections.CreateInjectionInput(inj_args, [])
         injection_file_name = os.path.join(self.outdir, "injection_file.h5")

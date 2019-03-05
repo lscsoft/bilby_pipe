@@ -37,6 +37,7 @@ class TestDag(unittest.TestCase):
             waveform_approximant="IMRPhenomPV2",
             request_memory="4 GB",
             request_cpus=1,
+            generation_seed=None,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
@@ -48,6 +49,7 @@ class TestDag(unittest.TestCase):
             label="label",
             prior_file="tests/example_prior.prior",
             n_injection=3,
+            generation_seed=None,
         )
         ci_inputs = bilby_pipe.create_injections.CreateInjectionInput(
             self.create_injection_args, []

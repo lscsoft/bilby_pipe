@@ -271,6 +271,12 @@ def create_parser(
             ),
         )
         det_parser.add("--minimum-frequency", default=20, type=float)
+        det_parser.add(
+            "--generation-seed",
+            default=None,
+            type=int,
+            help="Random seed used during data generation",
+        )
 
     if analysis:
         parser.add(
