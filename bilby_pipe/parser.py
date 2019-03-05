@@ -256,19 +256,34 @@ def create_parser(
             ),
         )
         det_parser.add(
-            "--psd-duration",
-            default=None,
-            type=float,
-            help="Time used to generate the PSD, default is 32x the sample duration.",
+            "--psd-length",
+            default=32,
+            type=int,
+            help=(
+                "Number of duration-lenths used to generate the PSD, default" " is 32."
+            ),
         )
         det_parser.add(
             "--psd-start-time",
             default=None,
             type=float,
             help=(
-                "Start time of data used to generate the PSD. If not given, "
-                "defaults to psd-duration/2 before the trigger time"
+                "Start time of data (relative to the segment start) used to "
+                " generate the PSD. Defaults to psd-duration before the"
+                " segment start time"
             ),
+        )
+        det_parser.add(
+            "--psd-fractional-overlap",
+            default=0.5,
+            type=float,
+            help="Fractional overlap of segments used in estimating the PSD",
+        )
+        det_parser.add(
+            "--psd-method",
+            default="welch",
+            type=str,
+            help="PSD method see gwpy.timeseries.TimeSeries.psd for options",
         )
         det_parser.add("--minimum-frequency", default=20, type=float)
         det_parser.add(
