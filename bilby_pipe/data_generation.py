@@ -14,6 +14,7 @@ import gwpy
 
 matplotlib.use("agg")  # noqa
 import bilby
+from bilby.gw.detector import PowerSpectralDensity
 
 from bilby_pipe.utils import logger, BilbyPipeError
 from bilby_pipe.main import DataDump, parse_args
@@ -270,16 +271,6 @@ class DataGenerationInput(Input):
         self.start_time = gps_start_times[self.idx]
         self.trigger_time = self.start_time + self.duration / 2.0
 
-    def _set_psds_from_files(self, ifos):
-        psd_file_dict = {}
-        for psd_file in self.psd_files:
-            ifo_name, file_path = psd_file.split(":")
-            psd_file_dict[ifo_name] = file_path
-        for ifo in [ifo for ifo in ifos if ifo.name in psd_file_dict.keys()]:
-            ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity.from_power_spectral_density_file(
-                psd_file=psd_file_dict[ifo.name]
-            )
-
     def _set_interferometers_from_injection(self):
         """ Method to generate the interferometers data from an injection """
 
@@ -304,7 +295,9 @@ class DataGenerationInput(Input):
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
         if self.psd_files is not None:
-            self._set_psds_from_files(ifos)
+            for ifo in ifos:
+                if ifo.name in self.psd_file_dict.keys():
+                    self._set_psd_from_file(ifo)
 
         ifos.set_strain_data_from_power_spectral_densities(
             sampling_frequency=self.sampling_frequency,
@@ -318,6 +311,24 @@ class DataGenerationInput(Input):
 
         self.interferometers = ifos
 
+    @property
+    def psd_file_dict(self):
+        if self.psd_files is None:
+            logger.debug("Unable to construct psd_file_dict")
+            return dict()
+        psd_file_dict = {}
+        for psd_file in self.psd_files:
+            ifo_name, file_path = psd_file.split(":")
+            psd_file_dict[ifo_name] = file_path
+        return psd_file_dict
+
+    def _set_psd_from_file(self, ifo):
+        psd_file = self.psd_file_dict[ifo.name]
+        logger.info("Setting {} PSD from file {}".format(ifo.name, psd_file))
+        ifo.power_spectral_density = PowerSpectralDensity.from_power_spectral_density_file(
+            psd_file=psd_file
+        )
+
     def _set_interferometers_from_data(self):
         """ Method to generate the interferometers data from data"""
         end_time = self.start_time + self.duration
@@ -328,24 +339,28 @@ class DataGenerationInput(Input):
             ifo = bilby.gw.detector.get_empty_interferometer(det)
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
-            psd_end_time = self.psd_start_time + self.psd_duration
-            logger.info("Getting psd-segment data for {}".format(det))
-            psd_data = self._get_data(
-                det, self.channel_type, self.psd_start_time, psd_end_time
-            )
-            roll_off = 0.2
-            psd_alpha = 2 * roll_off / self.duration
-            logger.info(
-                "Tukey window PSD data with alpha={}, roll off={}".format(
-                    psd_alpha, roll_off
+            if det in self.psd_file_dict:
+                self._set_psd_from_file(ifo)
+            else:
+                logger.info("Setting PSD for {} from data".format(det))
+                psd_end_time = self.psd_start_time + self.psd_duration
+                logger.info("Getting psd-segment data for {}".format(det))
+                psd_data = self._get_data(
+                    det, self.channel_type, self.psd_start_time, psd_end_time
                 )
-            )
-            psd = psd_data.psd(
-                fftlength=self.duration, overlap=0, window=("tukey", psd_alpha)
-            )
-            ifo.power_spectral_density = bilby.gw.detector.PowerSpectralDensity(
-                frequency_array=psd.frequencies.value, psd_array=psd.value
-            )
+                roll_off = 0.2
+                psd_alpha = 2 * roll_off / self.duration
+                logger.info(
+                    "Tukey window PSD data with alpha={}, roll off={}".format(
+                        psd_alpha, roll_off
+                    )
+                )
+                psd = psd_data.psd(
+                    fftlength=self.duration, overlap=0, window=("tukey", psd_alpha)
+                )
+                ifo.power_spectral_density = PowerSpectralDensity(
+                    frequency_array=psd.frequencies.value, psd_array=psd.value
+                )
             ifo_list.append(ifo)
         self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
 
@@ -382,6 +397,7 @@ class DataGenerationInput(Input):
             )
             data = gwpy.timeseries.TimeSeries.fetch_open_data(det, start_time, end_time)
 
+        data = data.resample(self.sampling_frequency)
         return data
 
     def _gwpy_get(self, det, channel, start_time, end_time):
