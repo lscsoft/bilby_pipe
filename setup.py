@@ -60,8 +60,8 @@ def get_long_description():
     return long_description
 
 
-version = "0.0.3"
-version_file = write_version_file(version)
+VERSION = "0.0.4"
+version_file = write_version_file(VERSION)
 long_description = get_long_description()
 
 setup(
@@ -72,7 +72,7 @@ setup(
     author="Gregory Ashton, Isobel Romero-Shaw, Colm Talbot, Charlie Hoy",
     author_email="gregory.ashton@ligo.org",
     license="MIT",
-    version=version,
+    version=VERSION,
     package_data={"bilby_pipe": [version_file, "templates/*html"]},
     packages=["bilby_pipe"],
     install_requires=[

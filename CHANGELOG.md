@@ -4,11 +4,16 @@
 
 Changes currently on master, but not under a tag.
 
+## [0.0.4] 2018-03-05
+
 ### Added
 - Flag for running the data generation step on the local head node
+- Flag fot setting random seeds
 
 ### Changes
 - Moved all command line argument logic to a single module with switches
+- Moved data generation to use gwpy only
+- Moved PSD generation t use gwpy only
 
 ## [0.0.3] 2018-01-14
 
