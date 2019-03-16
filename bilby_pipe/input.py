@@ -252,7 +252,7 @@ class Input(object):
             self._injection_file = os.path.abspath(injection_file)
             with open(injection_file, "r") as file:
                 injection_dict = json.load(
-                    file, object_hook=bilby.core.result.decode_bilby_json_result
+                    file, object_hook=bilby.core.result.decode_bilby_json
                 )
             injection_df = injection_dict["injections"]
             self.injection_df = injection_df

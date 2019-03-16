@@ -82,6 +82,7 @@ setup(
         "ligo-gracedb",
         "gwdatafind",
         "urllib3",
+        "bilby>=0.4.1",
         "deepdish",
         "pesummary",
     ],

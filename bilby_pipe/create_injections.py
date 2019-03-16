@@ -126,7 +126,7 @@ class CreateInjectionInput(Input):
         injections = dict(injections=injection_values)
         with open(filename, "w") as file:
             json.dump(
-                injections, file, indent=2, cls=bilby.core.result.BilbyResultJsonEncoder
+                injections, file, indent=2, cls=bilby.core.result.BilbyJsonEncoder
             )
         logger.info("Created injection file {}".format(filename))
 
