@@ -281,7 +281,7 @@ def create_parser(
         )
         det_parser.add(
             "--psd-method",
-            default="welch",
+            default="scipy-welch",
             type=str,
             help="PSD method see gwpy.timeseries.TimeSeries.psd for options",
         )
