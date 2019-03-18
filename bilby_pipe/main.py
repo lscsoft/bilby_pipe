@@ -491,7 +491,6 @@ class Dag(object):
         job_logs_base = os.path.join(
             self.inputs.data_generation_log_directory, job_name
         )
-        submit = self.inputs.submit_directory
         extra_lines = ""
         for arg in ["error", "log", "output"]:
             extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
@@ -518,7 +517,7 @@ class Dag(object):
         generation_job = pycondor.Job(
             name=job_name,
             executable=self.generation_executable,
-            submit=submit,
+            submit=self.inputs.submit_directory,
             request_memory=self.request_memory,
             request_disk=self.request_disk,
             request_cpus=1,
@@ -591,25 +590,52 @@ class Dag(object):
             The sampler to use for the job
 
         """
+
+        if hasattr(self, "analysis_job"):
+            job = self.analysis_job
+        else:
+            job_name = "{}_analysis".format(self.inputs.label)
+            job_logs_base = os.path.join(
+                self.inputs.data_analysis_log_directory, job_name
+            )
+            extra_lines = ""
+            for arg in ["error", "log", "output"]:
+                extra_lines += "\n{} = {}_$(JOBNAME)_$(Cluster)_$(Process).{}".format(
+                    arg, job_logs_base, arg[:3]
+                )
+            extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+            extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
+
+            job = pycondor.Job(
+                name=job_name,
+                executable=self.analysis_executable,
+                submit=self.inputs.submit_directory,
+                request_memory=self.request_memory,
+                request_disk=self.request_disk,
+                request_cpus=self.request_cpus,
+                getenv=self.getenv,
+                universe=self.universe,
+                initialdir=self.initialdir,
+                notification=self.notification,
+                requirements=self.requirements,
+                queue=self.inputs.queue,
+                extra_lines=extra_lines,
+                dag=self.dag,
+                retry=self.retry,
+                verbose=self.verbose,
+            )
+            job.add_parent(self.generation_jobs[0])
+            self.analysis_job = job
+
         detectors = job_input.kwargs["detectors"]
         sampler = job_input.kwargs["sampler"]
         idx = job_input.idx
         if not isinstance(detectors, list):
             raise BilbyPipeError("`detectors must be a list")
 
-        job_name = "_".join([self.inputs.label, "".join(detectors), sampler])
+        job_desc = "_".join([self.inputs.label, "".join(detectors), sampler])
         if job_input.meta_label is not None:
-            job_name = "_".join([job_name, job_input.meta_label])
-        job_name = job_name.replace(".", "-")
-        job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
-        submit = self.inputs.submit_directory
-        extra_lines = ""
-        for arg in ["error", "log", "output"]:
-            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
-                arg, job_logs_base, arg[:3]
-            )
-        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
-        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
+            job_desc = "_".join([job_desc, job_input.meta_label])
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
@@ -619,7 +645,7 @@ class Dag(object):
         arguments.add_positional_argument(self.inputs.ini)
         for detector in detectors:
             arguments.add("detectors", detector)
-        arguments.add("label", job_name)
+        arguments.add("label", job_desc)
         arguments.add("data-label", self.generation_job_labels[idx])
         arguments.add("idx", idx)
         arguments.add("sampler", sampler)
@@ -627,28 +653,10 @@ class Dag(object):
         arguments.add("process", "$(Process)")
         arguments.add_unknown_args(self.inputs.unknown_args)
         arguments.add_command_line_arguments()
-        job = pycondor.Job(
-            name=job_name,
-            executable=self.analysis_executable,
-            submit=submit,
-            request_memory=self.request_memory,
-            request_disk=self.request_disk,
-            request_cpus=self.request_cpus,
-            getenv=self.getenv,
-            universe=self.universe,
-            initialdir=self.initialdir,
-            notification=self.notification,
-            requirements=self.requirements,
-            queue=self.inputs.queue,
-            extra_lines=extra_lines,
-            dag=self.dag,
-            arguments=arguments.print(),
-            retry=self.retry,
-            verbose=self.verbose,
-        )
-        job.add_parent(self.generation_jobs[idx])
-        logger.debug("Adding job: {}".format(job_name))
-        self.results_pages[job_name] = "result/{}.html".format(job_name)
+
+        job.add_arg(arguments.print() + '" JOBNAME="TEST')
+        logger.debug("Adding job: {}".format(job_desc))
+        # self.results_pages[job_name] = "result/{}.html".format(job_name)
 
         if self.inputs.run_local:
             subprocess.run([self.analysis_executable] + arguments.argument_list)
