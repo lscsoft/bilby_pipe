@@ -145,14 +145,40 @@ def convert_string_to_dict(string, key):
     key: str
         A key, used for debugging
     """
-    # Try to fix dictionary style
+
+    string = strip_quotes(string)
+    # Convert equals to colons
     string = string.replace("=", ":")
-    # Try to add in double quotes
-    string = re.sub('(\w+)\s?:\s?("?[^",]+"?,?)', '"\g<1>":\g<2>', string)  # noqa
+    # Force double quotes around everything
+    string = re.sub('(\w+)\s?:\s?("?[^,"}]+"?)', '"\g<1>":"\g<2>"', string)  # noqa
+    # Evaluate as a dictionary of str: str
     try:
-        return ast.literal_eval(string)
+        dic = ast.literal_eval(string)
     except ValueError as e:
         raise BilbyPipeError("Error {}. Unable to parse {}: {}".format(e, key, string))
+
+    # Convert values to floats/ints where possible
+    for key in dic:
+        dic[key] = string_to_int_float(dic[key])
+
+    return dic
+
+
+def strip_quotes(string):
+    try:
+        return string.replace('"', "").replace("'", "")
+    except AttributeError:
+        return string
+
+
+def string_to_int_float(s):
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s
 
 
 setup_logger(print_version=True)
