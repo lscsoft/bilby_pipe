@@ -83,9 +83,7 @@ class TestParser(unittest.TestCase):
         self.assertTrue(os.path.exists(filename))
 
         with open(filename, "r") as file:
-            data = json.load(
-                file, object_hook=bilby.core.result.decode_bilby_json_result
-            )
+            data = json.load(file, object_hook=bilby.core.result.decode_bilby_json)
         self.assertTrue(data.keys(), ["injections", "prior"])
 
         # prior = bilby.core.prior.PriorDict(self.example_prior_file)

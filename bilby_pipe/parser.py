@@ -196,10 +196,7 @@ def create_parser(
         )
         data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
         parser.add(
-            "--psd-files",
-            default=None,
-            nargs="*",
-            help="PSD files to use, if not provided known PSDs will be used",
+            "--psd-dict", type=str, default=None, help="Dictionary of PSD files to use"
         )
 
     if waveform:
@@ -247,12 +244,12 @@ def create_parser(
         )
         det_parser.add("--sampling-frequency", default=2048, type=int)
         det_parser.add(
-            "--channel-type",
-            nargs="*",
-            default=["DCH-CLEAN_STRAIN_C02"],
+            "--channel-dict",
+            default=None,
             help=(
-                "Channel type to use. Typical options are [DCH-CLEAN_STRAIN_C02, "
-                "DCS-CALIB_STRAIN_C02, DCS-CALIB_STRAIN_C01, GDS-CALIB_STRAIN]"
+                "Channel dictionary: keys relate to the detector with values "
+                "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
+                "dictionary should follow basic python dict syntax."
             ),
         )
         det_parser.add(
@@ -346,6 +343,14 @@ def create_parser(
             default=False,
             help="Boolean. If true, use a time-marginalized likelihood",
         )
-        parser.add("--sampler-kwargs", default=None)
+        parser.add(
+            "--sampler-kwargs",
+            default=None,
+            help=(
+                "Channel dictionary: keys relate to the detector with values "
+                "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
+                "dictionary should follow basic python dict syntax."
+            ),
+        )
 
     return parser
