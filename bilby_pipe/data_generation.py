@@ -16,7 +16,7 @@ matplotlib.use("agg")  # noqa
 import bilby
 from bilby.gw.detector import PowerSpectralDensity
 
-from bilby_pipe.utils import logger, BilbyPipeError
+from bilby_pipe.utils import logger, BilbyPipeError, convert_string_to_dict
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
@@ -68,7 +68,7 @@ class DataGenerationInput(Input):
         self.process = args.process
         self.idx = args.idx
         self.detectors = args.detectors
-        self.channel_type = args.channel_type
+        self.channel_dict = args.channel_dict
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
         self.sampling_frequency = args.sampling_frequency
@@ -76,7 +76,7 @@ class DataGenerationInput(Input):
         self.psd_fractional_overlap = args.psd_fractional_overlap
         self.psd_start_time = args.psd_start_time
         self.psd_method = args.psd_method
-        self.psd_files = args.psd_files
+        self.psd_dict = args.psd_dict
         self.minimum_frequency = args.minimum_frequency
         self.outdir = args.outdir
         self.label = args.label
@@ -206,6 +206,29 @@ class DataGenerationInput(Input):
             return None
 
     @property
+    def channel_dict(self):
+        return self._channel_dict
+
+    @channel_dict.setter
+    def channel_dict(self, channel_dict):
+        if channel_dict is not None:
+            self._channel_dict = convert_string_to_dict(channel_dict, "channel-dict")
+        else:
+            logger.debug("channel-dict set to None")
+            self._channel_dict = None
+
+    def get_channel_type(self, det):
+        """ Help method to read the channel_dict and print useful messages """
+        if self.channel_dict is None:
+            raise BilbyPipeError("No channel-dict argument provided")
+        if det in self.channel_dict:
+            return self.channel_dict[det]
+        else:
+            raise BilbyPipeError(
+                "Detector {} not given in the channel-dict".format(det)
+            )
+
+    @property
     def detectors(self):
         """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
         return self._detectors
@@ -307,9 +330,9 @@ class DataGenerationInput(Input):
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
-        if self.psd_files is not None:
+        if self.psd_dict is not None:
             for ifo in ifos:
-                if ifo.name in self.psd_file_dict.keys():
+                if ifo.name in self.psd_dict.keys():
                     self._set_psd_from_file(ifo)
 
         ifos.set_strain_data_from_power_spectral_densities(
@@ -325,18 +348,19 @@ class DataGenerationInput(Input):
         self.interferometers = ifos
 
     @property
-    def psd_file_dict(self):
-        if self.psd_files is None:
-            logger.debug("Unable to construct psd_file_dict")
-            return dict()
-        psd_file_dict = {}
-        for psd_file in self.psd_files:
-            ifo_name, file_path = psd_file.split(":")
-            psd_file_dict[ifo_name] = file_path
-        return psd_file_dict
+    def psd_dict(self):
+        return self._psd_dict
+
+    @psd_dict.setter
+    def psd_dict(self, psd_dict):
+        if psd_dict is not None:
+            self._psd_dict = convert_string_to_dict(psd_dict, "psd-dict")
+        else:
+            logger.debug("psd-dict set to None")
+            self._psd_dict = None
 
     def _set_psd_from_file(self, ifo):
-        psd_file = self.psd_file_dict[ifo.name]
+        psd_file = self.psd_dict[ifo.name]
         logger.info("Setting {} PSD from file {}".format(ifo.name, psd_file))
         ifo.power_spectral_density = PowerSpectralDensity.from_power_spectral_density_file(
             psd_file=psd_file
@@ -348,11 +372,13 @@ class DataGenerationInput(Input):
         ifo_list = []
         for det in self.detectors:
             logger.info("Getting analysis-segment data for {}".format(det))
-            data = self._get_data(det, self.channel_type, self.start_time, end_time)
+            data = self._get_data(
+                det, self.get_channel_type(det), self.start_time, end_time
+            )
             ifo = bilby.gw.detector.get_empty_interferometer(det)
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
-            if det in self.psd_file_dict:
+            if self.psd_dict is not None and det in self.psd_dict:
                 self._set_psd_from_file(ifo)
             else:
                 logger.info("Setting PSD for {} from data".format(det))
@@ -362,7 +388,10 @@ class DataGenerationInput(Input):
                 actual_psd_end_time = actual_psd_start_time + self.psd_duration
                 logger.info("Getting psd-segment data for {}".format(det))
                 psd_data = self._get_data(
-                    det, self.channel_type, actual_psd_start_time, actual_psd_end_time
+                    det,
+                    self.get_channel_type(det),
+                    actual_psd_start_time,
+                    actual_psd_end_time,
                 )
                 roll_off = 0.2
                 psd_alpha = 2 * roll_off / self.duration
@@ -394,7 +423,7 @@ class DataGenerationInput(Input):
 
         Parameters
         ----------
-        channel_type: str, or list of strings
+        channel_type: str
             The full channel name is formed from <det>:<channel_type>, see
             bilby_pipe_generation --help for more information. If given as a
             list each type will be tried and the first success returned.
@@ -402,16 +431,16 @@ class DataGenerationInput(Input):
             GPS start and end time of segment
         """
         data = None
-        for ct in list(channel_type):
-            channel = "{}:{}".format(det, ct)
-            try:
-                data = self._gwpy_get(det, channel, start_time, end_time)
-                break
-            except RuntimeError as e:
-                logger.info("Unable to read data for channel {}".format(channel))
-                logger.debug("Error message {}".format(e))
-            except ImportError:
-                logger.info("Unable to read data as NDS2 is not installed")
+
+        channel = "{}:{}".format(det, channel_type)
+        try:
+            data = self._gwpy_get(det, channel, start_time, end_time)
+        except RuntimeError as e:
+            logger.info("Unable to read data for channel {}".format(channel))
+            logger.debug("Error message {}".format(e))
+        except ImportError:
+            logger.info("Unable to read data as NDS2 is not installed")
+
         if data is None:
             logger.warning(
                 "Attempts to download data failed, trying with `fetch_open_data`"

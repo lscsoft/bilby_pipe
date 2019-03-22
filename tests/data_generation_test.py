@@ -82,7 +82,9 @@ class TestDataGenerationInput(unittest.TestCase):
             self.assertEqual(10 - 4, self.inputs.psd_start_time)
 
     def test_script_inputs_from_test_ini(self):
-        self.assertEqual(self.inputs.channel_type, ["GDS-CALIB_STRAIN"])
+        self.assertEqual(
+            self.inputs.channel_dict, dict(H1="GDS-CALIB_STRAIN", L1="GDS-CALIB_STRAIN")
+        )
         self.assertEqual(self.inputs.label, "label")
 
     def test_interferometer_unset(self):
@@ -210,7 +212,7 @@ class TestDataGenerationInput(unittest.TestCase):
         # Check the injections match by idx
         with open(injection_file_name, "r") as file:
             injection_file_dict = json.load(
-                file, object_hook=bilby.core.result.decode_bilby_json_result
+                file, object_hook=bilby.core.result.decode_bilby_json
             )
         self.assertEqual(
             self.inputs.meta_data["injection_parameters"],

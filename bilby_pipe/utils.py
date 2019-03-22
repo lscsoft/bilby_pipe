@@ -1,9 +1,11 @@
 """
 A set of generic utilities used in bilby_pipe
 """
+import re
 import os
 import sys
 import logging
+import ast
 
 
 class BilbyPipeError(Exception):
@@ -131,6 +133,26 @@ def get_version_information():
             return f.readline().rstrip()
     except EnvironmentError:
         print("No version information file '.version' found")
+
+
+def convert_string_to_dict(string, key):
+    """ Convert a string repr of a string to a python dictionary
+
+    Parameters
+    ----------
+    string: str
+        The strng to convert
+    key: str
+        A key, used for debugging
+    """
+    # Try to fix dictionary style
+    string = string.replace("=", ":")
+    # Try to add in double quotes
+    string = re.sub('(\w+)\s?:\s?("?[^",]+"?,?)', '"\g<1>":\g<2>', string)  # noqa
+    try:
+        return ast.literal_eval(string)
+    except ValueError as e:
+        raise BilbyPipeError("Error {}. Unable to parse {}: {}".format(e, key, string))
 
 
 setup_logger(print_version=True)

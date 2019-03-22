@@ -13,7 +13,7 @@ import matplotlib
 matplotlib.use("agg")  # noqa
 import bilby
 
-from bilby_pipe.utils import logger, BilbyPipeError
+from bilby_pipe.utils import logger, BilbyPipeError, convert_string_to_dict
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.input import Input
@@ -134,14 +134,9 @@ class DataAnalysisInput(Input):
     @sampler_kwargs.setter
     def sampler_kwargs(self, sampler_kwargs):
         if sampler_kwargs is not None:
-            try:
-                self._sampler_kwargs = eval(sampler_kwargs)
-            except (NameError, TypeError) as e:
-                raise BilbyPipeError(
-                    "Error {}. Unable to parse sampler_kwargs: {}".format(
-                        e, sampler_kwargs
-                    )
-                )
+            self._sampler_kwargs = convert_string_to_dict(
+                sampler_kwargs, "sampler-kwargs"
+            )
         else:
             self._sampler_kwargs = None
 
