@@ -78,6 +78,7 @@ class DataGenerationInput(Input):
         self.psd_method = args.psd_method
         self.psd_dict = args.psd_dict
         self.minimum_frequency = args.minimum_frequency
+        self.maximum_frequency = args.maximum_frequency
         self.outdir = args.outdir
         self.label = args.label
         self.frequency_domain_source_model = args.frequency_domain_source_model
@@ -195,6 +196,17 @@ class DataGenerationInput(Input):
     @minimum_frequency.setter
     def minimum_frequency(self, minimum_frequency):
         self._minimum_frequency = float(minimum_frequency)
+
+    @property
+    def maximum_frequency(self):
+        return self._maximum_frequency
+
+    @maximum_frequency.setter
+    def maximum_frequency(self, maximum_frequency):
+        if maximum_frequency is None:
+            self._maximum_frequency = None
+        else:
+            self._maximum_frequency = float(maximum_frequency)
 
     @property
     def parameter_conversion(self):
@@ -473,6 +485,11 @@ class DataGenerationInput(Input):
 
     @interferometers.setter
     def interferometers(self, interferometers):
+        for ifo in interferometers:
+            if self.maximum_frequency is not None:
+                ifo.maximum_frequency = self.maximum_frequency
+            if self.minimum_frequency is not None:
+                ifo.minimum_frequency = self.minimum_frequency
         self._interferometers = interferometers
         self.data_set = True
 

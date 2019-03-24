@@ -283,6 +283,7 @@ def create_parser(
             help="PSD method see gwpy.timeseries.TimeSeries.psd for options",
         )
         det_parser.add("--minimum-frequency", default=20, type=float)
+        det_parser.add("--maximum-frequency", default=None, type=float)
         det_parser.add(
             "--generation-seed",
             default=None,
