@@ -610,6 +610,7 @@ class Dag(object):
             )
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
         extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
+        extra_lines += "\nremove_kill_sig = SIGTERM"
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
