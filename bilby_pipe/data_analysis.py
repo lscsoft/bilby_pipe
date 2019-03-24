@@ -215,12 +215,15 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-        else:
+        if "no_spin" in self._frequency_domain_source_model:
             return None
+        else:
+            if "binary_neutron_star" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+            elif "binary_black_hole" in self._frequency_domain_source_model:
+                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
+            else:
+                return None
 
     @property
     def waveform_generator(self):
@@ -310,6 +313,8 @@ class DataAnalysisInput(Input):
             # FIXME this is temporary given that the SNR cannot be computed
             # for the roq source model, as it passes mode=linear to
             # antenna_detector_response
+            return None
+        elif "no_spin" in self._frequency_domain_source_model:
             return None
         else:
             if "binary_neutron_star" in self._frequency_domain_source_model:
