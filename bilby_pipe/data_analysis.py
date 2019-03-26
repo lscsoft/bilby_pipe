@@ -333,13 +333,21 @@ class DataAnalysisInput(Input):
             logger.debug("Unable to use CBC specific result class")
             return None
 
+    @property
+    def result_directory(self):
+        result_dir = os.path.join(self.outdir, "result")
+        if self.sampler == "pymultinest":
+            return os.path.relpath(result_dir)
+        else:
+            return os.path.abspath(result_dir)
+
     def run_sampler(self):
         self.result = bilby.run_sampler(
             likelihood=self.likelihood,
             priors=self.priors,
             sampler=self.sampler,
             label=self.label,
-            outdir=os.path.relpath(self.result_directory),
+            outdir=self.result_directory,
             conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data["injection_parameters"],
             result_class=self.result_class,
