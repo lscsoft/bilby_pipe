@@ -486,6 +486,8 @@ class DataGenerationInput(Input):
     @interferometers.setter
     def interferometers(self, interferometers):
         for ifo in interferometers:
+            if isinstance(ifo, bilby.gw.detector.Interferometer) is False:
+                raise BilbyPipeError("ifo={} is not a bilby Interferometer".format(ifo))
             if self.maximum_frequency is not None:
                 ifo.maximum_frequency = self.maximum_frequency
             if self.minimum_frequency is not None:

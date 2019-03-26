@@ -92,8 +92,9 @@ class TestDataGenerationInput(unittest.TestCase):
             self.inputs.interferometers
 
     def test_interferometer_set(self):
-        self.inputs.interferometers = ["a", "b"]
-        self.assertEqual(["a", "b"], self.inputs.interferometers)
+        ifos = bilby.gw.detector.InterferometerList(["H1", "L1"])
+        self.inputs.interferometers = ifos
+        self.assertEqual(ifos, self.inputs.interferometers)
 
     def test_script_inputs_detectors_from_ini(self):
         self.assertEqual(self.inputs.detectors, ["H1", "L1"])
