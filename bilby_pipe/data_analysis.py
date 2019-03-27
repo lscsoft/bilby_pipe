@@ -177,14 +177,21 @@ class DataAnalysisInput(Input):
 
     @property
     def data_dump(self):
+        filename = DataDump.get_filename(
+            self.data_directory, self.data_label, str(self.idx)
+        )
+
         try:
             return self._data_dump
         except AttributeError:
-            filename = DataDump.get_filename(
-                self.data_directory, self.data_label, str(self.idx)
-            )
-            self._data_dump = DataDump.from_pickle(filename)
-            return self._data_dump
+            if os.path.isfile(filename):
+                self._data_dump = DataDump.from_pickle(filename)
+                return self._data_dump
+            else:
+                raise FileNotFoundError(
+                    "No dump data {} file found. Most likely the generation "
+                    "step failed".format(filename)
+                )
 
     @property
     def priors(self):
