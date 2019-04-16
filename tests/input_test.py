@@ -91,7 +91,7 @@ class TestInput(unittest.TestCase):
     def test_gps_file_set(self):
         inputs = bilby_pipe.main.Input()
         inputs.gps_file = self.test_gps_file
-        self.assertEqual(inputs.gps_file, os.path.abspath(self.test_gps_file))
+        self.assertEqual(inputs.gps_file, os.path.relpath(self.test_gps_file))
         self.assertEqual(len(inputs.read_gps_file()), 2)
 
     def test_gps_file_set_fail(self):

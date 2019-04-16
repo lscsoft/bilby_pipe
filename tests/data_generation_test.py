@@ -232,7 +232,7 @@ class TestDataGenerationInput(unittest.TestCase):
         )
 
         self.assertEqual(
-            self.inputs.injection_file, os.path.abspath(injection_file_name)
+            self.inputs.injection_file, os.path.relpath(injection_file_name)
         )
 
 

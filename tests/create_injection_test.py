@@ -45,7 +45,7 @@ class TestParser(unittest.TestCase):
     def test_init(self):
         inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
         self.assertEqual(inputs.label, "TEST")
-        self.assertEqual(inputs.outdir, os.path.abspath(self.outdir))
+        self.assertEqual(inputs.outdir, os.path.relpath(self.outdir))
         self.assertEqual(inputs.prior_file, self.example_prior_file)
         self.assertEqual(inputs.n_injection, 3)
 

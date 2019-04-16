@@ -77,8 +77,11 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.x509userproxy = args.X509
+        self.transfer_files = args.transfer_files
 
         self.waveform_approximant = args.waveform_approximant
+
+        self.prior_file = args.prior_file
 
         self.webdir = args.webdir
         self.email = args.email
@@ -118,7 +121,11 @@ class MainInput(Input):
     def ini(self, ini):
         if os.path.isfile(ini) is False:
             raise BilbyPipeError("ini file is not a file")
-        self._ini = os.path.abspath(ini)
+        self._ini = os.path.relpath(ini)
+
+    @property
+    def initialdir(self):
+        return os.path.abspath(os.path.dirname(self.ini))
 
     @property
     def singularity_image(self):
@@ -347,7 +354,6 @@ class Dag(object):
         request_disk=None,
         getenv=True,
         universe="vanilla",
-        initialdir=None,
         notification="never",
         requirements=None,
         retry=None,
@@ -358,7 +364,7 @@ class Dag(object):
         self.request_cpus = inputs.request_cpus
         self.getenv = getenv
         self.universe = universe
-        self.initialdir = initialdir
+        self.initialdir = inputs.initialdir
         self.notification = notification
         self.requirements = requirements
         self.retry = retry
@@ -608,9 +614,40 @@ class Dag(object):
             extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
                 arg, job_logs_base, arg[:3]
             )
+
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
         extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
+        extra_lines += "\nkill_sig = SIGTERM"
         extra_lines += "\nremove_kill_sig = SIGTERM"
+        extra_lines += "\nrun_as_owner = True"
+        extra_lines += "\n+WantCheckpointSignal = True"
+        extra_lines += "\n+WantFTOnCheckpoint = True"
+        extra_lines += '\n+CheckpointSig = "SIGTERM"'
+        extra_lines += "\n+CheckpointExitBySignal = False"
+        extra_lines += "\n+CheckpointExitCode = 0"
+        extra_lines += '\n+SuccessCheckpointExitSignal = "SIGTERM"'
+
+        if self.inputs.transfer_files:
+            extra_lines += "\nshould_transfer_files = YES"
+            extra_lines += "\ntransfer_output_files = {}".format(
+                self.inputs.result_directory
+            )
+            data_dump_file = DataDump.get_filename(
+                self.inputs.data_directory, self.generation_job_labels[idx], idx
+            )
+            input_files_to_transfer = [
+                str(data_dump_file),
+                str(self.inputs.prior_file),
+                str(self.inputs.ini),
+            ]
+            distance_marg_cache_file = ".distance_marginalization_lookup.npz"
+            if os.path.isfile(distance_marg_cache_file):
+                input_files_to_transfer.append(distance_marg_cache_file)
+            extra_lines += "\ntransfer_input_files = {}".format(
+                ",".join(input_files_to_transfer)
+            )
+            extra_lines += "\nwhen_to_transfer_output = ON_EXIT_OR_EVICT"
+            extra_lines += "\nstream_error = True\nstream_output = True"
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:

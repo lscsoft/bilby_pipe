@@ -38,6 +38,8 @@ class TestDag(unittest.TestCase):
             request_memory="4 GB",
             request_cpus=1,
             generation_seed=None,
+            transfer_files=True,
+            prior_file=None,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)

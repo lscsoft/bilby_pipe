@@ -184,14 +184,36 @@ class DataAnalysisInput(Input):
         try:
             return self._data_dump
         except AttributeError:
-            if os.path.isfile(filename):
-                self._data_dump = DataDump.from_pickle(filename)
-                return self._data_dump
-            else:
-                raise FileNotFoundError(
-                    "No dump data {} file found. Most likely the generation "
-                    "step failed".format(filename)
-                )
+            logger.debug("Data dump not previously loaded")
+
+        if os.path.isfile(filename):
+            self._data_dump = DataDump.from_pickle(filename)
+            return self._data_dump
+        elif os.path.isfile(os.path.basename(filename)):
+            self._data_dump = DataDump.from_pickle(os.path.basename(filename))
+            return self._data_dump
+        else:
+            raise FileNotFoundError(
+                "No dump data {} file found. Most likely the generation "
+                "step failed".format(filename)
+            )
+
+    @property
+    def prior_file(self):
+        if self._prior_file is None:
+            return None
+        elif os.path.isfile(self._prior_file):
+            return self._prior_file
+        elif os.path.isfile(os.path.basename(self._prior_file)):
+            return os.path.basename(self._prior_file)
+        else:
+            raise FileNotFoundError(
+                "No prior file {} available".format(self._prior_file)
+            )
+
+    @prior_file.setter
+    def prior_file(self, prior_file):
+        self._prior_file = prior_file
 
     @property
     def priors(self):
@@ -343,10 +365,7 @@ class DataAnalysisInput(Input):
     @property
     def result_directory(self):
         result_dir = os.path.join(self.outdir, "result")
-        if self.sampler == "pymultinest":
-            return os.path.relpath(result_dir)
-        else:
-            return os.path.abspath(result_dir)
+        return os.path.relpath(result_dir)
 
     def run_sampler(self):
         self.result = bilby.run_sampler(
@@ -383,3 +402,4 @@ def main():
     if args.create_plots:
         analysis.result.plot_corner()
         analysis.result.plot_marginals()
+    sys.exit(1)  # HACK to force jobs to complete and not be restarted
