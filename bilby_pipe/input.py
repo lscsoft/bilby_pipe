@@ -95,7 +95,7 @@ class Input(object):
 
     @outdir.setter
     def outdir(self, outdir):
-        self._outdir = os.path.abspath(outdir)
+        self._outdir = os.path.relpath(outdir)
         for dr in [
             outdir,
             self.submit_directory,
@@ -164,7 +164,7 @@ class Input(object):
             self._gps_file = None
             return
         elif os.path.isfile(gps_file):
-            self._gps_file = os.path.abspath(gps_file)
+            self._gps_file = os.path.relpath(gps_file)
         else:
             raise FileNotFoundError(
                 "Input file gps_file={} not understood".format(gps_file)
@@ -249,7 +249,7 @@ class Input(object):
             logger.debug("No injection file set")
             self._injection_file = None
         elif os.path.isfile(injection_file):
-            self._injection_file = os.path.abspath(injection_file)
+            self._injection_file = os.path.relpath(injection_file)
             with open(injection_file, "r") as file:
                 injection_dict = json.load(
                     file, object_hook=bilby.core.result.decode_bilby_json

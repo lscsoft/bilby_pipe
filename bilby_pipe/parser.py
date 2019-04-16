@@ -95,6 +95,12 @@ def create_parser(
             ),
         )
         parser.add(
+            "--transfer-files",
+            action="store_true",
+            default=False,
+            help="If true, use HTCondor file transfer mechanism",
+        )
+        parser.add(
             "--singularity-image",
             type=str,
             default=None,
@@ -298,60 +304,60 @@ def create_parser(
             help="Label used for the data dump",
             required=True,
         )
-        parser.add(
-            "--sampling-seed", default=None, type=int, help="Random sampling seed"
-        )
-        parser.add(
-            "--default-prior",
-            default="BBHPriorDict",
-            type=str,
-            help="The name of the prior set to base the prior on. Can be one of"
-            "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]",
-        )
-        parser.add("--prior-file", default=None, help="The prior file")
-        parser.add(
-            "--likelihood-type",
-            default="GravitationalWaveTransient",
-            help="The likelihood. Can be one of"
-            "[GravitationalWaveTransient, ROQGravitationalWaveTransient]"
-            "Need to specify --roq-folder if ROQ likelihood used",
-        )
-        parser.add("--roq-folder", default=None, help="The data for ROQ")
-        parser.add(
-            "--deltaT",
-            type=float,
-            default=0.1,
-            help=(
-                "The symmetric width (in s) around the trigger time to"
-                " search over the coalesence time"
-            ),
-        )
-        parser.add(
-            "--distance-marginalization",
-            action="store_true",
-            default=False,
-            help="Boolean. If true, use a distance-marginalized likelihood",
-        )
-        parser.add(
-            "--phase-marginalization",
-            action="store_true",
-            default=False,
-            help="Boolean. If true, use a phase-marginalized likelihood",
-        )
-        parser.add(
-            "--time-marginalization",
-            action="store_true",
-            default=False,
-            help="Boolean. If true, use a time-marginalized likelihood",
-        )
-        parser.add(
-            "--sampler-kwargs",
-            default=None,
-            help=(
-                "Channel dictionary: keys relate to the detector with values "
-                "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
-                "dictionary should follow basic python dict syntax."
-            ),
-        )
+
+    # Analysis arguments common to all
+    parser.add("--sampling-seed", default=None, type=int, help="Random sampling seed")
+    parser.add(
+        "--default-prior",
+        default="BBHPriorDict",
+        type=str,
+        help="The name of the prior set to base the prior on. Can be one of"
+        "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]",
+    )
+    parser.add("--prior-file", default=None, help="The prior file")
+    parser.add(
+        "--likelihood-type",
+        default="GravitationalWaveTransient",
+        help="The likelihood. Can be one of"
+        "[GravitationalWaveTransient, ROQGravitationalWaveTransient]"
+        "Need to specify --roq-folder if ROQ likelihood used",
+    )
+    parser.add("--roq-folder", default=None, help="The data for ROQ")
+    parser.add(
+        "--deltaT",
+        type=float,
+        default=0.1,
+        help=(
+            "The symmetric width (in s) around the trigger time to"
+            " search over the coalesence time"
+        ),
+    )
+    parser.add(
+        "--distance-marginalization",
+        action="store_true",
+        default=False,
+        help="Boolean. If true, use a distance-marginalized likelihood",
+    )
+    parser.add(
+        "--phase-marginalization",
+        action="store_true",
+        default=False,
+        help="Boolean. If true, use a phase-marginalized likelihood",
+    )
+    parser.add(
+        "--time-marginalization",
+        action="store_true",
+        default=False,
+        help="Boolean. If true, use a time-marginalized likelihood",
+    )
+    parser.add(
+        "--sampler-kwargs",
+        default=None,
+        help=(
+            "Channel dictionary: keys relate to the detector with values "
+            "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
+            "dictionary should follow basic python dict syntax."
+        ),
+    )
 
     return parser

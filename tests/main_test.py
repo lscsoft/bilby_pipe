@@ -38,7 +38,7 @@ class TestMainInput(unittest.TestCase):
         del self.inputs
 
     def test_ini(self):
-        self.assertEqual(self.inputs.ini, os.path.abspath(self.args.ini))
+        self.assertEqual(self.inputs.ini, os.path.relpath(self.args.ini))
 
     def test_ini_not_a_file(self):
         with self.assertRaises(BilbyPipeError):
@@ -162,7 +162,7 @@ class TestMainInput(unittest.TestCase):
         os.environ["X509_USER_PROXY"] = os.path.realpath(args.X509)
         args.X509 = None
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        X509_cached_copy = os.path.abspath(os.path.join(args.outdir, ".X509.txt"))
+        X509_cached_copy = os.path.relpath(os.path.join(args.outdir, ".X509.txt"))
         self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
     def test_create_summary_page(self):
