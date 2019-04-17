@@ -11,7 +11,7 @@ import numpy as np
 import bilby
 
 from . import utils
-from .utils import logger, BilbyPipeError
+from .utils import logger, BilbyPipeError, convert_string_to_dict
 
 
 class Input(object):
@@ -261,3 +261,33 @@ class Input(object):
             raise FileNotFoundError(
                 "Injection file {} not found".format(injection_file)
             )
+
+    @property
+    def calibration_model(self):
+        return self._calibration_model
+
+    @calibration_model.setter
+    def calibration_model(self, calibration_model):
+        if calibration_model is not None:
+            logger.info("Setting calibration_model={}".format(calibration_model))
+            self._calibration_model = calibration_model
+        else:
+            logger.info(
+                "No calibration_model model provided, calibration "
+                "marginalization will not be used"
+            )
+            self._calibration_model = None
+
+    @property
+    def spline_calibration_envelope_dict(self):
+        return self._spline_calibration_envelope_dict
+
+    @spline_calibration_envelope_dict.setter
+    def spline_calibration_envelope_dict(self, spline_calibration_envelope_dict):
+        if spline_calibration_envelope_dict is not None:
+            self._spline_calibration_envelope_dict = convert_string_to_dict(
+                spline_calibration_envelope_dict, "spline-calibration-envelope-dict"
+            )
+        else:
+            logger.debug("spline_calibration_envelope_dict")
+            self._spline_calibration_envelope_dict = None
