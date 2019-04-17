@@ -360,4 +360,21 @@ def create_parser(
         ),
     )
 
+    parser.add(
+        "--calibration-model",
+        type=str,
+        default=None,
+        choices=["CubicSpline"],
+        help="Choice of calibration model, if None, no calibration is used",
+    )
+
+    parser.add(
+        "--spline-calibration-envelope-dict",
+        type=str,
+        default=None,
+        help=("Dictionary pointing to the spline calibration envelope files"),
+    )
+
+    parser.add("--spline-calibration-nodes", type=int, default=5, help=(""))
+
     return parser

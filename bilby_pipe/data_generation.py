@@ -84,6 +84,8 @@ class DataGenerationInput(Input):
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
+        self.calibration_model = args.calibration_model
+        self.spline_calibration_nodes = args.spline_calibration_nodes
         if create_data:
             self.create_data(args)
 
@@ -483,6 +485,19 @@ class DataGenerationInput(Input):
                 "interferometers unset, did you provide a set-data method?"
             )
 
+    def add_calibration_model_to_interferometers(self, ifo):
+        if self.calibration_model == "CubicSpline":
+            ifo.calibration_model = bilby.gw.calibration.CubicSpline(
+                prefix="recalib_{}_".format(ifo.name),
+                minimum_frequency=ifo.minimum_frequency,
+                maximum_frequency=ifo.maximum_frequency,
+                n_points=self.spline_calibration_nodes,
+            )
+        else:
+            raise BilbyPipeError(
+                "calibration model {} not implemented".format(self.calibration_model)
+            )
+
     @interferometers.setter
     def interferometers(self, interferometers):
         for ifo in interferometers:
@@ -492,6 +507,8 @@ class DataGenerationInput(Input):
                 ifo.maximum_frequency = self.maximum_frequency
             if self.minimum_frequency is not None:
                 ifo.minimum_frequency = self.minimum_frequency
+            if self.calibration_model is not None:
+                self.add_calibration_model_to_interferometers(ifo)
         self._interferometers = interferometers
         self.data_set = True
 

@@ -57,6 +57,9 @@ class DataAnalysisInput(Input):
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
         self.roq_folder = args.roq_folder
+        self.calibration_model = args.calibration_model
+        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+        self.spline_calibration_nodes = args.spline_calibration_nodes
         self.result = None
 
     @property
@@ -239,6 +242,17 @@ class DataAnalysisInput(Input):
                     name="geocent_time",
                     latex_label="$t_c$",
                     unit="$s$",
+                )
+        if self.calibration_model is not None:
+            for det in self.detectors:
+                self._priors.update(
+                    bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
+                        self.spline_calibration_envelope_dict[det],
+                        minimum_frequency=self.interferometers[0].minimum_frequency,
+                        maximum_frequency=self.interferometers[0].maximum_frequency,
+                        n_nodes=self.spline_calibration_nodes,
+                        label="{}".format(det),
+                    )
                 )
         return self._priors
 
