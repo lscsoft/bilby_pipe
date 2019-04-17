@@ -6,25 +6,36 @@ Singularity
 -----------
 
 Installing :code:`bilby_pipe` should only be required if you are developing or
-testing. For most users, and in particular production-use, please use a
+testing. For most users, and in particular production-use, we recommend using a
 `singularity image <singularity.txt>`_.
 
-Install bilby_pipe from source
+Installing bilby_pipe from pip
 ------------------------------
 
-:code:`bilby_pipe` is developed and tested for Python 3.5, 3.6, and 3.7. In the
-following, we assume you have a working python installation, `python pip
-<https://packaging.python.org/tutorials/installing-packages/#use-pip-for-installing)>`_,
-and `git <https://git-scm.com/>`_.
+To install the latest :code:`bilby_pipe` release from `PyPi
+<https://pypi.org/project/bilby-pipe/>`, run
 
-Clone the repository and then install the software:
+.. code-block:: console
+
+   $ pip install --upgrade bilby_pipe
+
+Note, that this released version usually lags the development version. If you
+need to test the latest features, see below for how to obtain this.
+
+
+Install bilby_pipe for development
+----------------------------------
+
+:code:`bilby_pipe` is developed and tested for Python 3.5, 3.6, and 3.7. In the
+following, we demonstrate how to install a development version of
+:code:`bilby_pipe` on a LIGO Data Grid (LDG) cluster.
+
+First off, you'll need to clone the repository
 
 .. code-block:: console
 
    $ git clone git@git.ligo.org:lscsoft/bilby_pipe.git
    $ cd bilby_pipe/
-   $ python setup.py install
-
 
 .. note::
    If you do not have a git.ligo account, and recieve an error message:
@@ -40,12 +51,64 @@ Clone the repository and then install the software:
 
       $ git clone https://git.ligo.org/lscsoft/bilby.git
 
+Once you have cloned the repository, you need to install the software. How you
+do this will depend on the python installation you intend to use. Below are
+several easy-to-use options. Feel free to disregard these should you already
+have an alternative.
+
+CVMFS conda python
+==================
+
+To source a :code:`Python 3.7` installation on the LDG using CVMFS, run the
+commands
+
+.. code-block:: console
+
+   $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh 
+   $ conda activate ligo-py37
+
+Using virtualenv
+================
+
+Virtualenv is a similar tool to conda. To obtain an environment, run
+
+.. code-block:: console
+
+   virtualenv --python=/usr/bin/python3.6 $HOME/virtualenvs/bilby_pipe
+   source virtualenvs/bilby_pipe/bin/activate
+
+
+Installing bilby_pipe
+=====================
+
+Once you have a working version of :code:`python`, you can install
+:code:`bilby_pipe` with the command
+
+.. code-block:: console
+
+   $ pip install --upgrade git+file://${HOME}/PATH/TO/bilby_pipe
+
+Or, alternatively
+
+.. code-block:: console
+
+   $ python setup.py install
+
+The former (using :code:`pip`) is preferred as it makes it easier to uninstall,
+but many people use the direct installation method out of habit.
+
+Be careful to check any warning messages about where the code has been
+installed.
+
+Additionally, if you recieve error messages about read-only file systems you
+can add :code:`--user` to the installtion call. This will install the software
+in a local directory, usually :code:`~/.local`. Be aware that this may not be
+on your :code:`PATH` and also, that this will effect all python environments.
 
 Once you have run these steps, you have :code:`bilby_pipe` installed. However,
 you will also need to install `bilby <https://git.ligo.org/lscsoft/bilby>`_.
 Installation instructions can be found `here
 <https://lscsoft.docs.ligo.org/bilby/installation.html>`_.
-
 
 Whilst the code is developed, we expect to find many bugs. These can either be
 in bilby_pipe or in bilby. To debug the problem it is useful to know which
