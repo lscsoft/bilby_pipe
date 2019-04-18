@@ -249,6 +249,7 @@ def create_parser(
             ),
         )
         det_parser.add("--sampling-frequency", default=2048, type=int)
+
         det_parser.add(
             "--channel-dict",
             default=None,
@@ -288,8 +289,6 @@ def create_parser(
             type=str,
             help="PSD method see gwpy.timeseries.TimeSeries.psd for options",
         )
-        det_parser.add("--minimum-frequency", default=20, type=float)
-        det_parser.add("--maximum-frequency", default=None, type=float)
         det_parser.add(
             "--generation-seed",
             default=None,
@@ -376,5 +375,26 @@ def create_parser(
     )
 
     parser.add("--spline-calibration-nodes", type=int, default=5, help=(""))
+
+    parser.add(
+        "--minimum-frequency",
+        default="20",
+        type=str,
+        help=(
+            "The minimum frequency, given either as a float for all detectors "
+            "or as a dictionary where all keys relate the detector with values"
+            " of the minimum frequency, e.g. {H1: 10, L1: 20}."
+        ),
+    )
+
+    parser.add(
+        "--maximum-frequency",
+        default=None,
+        type=str,
+        help=(
+            "The maximum frequency, given either as a float for all detectors "
+            "or as a dictionary (see minimum-frequency)"
+        ),
+    )
 
     return parser

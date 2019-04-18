@@ -291,3 +291,88 @@ class Input(object):
         else:
             logger.debug("spline_calibration_envelope_dict")
             self._spline_calibration_envelope_dict = None
+
+    @property
+    def minimum_frequency(self):
+        """ The minimum frequency
+
+        If a per-detector dictionary is given, this will return the minimum
+        frequency value. To access the dictionary,
+        see self.minimum_frequency_dict
+        """
+        return self._minimum_frequency
+
+    @minimum_frequency.setter
+    def minimum_frequency(self, minimum_frequency):
+        if minimum_frequency is None:
+            self._minimum_frequency = None
+            self.minimum_frequency_dict = {det: None for det in self.detectors}
+        else:
+            try:
+                self._minimum_frequency = float(minimum_frequency)
+                self.minimum_frequency_dict = {
+                    det: minimum_frequency for det in self.detectors
+                }
+            except ValueError:
+                self.minimum_frequency_dict = convert_string_to_dict(
+                    minimum_frequency, "minimum-frequency"
+                )
+                self._minimum_frequency = np.min(
+                    [xx for xx in self._minimum_frequency_dict.values()]
+                )
+
+    @property
+    def minimum_frequency_dict(self):
+        return self._minimum_frequency_dict
+
+    @minimum_frequency_dict.setter
+    def minimum_frequency_dict(self, minimum_frequency_dict):
+        for det in minimum_frequency_dict.keys():
+            if det not in self.detectors:
+                raise BilbyPipeError(
+                    "Input minimum frequency required for detector {}".format(det)
+                )
+        self._minimum_frequency_dict = minimum_frequency_dict
+
+    @property
+    def maximum_frequency(self):
+        """ The maximum frequency
+
+        If a per-detector dictionary is given, this will return the maximum
+        frequency value. To access the dictionary,
+        see self.maximum_frequency_dict
+        """
+
+        return self._maximum_frequency
+
+    @maximum_frequency.setter
+    def maximum_frequency(self, maximum_frequency):
+        if maximum_frequency is None:
+            self._maximum_frequency = None
+            self.maximum_frequency_dict = {det: None for det in self.detectors}
+        else:
+            try:
+                self._maximum_frequency = float(maximum_frequency)
+                self.maximum_frequency_dict = {
+                    det: maximum_frequency for det in self.detectors
+                }
+            except ValueError:
+                self.maximum_frequency_dict = convert_string_to_dict(
+                    maximum_frequency, "maximum-frequency"
+                )
+                self._maximum_frequency = np.max(
+                    [xx for xx in self._maximum_frequency_dict.values()]
+                )
+
+    @property
+    def maximum_frequency_dict(self):
+        return self._maximum_frequency_dict
+
+    @maximum_frequency_dict.setter
+    def maximum_frequency_dict(self, maximum_frequency_dict):
+        for det in maximum_frequency_dict.keys():
+            if det not in self.detectors:
+                raise BilbyPipeError(
+                    "Input maximum frequency required for detector {}".format(det)
+                )
+        self._maximum_frequency_dict = maximum_frequency_dict

@@ -145,10 +145,6 @@ class TestDataGenerationInput(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.inputs.detectors = 10
 
-    def test_minimum_frequency(self):
-        self.inputs.minimum_frequency = 10
-        self.assertEqual(self.inputs.minimum_frequency, 10)
-
     # def test_set_gracedb_fail(self):
     #     with self.assertRaises(BilbyPipeError):
     #         self.inputs.gracedb = "NOT-A-GRACEDB"

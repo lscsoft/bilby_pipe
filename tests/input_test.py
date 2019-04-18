@@ -119,6 +119,48 @@ class TestInput(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             inputs.bilby_frequency_domain_source_model
 
+    def test_minimum_frequency_int(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.minimum_frequency = 10
+        self.assertEqual(inputs.minimum_frequency, 10)
+        self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10, L1=10))
+
+    def test_minimum_frequency_float(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.minimum_frequency = 10.1
+        self.assertEqual(inputs.minimum_frequency, 10.1)
+        self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10.1, L1=10.1))
+
+    def test_minimum_frequency_dict(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.minimum_frequency = "{H1: 10, L1: 20}"
+        self.assertEqual(inputs.minimum_frequency, 10)
+        self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10, L1=20))
+
+    def test_maximum_frequency_int(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.maximum_frequency = 10
+        self.assertEqual(inputs.maximum_frequency, 10)
+        self.assertEqual(inputs.maximum_frequency_dict, dict(H1=10, L1=10))
+
+    def test_maximum_frequency_float(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.maximum_frequency = 10.1
+        self.assertEqual(inputs.maximum_frequency, 10.1)
+        self.assertEqual(inputs.maximum_frequency_dict, dict(H1=10.1, L1=10.1))
+
+    def test_maximum_frequency_dict(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.maximum_frequency = "{H1: 100, L1: 200}"
+        self.assertEqual(inputs.maximum_frequency, 200)
+        self.assertEqual(inputs.maximum_frequency_dict, dict(H1=100, L1=200))
+
 
 if __name__ == "__main__":
     unittest.main()

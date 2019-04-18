@@ -159,6 +159,7 @@ class DataGenerationInput(Input):
         if isinstance(psd_length, int):
             self._psd_length = psd_length
             self.psd_duration = psd_length * self.duration
+
             logger.info(
                 "PSD duration set to {}s, {}x the duration {}s".format(
                     self.psd_duration, psd_length, self.duration
@@ -190,25 +191,6 @@ class DataGenerationInput(Input):
                     self._psd_start_time
                 )
             )
-
-    @property
-    def minimum_frequency(self):
-        return self._minimum_frequency
-
-    @minimum_frequency.setter
-    def minimum_frequency(self, minimum_frequency):
-        self._minimum_frequency = float(minimum_frequency)
-
-    @property
-    def maximum_frequency(self):
-        return self._maximum_frequency
-
-    @maximum_frequency.setter
-    def maximum_frequency(self, maximum_frequency):
-        if maximum_frequency is None:
-            self._maximum_frequency = None
-        else:
-            self._maximum_frequency = float(maximum_frequency)
 
     @property
     def parameter_conversion(self):
@@ -327,6 +309,13 @@ class DataGenerationInput(Input):
         self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
         self.meta_data["injection_parameters"] = self.injection_parameters
         self.trigger_time = self.injection_parameters["geocent_time"]
+
+        logger.info(
+            "injected waveform minimum frequency: " + str(self.minimum_frequency)
+        )
+        logger.info(
+            "injected waveform maximum frequency: " + str(self.maximum_frequency)
+        )
 
         waveform_arguments = dict(
             waveform_approximant=self.waveform_approximant,
@@ -503,12 +492,13 @@ class DataGenerationInput(Input):
         for ifo in interferometers:
             if isinstance(ifo, bilby.gw.detector.Interferometer) is False:
                 raise BilbyPipeError("ifo={} is not a bilby Interferometer".format(ifo))
-            if self.maximum_frequency is not None:
-                ifo.maximum_frequency = self.maximum_frequency
             if self.minimum_frequency is not None:
-                ifo.minimum_frequency = self.minimum_frequency
+                ifo.minimum_frequency = self.minimum_frequency_dict[ifo.name]
+            if self.maximum_frequency is not None:
+                ifo.maximum_frequency = self.maximum_frequency_dict[ifo.name]
             if self.calibration_model is not None:
                 self.add_calibration_model_to_interferometers(ifo)
+
         self._interferometers = interferometers
         self.data_set = True
 
