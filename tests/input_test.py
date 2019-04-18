@@ -147,6 +147,13 @@ class TestInput(unittest.TestCase):
         self.assertEqual(inputs.maximum_frequency, 10)
         self.assertEqual(inputs.maximum_frequency_dict, dict(H1=10, L1=10))
 
+    def test_maximum_frequency_str(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.maximum_frequency = "10"
+        self.assertEqual(inputs.maximum_frequency, 10)
+        self.assertEqual(inputs.maximum_frequency_dict, dict(H1=10, L1=10))
+
     def test_maximum_frequency_float(self):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = "H1 L1"

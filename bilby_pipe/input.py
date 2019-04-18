@@ -311,7 +311,7 @@ class Input(object):
             try:
                 self._minimum_frequency = float(minimum_frequency)
                 self.minimum_frequency_dict = {
-                    det: minimum_frequency for det in self.detectors
+                    det: float(minimum_frequency) for det in self.detectors
                 }
             except ValueError:
                 self.minimum_frequency_dict = convert_string_to_dict(
@@ -354,7 +354,7 @@ class Input(object):
             try:
                 self._maximum_frequency = float(maximum_frequency)
                 self.maximum_frequency_dict = {
-                    det: maximum_frequency for det in self.detectors
+                    det: float(maximum_frequency) for det in self.detectors
                 }
             except ValueError:
                 self.maximum_frequency_dict = convert_string_to_dict(
