@@ -43,6 +43,8 @@ class DataAnalysisInput(Input):
         self._priors = None
         self.deltaT = args.deltaT
         self.reference_frequency = args.reference_frequency
+        self.minimum_frequency = args.minimum_frequency
+        self.maximum_frequency = args.maximum_frequency
         self.waveform_approximant = args.waveform_approximant
         self.distance_marginalization = args.distance_marginalization
         self.phase_marginalization = args.phase_marginalization
@@ -248,8 +250,8 @@ class DataAnalysisInput(Input):
                 self._priors.update(
                     bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
                         self.spline_calibration_envelope_dict[det],
-                        minimum_frequency=self.interferometers[0].minimum_frequency,
-                        maximum_frequency=self.interferometers[0].maximum_frequency,
+                        minimum_frequency=self.minimum_frequency_dict[det],
+                        maximum_frequency=self.maximum_frequency_dict[det],
                         n_nodes=self.spline_calibration_nodes,
                         label="{}".format(det),
                     )
@@ -310,8 +312,8 @@ class DataAnalysisInput(Input):
         return dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
-            minimum_frequency=self.interferometers[0].minimum_frequency,
-        )  # FIXME
+            minimum_frequency=self.minimum_frequency,
+        )
 
     @property
     def likelihood(self):
