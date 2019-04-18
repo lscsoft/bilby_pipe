@@ -624,7 +624,7 @@ class Dag(object):
         extra_lines += "\n+WantFTOnCheckpoint = True"
         extra_lines += '\n+CheckpointSig = "SIGTERM"'
         extra_lines += "\n+CheckpointExitBySignal = False"
-        extra_lines += "\n+CheckpointExitCode = 0"
+        extra_lines += "\n+CheckpointExitCode = 130"
         extra_lines += '\n+SuccessCheckpointExitSignal = "SIGTERM"'
 
         if self.inputs.transfer_files:
