@@ -384,6 +384,9 @@ class DataAnalysisInput(Input):
         return os.path.relpath(result_dir)
 
     def run_sampler(self):
+        import signal
+
+        signal.alarm(60)
         self.result = bilby.run_sampler(
             likelihood=self.likelihood,
             priors=self.priors,
