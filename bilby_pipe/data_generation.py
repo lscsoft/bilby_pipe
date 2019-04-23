@@ -4,6 +4,7 @@ Module containing the tools for data generation
 """
 from __future__ import division, print_function
 
+import os
 import sys
 import urllib
 import urllib.request
@@ -67,6 +68,10 @@ class DataGenerationInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
+        self.prior_file = args.prior_file
+        self._priors = None
+        self.deltaT = args.deltaT
+        self.default_prior = args.default_prior
         self.detectors = args.detectors
         self.channel_dict = args.channel_dict
         self.duration = args.duration
@@ -81,6 +86,7 @@ class DataGenerationInput(Input):
         self.maximum_frequency = args.maximum_frequency
         self.outdir = args.outdir
         self.label = args.label
+        self.roq_folder = args.roq_folder
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
@@ -223,6 +229,50 @@ class DataGenerationInput(Input):
             raise BilbyPipeError(
                 "Detector {} not given in the channel-dict".format(det)
             )
+
+    @property
+    def prior_file(self):
+        if self._prior_file is None:
+            return None
+        elif os.path.isfile(self._prior_file):
+            return self._prior_file
+        elif os.path.isfile(os.path.basename(self._prior_file)):
+            return os.path.basename(self._prior_file)
+        else:
+            raise FileNotFoundError(
+                "No prior file {} available".format(self._prior_file)
+            )
+
+    @prior_file.setter
+    def prior_file(self, prior_file):
+        self._prior_file = prior_file
+
+    @property
+    def priors(self):
+        if self._priors is None:
+            if self.default_prior in bilby.core.prior.__dict__.keys():
+                self._priors = bilby.core.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            elif self.default_prior in bilby.gw.prior.__dict__.keys():
+                self._priors = bilby.gw.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            else:
+                logger.info("No prior {} found.").format(self.default_prior)
+                logger.info("Defaulting to BBHPriorDict")
+                self._priors = bilby.gw.prior.BBHPriorDict(filename=self.prior_file)
+            if isinstance(
+                self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)
+            ):
+                self._priors["geocent_time"] = bilby.core.prior.Uniform(
+                    minimum=self.trigger_time - self.deltaT / 2,
+                    maximum=self.trigger_time + self.deltaT / 2,
+                    name="geocent_time",
+                    latex_label="$t_c$",
+                    unit="$s$",
+                )
+        return self._priors
 
     @property
     def detectors(self):
@@ -514,6 +564,42 @@ class DataGenerationInput(Input):
         )
         data_dump.to_pickle()
 
+    def save_roq_weights(self):
+        logger.info(
+            "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+        )
+        freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
+        freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
+
+        basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
+        basis_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
+
+        waveform_arguments = dict()
+        waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
+        waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
+
+        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+            sampling_frequency=self.interferometers.sampling_frequency,
+            duration=self.interferometers.duration,
+            frequency_domain_source_model=bilby.gw.source.roq,
+            start_time=self.interferometers.start_time,
+            waveform_arguments=waveform_arguments,
+        )
+
+        likelihood = bilby.gw.likelihood.ROQGravitationalWaveTransient(
+            interferometers=self.interferometers,
+            priors=self.priors,
+            waveform_generator=waveform_generator,
+            linear_matrix=basis_matrix_linear,
+            quadratic_matrix=basis_matrix_quadratic,
+        )
+
+        weight_file = os.path.join(
+            self.data_directory, self.label + "_roq_weights.json"
+        )
+
+        likelihood.save_weights(weight_file)
+
 
 def create_generation_parser():
     return create_parser(
@@ -533,5 +619,7 @@ def main():
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     data = DataGenerationInput(args, unknown_args)
     data.save_interferometer_list()
+    if args.likelihood_type == "ROQGravitationalWaveTransient":
+        data.save_roq_weights()
     if args.create_plots:
         data.interferometers.plot_data(outdir=data.data_directory, label=data.label)

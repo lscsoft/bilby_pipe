@@ -328,23 +328,23 @@ class DataAnalysisInput(Input):
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
-            logger.info(
-                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
-            )
-            basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
-            basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
-
             if self.time_marginalization:
                 logger.warning(
                     "Time marginalization not implemented for "
                     "ROQGravitationalWaveTransient: option ignored"
                 )
+
+            weight_file = os.path.join(
+                self.data_directory, self.data_label + "_roq_weights.json"
+            )
+
+            logger.info("Loading ROQ weights from {}".format(weight_file))
+
             return bilby.gw.likelihood.ROQGravitationalWaveTransient(
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
+                weights=weight_file,
                 priors=self.priors,
-                linear_matrix=basis_matrix_linear,
-                quadratic_matrix=basic_matrix_quadratic,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
             )
@@ -354,12 +354,7 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_generation(self):
-        if self.likelihood_type == "ROQGravitationalWaveTransient":
-            # FIXME this is temporary given that the SNR cannot be computed
-            # for the roq source model, as it passes mode=linear to
-            # antenna_detector_response
-            return None
-        elif "no_spin" in self._frequency_domain_source_model:
+        if "no_spin" in self._frequency_domain_source_model:
             return None
         else:
             if "binary_neutron_star" in self._frequency_domain_source_model:
