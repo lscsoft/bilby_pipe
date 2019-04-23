@@ -76,6 +76,7 @@ class MainInput(Input):
         self.sampler = args.sampler
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
+        self.n_parallel = args.n_parallel
         self.x509userproxy = args.X509
         self.transfer_files = args.transfer_files
 
@@ -569,17 +570,22 @@ class Dag(object):
             for detector in self.inputs.detectors:
                 detectors_list.append([detector])
         sampler_list = self.inputs.sampler
-        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
+        n_parallel = self.inputs.n_parallel
+        level_B_prod_list = list(
+            itertools.product(detectors_list, sampler_list, range(n_parallel))
+        )
 
         level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
         for idx in list(level_A_jobs_numbers):
-            for detectors, sampler in level_B_prod_list:
+            for detectors, sampler, run_id in level_B_prod_list:
                 jobs_inputs.append(
                     JobInput(
                         idx=idx,
                         meta_label=self.inputs.level_A_labels[idx],
-                        kwargs=dict(detectors=detectors, sampler=sampler),
+                        kwargs=dict(
+                            detectors=detectors, sampler=sampler, run_id=str(run_id)
+                        ),
                     )
                 )
 
@@ -599,6 +605,7 @@ class Dag(object):
         """
         detectors = job_input.kwargs["detectors"]
         sampler = job_input.kwargs["sampler"]
+        run_id = job_input.kwargs["run_id"]
         idx = job_input.idx
         if not isinstance(detectors, list):
             raise BilbyPipeError("`detectors must be a list")
@@ -607,6 +614,7 @@ class Dag(object):
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
         job_name = job_name.replace(".", "-")
+        job_name += "_{}".format(run_id)
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ""

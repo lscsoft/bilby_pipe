@@ -140,6 +140,12 @@ def create_parser(
                 "detector separately"
             ),
         )
+        parser.add(
+            "--n-parallel",
+            type=int,
+            default=1,
+            help="Number of parallel jobs to run per event",
+        )
 
     if pe_summary:
         pe_summary = parser.add_argument_group(title="Summary page arguments")
