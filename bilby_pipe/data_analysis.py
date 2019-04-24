@@ -61,6 +61,12 @@ class DataAnalysisInput(Input):
         self.roq_folder = args.roq_folder
         self.calibration_model = args.calibration_model
         self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+        self.spline_calibration_amplitude_uncertainty_dict = (
+            args.spline_calibration_amplitude_uncertainty_dict
+        )
+        self.spline_calibration_phase_uncertainty_dict = (
+            args.spline_calibration_phase_uncertainty_dict
+        )
         self.spline_calibration_nodes = args.spline_calibration_nodes
         self.result = None
 
@@ -247,15 +253,44 @@ class DataAnalysisInput(Input):
                 )
         if self.calibration_model is not None:
             for det in self.detectors:
-                self._priors.update(
-                    bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
-                        self.spline_calibration_envelope_dict[det],
-                        minimum_frequency=self.minimum_frequency_dict[det],
-                        maximum_frequency=self.maximum_frequency_dict[det],
-                        n_nodes=self.spline_calibration_nodes,
-                        label="{}".format(det),
+                if det in self.spline_calibration_envelope_dict:
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "{self.spline_calibration_envelope_dict[det]}"
                     )
-                )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
+                            self.spline_calibration_envelope_dict[det],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                elif (
+                    det in self.spline_calibration_amplitude_uncertainty_dict
+                    and det in self.spline_calibration_phase_uncertainty_dict
+                ):
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "provided constant uncertainty values."
+                    )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
+                            amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
+                                det
+                            ],
+                            phase_sigma=self.spline_calibration_phase_uncertainty_dict[
+                                det
+                            ],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                else:
+                    logger.warning(f"No calibration information for {det}")
         return self._priors
 
     @property
@@ -328,23 +363,23 @@ class DataAnalysisInput(Input):
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
-            logger.info(
-                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
-            )
-            basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
-            basic_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
-
             if self.time_marginalization:
                 logger.warning(
                     "Time marginalization not implemented for "
                     "ROQGravitationalWaveTransient: option ignored"
                 )
+
+            weight_file = os.path.join(
+                self.data_directory, self.data_label + "_roq_weights.json"
+            )
+
+            logger.info("Loading ROQ weights from {}".format(weight_file))
+
             return bilby.gw.likelihood.ROQGravitationalWaveTransient(
                 interferometers=self.interferometers,
                 waveform_generator=self.waveform_generator,
+                weights=weight_file,
                 priors=self.priors,
-                linear_matrix=basis_matrix_linear,
-                quadratic_matrix=basic_matrix_quadratic,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
             )
@@ -354,12 +389,7 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_generation(self):
-        if self.likelihood_type == "ROQGravitationalWaveTransient":
-            # FIXME this is temporary given that the SNR cannot be computed
-            # for the roq source model, as it passes mode=linear to
-            # antenna_detector_response
-            return None
-        elif "no_spin" in self._frequency_domain_source_model:
+        if "no_spin" in self._frequency_domain_source_model:
             return None
         else:
             if "binary_neutron_star" in self._frequency_domain_source_model:
@@ -396,22 +426,12 @@ class DataAnalysisInput(Input):
             conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data["injection_parameters"],
             result_class=self.result_class,
-            **self.sampler_kwargs
+            **self.sampler_kwargs,
         )
 
 
 def create_analysis_parser():
-    return create_parser(
-        pipe_args=False,
-        job_args=True,
-        run_spec=True,
-        pe_summary=False,
-        injection=False,
-        data_gen=False,
-        waveform=True,
-        generation=False,
-        analysis=True,
-    )
+    return create_parser(top_level=False)
 
 
 def main():

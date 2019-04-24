@@ -18,6 +18,7 @@ class TestDag(unittest.TestCase):
             accounting="accounting.group",
             detectors="H1",
             coherence_test=False,
+            n_parallel=1,
             injection=False,
             injection_file=None,
             n_injection=None,
@@ -75,17 +76,18 @@ class TestDag(unittest.TestCase):
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["H1", "L1"], sampler="nestle"),
+                kwargs=dict(detectors=["H1", "L1"], sampler="nestle",
+                            run_id='0'),
             ),
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["H1"], sampler="nestle"),
+                kwargs=dict(detectors=["H1"], sampler="nestle", run_id='0'),
             ),
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["L1"], sampler="nestle"),
+                kwargs=dict(detectors=["L1"], sampler="nestle", run_id='0'),
             ),
         ]
         self.assertEqual(dag.analysis_jobs_inputs, expected_jobs)

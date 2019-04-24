@@ -73,17 +73,15 @@ setup(
     author_email="gregory.ashton@ligo.org",
     license="MIT",
     version=VERSION,
-    package_data={"bilby_pipe": [version_file, "templates/*html"]},
+    package_data={"bilby_pipe": [version_file]},
     packages=["bilby_pipe"],
     install_requires=[
         "future",
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "gwdatafind",
-        "urllib3",
         "bilby>=0.4.1",
-        "deepdish",
+        "scipy>=1.2.0",
         "pesummary",
     ],
     entry_points={
@@ -91,7 +89,6 @@ setup(
             "bilby_pipe=bilby_pipe.main:main",
             "bilby_pipe_generation=bilby_pipe.data_generation:main",
             "bilby_pipe_analysis=bilby_pipe.data_analysis:main",
-            "bilby_pipe_singularity=bilby_pipe.singularity:main",
             "bilby_pipe_create_injection_file=bilby_pipe.create_injections:main",
         ]
     },

@@ -20,6 +20,8 @@ class TestDataGenerationInput(unittest.TestCase):
             "tests/test_data_generation.ini",
             "--outdir",
             self.outdir,
+            "--data-label",
+            "TEST",
         ]
         self.parser = create_generation_parser()
         self.inputs = DataGenerationInput(
@@ -157,6 +159,8 @@ class TestDataGenerationInput(unittest.TestCase):
             self.outdir,
             "--trigger-time",
             "1126259462",
+            "--data-label",
+            "TEST",
         ]
         self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 
@@ -169,6 +173,8 @@ class TestDataGenerationInput(unittest.TestCase):
             "--gps-file",
             self.gps_file,
             "--idx" "0",
+            "--data-label",
+            "TEST",
         ]
         self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 
@@ -180,6 +186,8 @@ class TestDataGenerationInput(unittest.TestCase):
             self.outdir,
             "--injection-file",
             "not_a_file",
+            "--data-label",
+            "TEST",
         ]
         with self.assertRaises(FileNotFoundError):
             self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
@@ -203,6 +211,8 @@ class TestDataGenerationInput(unittest.TestCase):
             self.outdir,
             "--injection-file",
             injection_file_name,
+            "--data-label",
+            "Test",
         ]
         self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 

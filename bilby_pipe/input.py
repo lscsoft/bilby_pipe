@@ -157,8 +157,8 @@ class Input(object):
     def gps_file(self, gps_file):
         """ Set the gps_file
 
-        At setting, will check the file exists, read  the contents, identify
-        which element to generate data for, and set the cache file
+        At setting, will check the file exists, read the contents, identify
+        which element to generate data for, and create the interferometers.
         """
         if gps_file is None:
             self._gps_file = None
@@ -291,6 +291,40 @@ class Input(object):
         else:
             logger.debug("spline_calibration_envelope_dict")
             self._spline_calibration_envelope_dict = None
+
+    @property
+    def spline_calibration_amplitude_uncertainty_dict(self):
+        return self._spline_calibration_amplitude_uncertainty_dict
+
+    @spline_calibration_amplitude_uncertainty_dict.setter
+    def spline_calibration_amplitude_uncertainty_dict(
+        self, spline_calibration_amplitude_uncertainty_dict
+    ):
+        if spline_calibration_amplitude_uncertainty_dict is not None:
+            self._spline_calibration_amplitude_uncertainty_dict = convert_string_to_dict(
+                spline_calibration_amplitude_uncertainty_dict,
+                "spline-calibration-amplitude-uncertainty-dict",
+            )
+        else:
+            logger.debug("spline_calibration_amplitude_uncertainty_dict")
+            self._spline_calibration_amplitude_uncertainty_dict = None
+
+    @property
+    def spline_calibration_phase_uncertainty_dict(self):
+        return self._spline_calibration_phase_uncertainty_dict
+
+    @spline_calibration_phase_uncertainty_dict.setter
+    def spline_calibration_phase_uncertainty_dict(
+        self, spline_calibration_phase_uncertainty_dict
+    ):
+        if spline_calibration_phase_uncertainty_dict is not None:
+            self._spline_calibration_phase_uncertainty_dict = convert_string_to_dict(
+                spline_calibration_phase_uncertainty_dict,
+                "spline-calibration-phase-uncertainty-dict",
+            )
+        else:
+            logger.debug("spline_calibration_phase_uncertainty_dict")
+            self._spline_calibration_phase_uncertainty_dict = None
 
     @property
     def minimum_frequency(self):

@@ -4,6 +4,7 @@ Module containing the tools for data generation
 """
 from __future__ import division, print_function
 
+import os
 import sys
 import urllib
 import urllib.request
@@ -64,13 +65,20 @@ class DataGenerationInput(Input):
             injection_parameters=None,
         )
         self.ini = args.ini
+        self.create_plots = args.create_plots
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
+        self.x509userproxy = args.X509
+        self.prior_file = args.prior_file
+        self._priors = None
+        self.deltaT = args.deltaT
+        self.default_prior = args.default_prior
         self.detectors = args.detectors
         self.channel_dict = args.channel_dict
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
+        self.deltaT = args.deltaT
         self.sampling_frequency = args.sampling_frequency
         self.psd_length = args.psd_length
         self.psd_fractional_overlap = args.psd_fractional_overlap
@@ -81,6 +89,7 @@ class DataGenerationInput(Input):
         self.maximum_frequency = args.maximum_frequency
         self.outdir = args.outdir
         self.label = args.label
+        self.roq_folder = args.roq_folder
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
@@ -108,9 +117,10 @@ class DataGenerationInput(Input):
         """
 
         self.data_set = False
+        self.injection_file = args.injection_file
+
         # The following are all mutually exclusive methods to set the data
-        if args.injection_file is not None:
-            self.injection_file = args.injection_file
+        if args.injection_file is not None and args.gps_file is None:
             self._set_interferometers_from_injection()
         elif self.data_set is False and args.gracedb is not None:
             self.gracedb = args.gracedb
@@ -225,6 +235,50 @@ class DataGenerationInput(Input):
             )
 
     @property
+    def prior_file(self):
+        if self._prior_file is None:
+            return None
+        elif os.path.isfile(self._prior_file):
+            return self._prior_file
+        elif os.path.isfile(os.path.basename(self._prior_file)):
+            return os.path.basename(self._prior_file)
+        else:
+            raise FileNotFoundError(
+                "No prior file {} available".format(self._prior_file)
+            )
+
+    @prior_file.setter
+    def prior_file(self, prior_file):
+        self._prior_file = prior_file
+
+    @property
+    def priors(self):
+        if self._priors is None:
+            if self.default_prior in bilby.core.prior.__dict__.keys():
+                self._priors = bilby.core.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            elif self.default_prior in bilby.gw.prior.__dict__.keys():
+                self._priors = bilby.gw.prior.__dict__[self.default_prior](
+                    filename=self.prior_file
+                )
+            else:
+                logger.info("No prior {} found.").format(self.default_prior)
+                logger.info("Defaulting to BBHPriorDict")
+                self._priors = bilby.gw.prior.BBHPriorDict(filename=self.prior_file)
+            if isinstance(
+                self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)
+            ):
+                self._priors["geocent_time"] = bilby.core.prior.Uniform(
+                    minimum=self.trigger_time - self.deltaT / 2,
+                    maximum=self.trigger_time + self.deltaT / 2,
+                    name="geocent_time",
+                    latex_label="$t_c$",
+                    unit="$s$",
+                )
+        return self._priors
+
+    @property
     def detectors(self):
         """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
         return self._detectors
@@ -276,7 +330,7 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             self.test_connection()
             candidate = bilby.gw.utils.gracedb_to_json(
-                gracedb, outdir=self.data_directory
+                gracedb, outdir=self.data_directory, cred=self.x509userproxy
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
@@ -301,7 +355,7 @@ class DataGenerationInput(Input):
         """
         gps_start_times = self.read_gps_file()
         self.start_time = gps_start_times[self.idx]
-        self.trigger_time = self.start_time + self.duration / 2.0
+        self.trigger_time = self.start_time + self.duration - self.post_trigger_duration
 
     def _set_interferometers_from_injection(self):
         """ Method to generate the interferometers data from an injection """
@@ -350,6 +404,66 @@ class DataGenerationInput(Input):
 
         self.interferometers = ifos
 
+    def inject_signal_into_time_domain_data(self, data, ifo):
+        """ Method to inject a signal into time-domain interferometer data
+
+        Parameters
+        ----------
+        data: gwpy.timeseries.TimeSeries
+            The data into which to inject the signal
+        ifo: bilby.gw.detector.Interferometer
+            The interferometer for which the data relates too
+
+        Returns
+        -------
+        data_and_signal: gwpy.timeseries.TimeSeries
+            The data with the signal added
+
+        """
+
+        if hasattr(self, "injection_parameters"):
+            parameters = self.injection_parameters
+        else:
+            parameters = self.injection_df.iloc[self.idx].to_dict()
+            parameters["geocent_time"] = np.random.uniform(
+                self.trigger_time - self.deltaT / 2.0,
+                self.trigger_time + self.deltaT / 2.0,
+            )
+            self.meta_data["injection_parameters"] = parameters
+            self.injection_parameters = parameters
+
+        waveform_arguments = dict(
+            waveform_approximant=self.waveform_approximant,
+            reference_frequency=self.reference_frequency,
+            minimum_frequency=self.minimum_frequency,
+        )
+
+        waveform_generator = bilby.gw.WaveformGenerator(
+            duration=self.duration,
+            sampling_frequency=self.sampling_frequency,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
+            parameter_conversion=self.parameter_conversion,
+            waveform_arguments=waveform_arguments,
+        )
+
+        if self.create_plots:
+            outdir = self.data_directory
+            label = self.label
+        else:
+            outdir = None
+            label = None
+
+        signal_and_data, meta_data = bilby.gw.detector.inject_signal_into_gwpy_timeseries(
+            data=data,
+            waveform_generator=waveform_generator,
+            parameters=parameters,
+            det=ifo.name,
+            outdir=outdir,
+            label=label,
+        )
+        ifo.meta_data = meta_data
+        return signal_and_data
+
     @property
     def psd_dict(self):
         return self._psd_dict
@@ -379,6 +493,8 @@ class DataGenerationInput(Input):
                 det, self.get_channel_type(det), self.start_time, end_time
             )
             ifo = bilby.gw.detector.get_empty_interferometer(det)
+            if self.injection_file is not None:
+                data = self.inject_signal_into_time_domain_data(data, ifo)
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
             if self.psd_dict is not None and det in self.psd_dict:
@@ -501,6 +617,8 @@ class DataGenerationInput(Input):
 
         self._interferometers = interferometers
         self.data_set = True
+        if self.create_plots:
+            interferometers.plot_data(outdir=self.data_directory, label=self.label)
 
     def save_interferometer_list(self):
         """ Method to dump the saved data to disk for later analysis """
@@ -514,24 +632,50 @@ class DataGenerationInput(Input):
         )
         data_dump.to_pickle()
 
+    def save_roq_weights(self):
+        logger.info(
+            "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+        )
+        freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
+        freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
+
+        basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
+        basis_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
+
+        waveform_arguments = dict()
+        waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
+        waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
+
+        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+            sampling_frequency=self.interferometers.sampling_frequency,
+            duration=self.interferometers.duration,
+            frequency_domain_source_model=bilby.gw.source.roq,
+            start_time=self.interferometers.start_time,
+            waveform_arguments=waveform_arguments,
+        )
+
+        likelihood = bilby.gw.likelihood.ROQGravitationalWaveTransient(
+            interferometers=self.interferometers,
+            priors=self.priors,
+            waveform_generator=waveform_generator,
+            linear_matrix=basis_matrix_linear,
+            quadratic_matrix=basis_matrix_quadratic,
+        )
+
+        weight_file = os.path.join(
+            self.data_directory, self.label + "_roq_weights.json"
+        )
+
+        likelihood.save_weights(weight_file)
+
 
 def create_generation_parser():
-    return create_parser(
-        pipe_args=False,
-        job_args=True,
-        run_spec=True,
-        pe_summary=False,
-        injection=True,
-        data_gen=True,
-        waveform=True,
-        generation=True,
-        analysis=False,
-    )
+    return create_parser(top_level=False)
 
 
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     data = DataGenerationInput(args, unknown_args)
     data.save_interferometer_list()
-    if args.create_plots:
-        data.interferometers.plot_data(outdir=data.data_directory, label=data.label)
+    if args.likelihood_type == "ROQGravitationalWaveTransient":
+        data.save_roq_weights()

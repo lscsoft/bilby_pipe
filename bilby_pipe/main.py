@@ -76,6 +76,7 @@ class MainInput(Input):
         self.sampler = args.sampler
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
+        self.n_parallel = args.n_parallel
         self.x509userproxy = args.X509
         self.transfer_files = args.transfer_files
 
@@ -237,6 +238,7 @@ class MainInput(Input):
 
         self.n_level_A_jobs = n
         self.level_A_labels = [str(x) for x in gpstimes]
+        self.gpstimes = gpstimes
 
     @property
     def n_injection(self):
@@ -244,7 +246,14 @@ class MainInput(Input):
 
     @n_injection.setter
     def n_injection(self, n_injection):
-        if n_injection is not None:
+        if n_injection is None and hasattr(self, "gpstimes"):
+            logger.info("Injecting signals into segments defined by gpstimes")
+            self._n_injection = self.n_level_A_jobs
+            self.level_A_labels = [
+                label + "_inj{}".format(ii)
+                for ii, label in enumerate(self.level_A_labels)
+            ]
+        elif n_injection is not None:
             logger.info("n_injection={}, setting level A jobs".format(n_injection))
             self.n_level_A_jobs = n_injection
             self._n_injection = n_injection
@@ -436,6 +445,8 @@ class Dag(object):
             inj_args, inj_unknown_args = parse_args(
                 sys.argv[1:], create_injections.create_parser()
             )
+            if inj_args.n_injection is None and self.inputs.n_injection is not None:
+                inj_args.n_injection = self.inputs.n_injection
             inj_inputs = create_injections.CreateInjectionInput(
                 inj_args, inj_unknown_args
             )
@@ -517,6 +528,7 @@ class Dag(object):
         arguments.add("idx", idx)
         arguments.add("cluster", "$(Cluster)")
         arguments.add("process", "$(Process)")
+        arguments.add("X509", self.inputs.x509userproxy)
         if self.inputs.injection_file is not None:
             arguments.add("injection-file", self.inputs.injection_file)
         arguments.add_unknown_args(self.inputs.unknown_args)
@@ -569,17 +581,22 @@ class Dag(object):
             for detector in self.inputs.detectors:
                 detectors_list.append([detector])
         sampler_list = self.inputs.sampler
-        level_B_prod_list = list(itertools.product(detectors_list, sampler_list))
+        n_parallel = self.inputs.n_parallel
+        level_B_prod_list = list(
+            itertools.product(detectors_list, sampler_list, range(n_parallel))
+        )
 
         level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
         jobs_inputs = []
         for idx in list(level_A_jobs_numbers):
-            for detectors, sampler in level_B_prod_list:
+            for detectors, sampler, run_id in level_B_prod_list:
                 jobs_inputs.append(
                     JobInput(
                         idx=idx,
                         meta_label=self.inputs.level_A_labels[idx],
-                        kwargs=dict(detectors=detectors, sampler=sampler),
+                        kwargs=dict(
+                            detectors=detectors, sampler=sampler, run_id=str(run_id)
+                        ),
                     )
                 )
 
@@ -599,6 +616,7 @@ class Dag(object):
         """
         detectors = job_input.kwargs["detectors"]
         sampler = job_input.kwargs["sampler"]
+        run_id = job_input.kwargs["run_id"]
         idx = job_input.idx
         if not isinstance(detectors, list):
             raise BilbyPipeError("`detectors must be a list")
@@ -607,6 +625,7 @@ class Dag(object):
         if job_input.meta_label is not None:
             job_name = "_".join([job_name, job_input.meta_label])
         job_name = job_name.replace(".", "-")
+        job_name += "_{}".format(run_id)
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
         submit = self.inputs.submit_directory
         extra_lines = ""
@@ -910,17 +929,7 @@ class DataDump(object):
 
 
 def create_main_parser():
-    return create_parser(
-        pipe_args=True,
-        job_args=True,
-        run_spec=True,
-        pe_summary=True,
-        injection=True,
-        data_gen=True,
-        waveform=True,
-        generation=False,
-        analysis=False,
-    )
+    return create_parser(top_level=True)
 
 
 def main():
