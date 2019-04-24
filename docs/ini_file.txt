@@ -2,46 +2,36 @@
 The ini file
 ============
 
-The primary user-inputs to :code:bilby_pipe are command-line arguments, or ini
-files which can be thought of as a set of command-line arguments stored in a
+The primary user-inputs to :code:`bilby_pipe` are command-line arguments, or an
+ini file which can be thought of as a set of command-line arguments stored in a
 single file. To handle both command line arguments and ini-files, we use the
 `ConfigArgParse <https://pypi.org/project/ConfigArgParse/>`_ python module.
 
-An example ini file for GW150914
+An ini file can contain multiple types of input. In this example, we
+demonstrate passing in a string for the :code:`gracedb` attribute, an integer
+for the :code:`duration`, a list for the :code:`detectors`, a boolen for the
+:code:`coherence-test`, and a dictionary of :code:`sampler-kwargs`:
 
 .. code-block:: text
 
+    # config.ini
     gracedb = G184098
-    label = GW150914
-    include-detectors = [H1, L1]
-    coherence-test = True
     duration = 4
-    outdir = GW150914
-    create-summary = True
-    sampler = dynesty
-    sampler-kwargs = {'nlive': 500}
-    channel_names = [H1:DCS-CALIB_STRAIN_C02, L1:DCS-CALIB_STRAIN_C02]
-    prior_file = GW150914.prior
+    detectors = [H1, L1]
+    sampler-kwargs = {nlive: 500, n_check_point: 1000}
 
-    executable = bbh_from_gracedb.py
-    accounting = ligo.dev.o3.cbc.pe.lalinference
+For dictionaries, the input can be quite loose, for example here we use mixed
+colons, equals signs and quotations.
 
-If the contents of this file are saved as :code:`GW1509145.ini`, this ini-file
- can be passed to :code:`bilby_pipe` with
+.. code-block:: text
 
-.. code-block:: console
-
-   $ bilby_pipe GW150914.ini
+    sampler-kwargs = {nlive: 500, method='rwalk', 'n_check_point' = 1000}
 
 Additional command-line arguments can be given, or those in the ini file
 overwritten, for example
 
 .. code-block:: console
 
-   $ bilby_pipe GW150914.ini --include-detectors [H1]
+   $ bilby_pipe config.ini --duration 8
 
-will overwrite the :code:`include-detectors` argument provided in the ini file.
-
-The complete ini file, containing all available flags, can be found `here <https://git.ligo.org/lscsoft/bilby_pipe/blob/master/example_ini_files/adjust_all_inputs.ini>`_.
-
-
+will overwrite the :code:`duration` argument provided in the ini file.

@@ -69,6 +69,7 @@ class DataGenerationInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
+        self.x509userproxy = args.X509
         self.prior_file = args.prior_file
         self._priors = None
         self.deltaT = args.deltaT
@@ -329,7 +330,7 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             self.test_connection()
             candidate = bilby.gw.utils.gracedb_to_json(
-                gracedb, outdir=self.data_directory
+                gracedb, outdir=self.data_directory, cred=self.x509userproxy
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
@@ -669,17 +670,7 @@ class DataGenerationInput(Input):
 
 
 def create_generation_parser():
-    return create_parser(
-        pipe_args=False,
-        job_args=True,
-        run_spec=True,
-        pe_summary=False,
-        injection=True,
-        data_gen=True,
-        waveform=True,
-        generation=True,
-        analysis=False,
-    )
+    return create_parser(top_level=False)
 
 
 def main():
