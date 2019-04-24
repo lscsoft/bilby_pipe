@@ -376,6 +376,26 @@ def create_parser(
         help=("Dictionary pointing to the spline calibration envelope files"),
     )
 
+    parser.add(
+        "--spline-calibration-amplitude-uncertainty-dict",
+        type=str,
+        default=None,
+        help=(
+            "Dictionary of the amplitude uncertainties for for the constant "
+            "uncertainty model"
+        ),
+    )
+
+    parser.add(
+        "--spline-calibration-phase-uncertainty-dict",
+        type=str,
+        default=None,
+        help=(
+            "Dictionary of the phase uncertainties for for the constant "
+            "uncertainty model"
+        ),
+    )
+
     parser.add("--spline-calibration-nodes", type=int, default=5, help=(""))
 
     parser.add(

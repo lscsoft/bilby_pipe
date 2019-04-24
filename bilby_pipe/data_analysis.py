@@ -61,6 +61,12 @@ class DataAnalysisInput(Input):
         self.roq_folder = args.roq_folder
         self.calibration_model = args.calibration_model
         self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+        self.spline_calibration_amplitude_uncertainty_dict = (
+            args.spline_calibration_amplitude_uncertainty_dict
+        )
+        self.spline_calibration_phase_uncertainty_dict = (
+            args.spline_calibration_phase_uncertainty_dict
+        )
         self.spline_calibration_nodes = args.spline_calibration_nodes
         self.result = None
 
@@ -247,15 +253,44 @@ class DataAnalysisInput(Input):
                 )
         if self.calibration_model is not None:
             for det in self.detectors:
-                self._priors.update(
-                    bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
-                        self.spline_calibration_envelope_dict[det],
-                        minimum_frequency=self.minimum_frequency_dict[det],
-                        maximum_frequency=self.maximum_frequency_dict[det],
-                        n_nodes=self.spline_calibration_nodes,
-                        label="{}".format(det),
+                if det in self.spline_calibration_envelope_dict:
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "{self.spline_calibration_envelope_dict[det]}"
                     )
-                )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
+                            self.spline_calibration_envelope_dict[det],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                elif (
+                    det in self.spline_calibration_amplitude_uncertainty_dict
+                    and det in self.spline_calibration_phase_uncertainty_dict
+                ):
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "provided constant uncertainty values."
+                    )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
+                            amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
+                                det
+                            ],
+                            phase_sigma=self.spline_calibration_phase_uncertainty_dict[
+                                det
+                            ],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                else:
+                    logger.warning(f"No calibration information for {det}")
         return self._priors
 
     @property
@@ -388,7 +423,7 @@ class DataAnalysisInput(Input):
             conversion_function=self.parameter_generation,
             injection_parameters=self.data_dump.meta_data["injection_parameters"],
             result_class=self.result_class,
-            **self.sampler_kwargs
+            **self.sampler_kwargs,
         )
 
 
