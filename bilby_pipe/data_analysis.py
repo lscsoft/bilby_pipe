@@ -5,6 +5,7 @@ Script to analyse the stored data
 from __future__ import division, print_function
 
 import sys
+import signal
 import os
 
 import numpy as np
@@ -17,6 +18,11 @@ from bilby_pipe.utils import logger, BilbyPipeError, convert_string_to_dict
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.input import Input
+
+
+def sighandler(signum, frame):
+    logger.info("Performing periodic eviction")
+    sys.exit(130)
 
 
 class DataAnalysisInput(Input):
@@ -69,6 +75,7 @@ class DataAnalysisInput(Input):
         )
         self.spline_calibration_nodes = args.spline_calibration_nodes
         self.result = None
+        self.periodic_restart_time = args.periodic_restart_time
 
     @property
     def cluster(self):
@@ -414,6 +421,8 @@ class DataAnalysisInput(Input):
         return os.path.relpath(result_dir)
 
     def run_sampler(self):
+        signal.signal(signal.SIGALRM, handler=sighandler)
+        signal.alarm(self.periodic_restart_time)
         self.result = bilby.run_sampler(
             likelihood=self.likelihood,
             priors=self.priors,

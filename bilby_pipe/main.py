@@ -636,15 +636,10 @@ class Dag(object):
 
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
         extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
-        extra_lines += "\nkill_sig = SIGTERM"
-        extra_lines += "\nremove_kill_sig = SIGTERM"
-        extra_lines += "\nrun_as_owner = True"
+
         extra_lines += "\n+WantCheckpointSignal = True"
         extra_lines += "\n+WantFTOnCheckpoint = True"
-        extra_lines += '\n+CheckpointSig = "SIGTERM"'
-        extra_lines += "\n+CheckpointExitBySignal = False"
-        extra_lines += "\n+CheckpointExitCode = 0"
-        extra_lines += '\n+SuccessCheckpointExitSignal = "SIGTERM"'
+        extra_lines += "\n+SuccessCheckpointExitCode = 130"
 
         if self.inputs.transfer_files:
             extra_lines += "\nshould_transfer_files = YES"
