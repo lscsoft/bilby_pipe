@@ -528,6 +528,7 @@ class Dag(object):
         arguments.add("idx", idx)
         arguments.add("cluster", "$(Cluster)")
         arguments.add("process", "$(Process)")
+        arguments.add("X509", self.inputs.x509userproxy)
         if self.inputs.injection_file is not None:
             arguments.add("injection-file", self.inputs.injection_file)
         arguments.add_unknown_args(self.inputs.unknown_args)
@@ -927,17 +928,7 @@ class DataDump(object):
 
 
 def create_main_parser():
-    return create_parser(
-        pipe_args=True,
-        job_args=True,
-        run_spec=True,
-        pe_summary=True,
-        injection=True,
-        data_gen=True,
-        waveform=True,
-        generation=False,
-        analysis=False,
-    )
+    return create_parser(top_level=True)
 
 
 def main():

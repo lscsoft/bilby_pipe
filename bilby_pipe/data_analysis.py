@@ -428,17 +428,7 @@ class DataAnalysisInput(Input):
 
 
 def create_analysis_parser():
-    return create_parser(
-        pipe_args=False,
-        job_args=True,
-        run_spec=True,
-        pe_summary=False,
-        injection=False,
-        data_gen=False,
-        waveform=True,
-        generation=False,
-        analysis=True,
-    )
+    return create_parser(top_level=False)
 
 
 def main():
