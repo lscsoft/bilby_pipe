@@ -46,17 +46,6 @@ python-3.6:
     # Run tests
     - pytest
 
-python-3.5:
-  stage: test
-  image: bilbydev/bilby_pipe-test-suite-python35
-  script:
-    - pip install lalsuite gwpy bilby
-    - python setup.py install
-
-    # Run tests
-    - pytest
-
-
 documentation:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37

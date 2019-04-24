@@ -65,6 +65,7 @@ class DataGenerationInput(Input):
             injection_parameters=None,
         )
         self.ini = args.ini
+        self.create_plots = args.create_plots
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
@@ -76,6 +77,7 @@ class DataGenerationInput(Input):
         self.channel_dict = args.channel_dict
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
+        self.deltaT = args.deltaT
         self.sampling_frequency = args.sampling_frequency
         self.psd_length = args.psd_length
         self.psd_fractional_overlap = args.psd_fractional_overlap
@@ -114,9 +116,10 @@ class DataGenerationInput(Input):
         """
 
         self.data_set = False
+        self.injection_file = args.injection_file
+
         # The following are all mutually exclusive methods to set the data
-        if args.injection_file is not None:
-            self.injection_file = args.injection_file
+        if args.injection_file is not None and args.gps_file is None:
             self._set_interferometers_from_injection()
         elif self.data_set is False and args.gracedb is not None:
             self.gracedb = args.gracedb
@@ -351,7 +354,7 @@ class DataGenerationInput(Input):
         """
         gps_start_times = self.read_gps_file()
         self.start_time = gps_start_times[self.idx]
-        self.trigger_time = self.start_time + self.duration / 2.0
+        self.trigger_time = self.start_time + self.duration - self.post_trigger_duration
 
     def _set_interferometers_from_injection(self):
         """ Method to generate the interferometers data from an injection """
@@ -400,6 +403,66 @@ class DataGenerationInput(Input):
 
         self.interferometers = ifos
 
+    def inject_signal_into_time_domain_data(self, data, ifo):
+        """ Method to inject a signal into time-domain interferometer data
+
+        Parameters
+        ----------
+        data: gwpy.timeseries.TimeSeries
+            The data into which to inject the signal
+        ifo: bilby.gw.detector.Interferometer
+            The interferometer for which the data relates too
+
+        Returns
+        -------
+        data_and_signal: gwpy.timeseries.TimeSeries
+            The data with the signal added
+
+        """
+
+        if hasattr(self, "injection_parameters"):
+            parameters = self.injection_parameters
+        else:
+            parameters = self.injection_df.iloc[self.idx].to_dict()
+            parameters["geocent_time"] = np.random.uniform(
+                self.trigger_time - self.deltaT / 2.0,
+                self.trigger_time + self.deltaT / 2.0,
+            )
+            self.meta_data["injection_parameters"] = parameters
+            self.injection_parameters = parameters
+
+        waveform_arguments = dict(
+            waveform_approximant=self.waveform_approximant,
+            reference_frequency=self.reference_frequency,
+            minimum_frequency=self.minimum_frequency,
+        )
+
+        waveform_generator = bilby.gw.WaveformGenerator(
+            duration=self.duration,
+            sampling_frequency=self.sampling_frequency,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
+            parameter_conversion=self.parameter_conversion,
+            waveform_arguments=waveform_arguments,
+        )
+
+        if self.create_plots:
+            outdir = self.data_directory
+            label = self.label
+        else:
+            outdir = None
+            label = None
+
+        signal_and_data, meta_data = bilby.gw.detector.inject_signal_into_gwpy_timeseries(
+            data=data,
+            waveform_generator=waveform_generator,
+            parameters=parameters,
+            det=ifo.name,
+            outdir=outdir,
+            label=label,
+        )
+        ifo.meta_data = meta_data
+        return signal_and_data
+
     @property
     def psd_dict(self):
         return self._psd_dict
@@ -429,6 +492,8 @@ class DataGenerationInput(Input):
                 det, self.get_channel_type(det), self.start_time, end_time
             )
             ifo = bilby.gw.detector.get_empty_interferometer(det)
+            if self.injection_file is not None:
+                data = self.inject_signal_into_time_domain_data(data, ifo)
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
             if self.psd_dict is not None and det in self.psd_dict:
@@ -551,6 +616,8 @@ class DataGenerationInput(Input):
 
         self._interferometers = interferometers
         self.data_set = True
+        if self.create_plots:
+            interferometers.plot_data(outdir=self.data_directory, label=self.label)
 
     def save_interferometer_list(self):
         """ Method to dump the saved data to disk for later analysis """
@@ -621,5 +688,3 @@ def main():
     data.save_interferometer_list()
     if args.likelihood_type == "ROQGravitationalWaveTransient":
         data.save_roq_weights()
-    if args.create_plots:
-        data.interferometers.plot_data(outdir=data.data_directory, label=data.label)

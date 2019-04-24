@@ -83,6 +83,7 @@ setup(
         "gwdatafind",
         "urllib3",
         "bilby>=0.4.1",
+        "scipy>=1.2.0",
         "deepdish",
         "pesummary",
     ],

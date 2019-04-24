@@ -246,13 +246,9 @@ def create_parser(
         )
         det_parser.add(
             "--post-trigger-duration",
-            type=int,
+            type=float,
             default=2,
-            help=(
-                "Used to set the segment start in relation to the trigger time."
-                " The segment start time is given by "
-                " trigger_time + post_trigger_duration - duration"
-            ),
+            help=("Time (in s) after the trigger_time to the end of the segment"),
         )
         det_parser.add("--sampling-frequency", default=2048, type=int)
 
@@ -291,7 +287,7 @@ def create_parser(
         )
         det_parser.add(
             "--psd-method",
-            default="scipy-welch",
+            default="median",
             type=str,
             help="PSD method see gwpy.timeseries.TimeSeries.psd for options",
         )

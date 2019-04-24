@@ -238,6 +238,7 @@ class MainInput(Input):
 
         self.n_level_A_jobs = n
         self.level_A_labels = [str(x) for x in gpstimes]
+        self.gpstimes = gpstimes
 
     @property
     def n_injection(self):
@@ -245,7 +246,14 @@ class MainInput(Input):
 
     @n_injection.setter
     def n_injection(self, n_injection):
-        if n_injection is not None:
+        if n_injection is None and hasattr(self, "gpstimes"):
+            logger.info("Injecting signals into segments defined by gpstimes")
+            self._n_injection = self.n_level_A_jobs
+            self.level_A_labels = [
+                label + "_inj{}".format(ii)
+                for ii, label in enumerate(self.level_A_labels)
+            ]
+        elif n_injection is not None:
             logger.info("n_injection={}, setting level A jobs".format(n_injection))
             self.n_level_A_jobs = n_injection
             self._n_injection = n_injection
@@ -437,6 +445,8 @@ class Dag(object):
             inj_args, inj_unknown_args = parse_args(
                 sys.argv[1:], create_injections.create_parser()
             )
+            if inj_args.n_injection is None and self.inputs.n_injection is not None:
+                inj_args.n_injection = self.inputs.n_injection
             inj_inputs = create_injections.CreateInjectionInput(
                 inj_args, inj_unknown_args
             )
