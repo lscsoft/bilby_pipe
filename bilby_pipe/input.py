@@ -157,8 +157,8 @@ class Input(object):
     def gps_file(self, gps_file):
         """ Set the gps_file
 
-        At setting, will check the file exists, read  the contents, identify
-        which element to generate data for, and set the cache file
+        At setting, will check the file exists, read the contents, identify
+        which element to generate data for, and create the interferometers.
         """
         if gps_file is None:
             self._gps_file = None
