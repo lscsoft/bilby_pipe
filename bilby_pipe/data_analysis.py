@@ -55,9 +55,9 @@ class DataAnalysisInput(Input):
         self.distance_marginalization = args.distance_marginalization
         self.phase_marginalization = args.phase_marginalization
         self.time_marginalization = args.time_marginalization
-        self.sampling_seed = args.sampling_seed
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
+        self.sampling_seed = args.sampling_seed
         self.outdir = args.outdir
         self.label = args.label
         self.data_label = args.data_label
@@ -120,6 +120,11 @@ class DataAnalysisInput(Input):
         self._samplng_seed = sampling_seed
         np.random.seed(sampling_seed)
         logger.info("Sampling seed set to {}".format(sampling_seed))
+
+        if self.sampler == "cpnest":
+            self.sampler_kwargs["seed"] = self.sampler_kwargs.get(
+                "seed", self._samplng_seed
+            )
 
     @property
     def sampler(self):
