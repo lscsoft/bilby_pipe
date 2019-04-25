@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Tools to analyse a set of runs for parameter-parameter plots """
+""" Tool to analyse a set of runs for parameter-parameter plots """
 
 import argparse
 import glob
@@ -11,16 +11,35 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
+import matplotlib as mpl
+
+mpl.rcParams.update(mpl.rcParamsDefault)
+
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog="bilby_pipe PP test",
+        usage="Generates a pp plot from a directory containing a set of results",
+    )
     parser.add_argument("directory", help="Path to the result files")
+    parser.add_argument(
+        "--outdir", help="Path to output directory, defaults to input directory "
+    )
+    parser.add_argument("--label", help="Additional label to use for output")
+    parser.add_argument(
+        "--print", action="store_true", help="Print the list of filenames used"
+    )
     parser.add_argument(
         "-n", type=int, help="Number of samples to truncate to", default=None
     )
     args, _ = parser.parse_known_args()
 
-    results_files = glob.glob(os.path.join(args.directory + "*result*"))
+    results_files = []
+    for extension in ["json", "h5", "hdf5"]:
+        glob_string = os.path.join(args.directory, "*result*" + extension)
+        results_files += glob.glob(glob_string)
+    results_files = [rf for rf in results_files if os.path.isfile(rf)]
+
     if len(results_files) == 0:
         raise ValueError("No results found in path {}".format(args.directory))
 
@@ -50,16 +69,23 @@ def main():
     else:
         print("Results complete")
 
+    if args.print:
+        print(
+            "List of result-labels: {}".format(sorted([res.label for res in results]))
+        )
+
     r0 = results[0]
     sampler = r0.sampler
-    nlive = r0.sampler_kwargs["nlive"]
-    walks = r0.sampler_kwargs["walks"]
-    label = "{}/{}_nlive{}_walks{}".format(args.directory, sampler, nlive, walks)
+    if args.outdir is None:
+        args.outdir = args.directory
+    basename = "{}/{}".format(args.outdir, sampler)
+    if args.label is not None:
+        basename += "_{}".format(args.label)
 
     print("Create the PP plot")
     keys = r0.priors.keys()
     print("Parameters = {}".format(keys))
-    make_pp_plot(results, filename="{}_pp.png".format(label), keys=keys)
+    make_pp_plot(results, filename="{}_pp.png".format(basename), keys=keys)
 
     print("Create sampling-time histogram")
     stimes = [r.sampling_time for r in results]
@@ -67,7 +93,7 @@ def main():
     ax.hist(np.array(stimes) / 3600, bins=50)
     ax.set_xlabel("Sampling time [hr]")
     fig.tight_layout()
-    fig.savefig("{}_sampling_times.png".format(label))
+    fig.savefig("{}_sampling_times.png".format(basename))
 
     print("Create optimal SNR plot")
     fig, ax = plt.subplots()
@@ -84,4 +110,4 @@ def main():
     ax.hist(network_snr, bins=50, label=det)
     ax.set_xlabel("Network optimal SNR")
     fig.tight_layout()
-    fig.savefig("{}_optimal_SNR.png".format(label))
+    fig.savefig("{}_optimal_SNR.png".format(basename))

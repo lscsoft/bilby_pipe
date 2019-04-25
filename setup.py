@@ -90,6 +90,7 @@ setup(
             "bilby_pipe_generation=bilby_pipe.data_generation:main",
             "bilby_pipe_analysis=bilby_pipe.data_analysis:main",
             "bilby_pipe_create_injection_file=bilby_pipe.create_injections:main",
+            "bilby_pipe_pp_test=bilby_pipe.pp_test:main",
         ]
     },
     classifiers=[
