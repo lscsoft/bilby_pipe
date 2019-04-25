@@ -85,6 +85,7 @@ class DataGenerationInput(Input):
         self.psd_start_time = args.psd_start_time
         self.psd_method = args.psd_method
         self.psd_dict = args.psd_dict
+        self.zero_noise = args.zero_noise
         self.minimum_frequency = args.minimum_frequency
         self.maximum_frequency = args.maximum_frequency
         self.outdir = args.outdir
@@ -392,11 +393,18 @@ class DataGenerationInput(Input):
                 if ifo.name in self.psd_dict.keys():
                     self._set_psd_from_file(ifo)
 
-        ifos.set_strain_data_from_power_spectral_densities(
-            sampling_frequency=self.sampling_frequency,
-            duration=self.duration,
-            start_time=self.trigger_time - self.duration / 2,
-        )
+        if self.zero_noise:
+            ifos.set_strain_data_from_zero_noise(
+                sampling_frequency=self.sampling_frequency,
+                duration=self.duration,
+                start_time=self.trigger_time - self.duration / 2,
+            )
+        else:
+            ifos.set_strain_data_from_power_spectral_densities(
+                sampling_frequency=self.sampling_frequency,
+                duration=self.duration,
+                start_time=self.trigger_time - self.duration / 2,
+            )
 
         ifos.inject_signal(
             waveform_generator=waveform_generator, parameters=self.injection_parameters

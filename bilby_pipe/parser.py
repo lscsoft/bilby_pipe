@@ -197,6 +197,9 @@ def create_parser(top_level=True):
             " of the minimum frequency, e.g. {H1: 10, L1: 20}."
         ),
     )
+    det_parser.add(
+        "--zero-noise", default=False, type=bool, help="Use a zero noise realisation"
+    )
 
     injection_parser = parser.add_argument_group(title="Injection arguments")
     injection_parser.add(
