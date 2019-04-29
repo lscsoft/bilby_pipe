@@ -4,6 +4,7 @@ import unittest
 import json
 
 import bilby
+import numpy as np
 import pandas as pd
 
 import bilby_pipe
@@ -53,7 +54,7 @@ class TestParser(unittest.TestCase):
         self.args.n_injection = None
         inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
         with self.assertRaises(BilbyPipeError):
-            inputs.n_injection
+            print(inputs.n_injection)
 
     def test_unknown_prior_file(self):
         self.args.prior_file = "not_a_file"
@@ -70,8 +71,10 @@ class TestParser(unittest.TestCase):
         priors = bilby.core.prior.PriorDict(self.example_prior_file)
         self.assertEqual(priors, inputs.priors)
 
-    def test_create_injection_file(self):
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
+    def test_create_injection_file_gaussian_noise(self):
+        args = self.args
+        args.gaussian_noise = True
+        inputs = bilby_pipe.create_injections.CreateInjectionInput(args, [])
         filename = os.path.join(self.outdir, "test_injection_file.h5")
         self.assertFalse(os.path.exists(filename))
         inputs.create_injection_file(filename)
@@ -79,7 +82,6 @@ class TestParser(unittest.TestCase):
 
         with open(filename, "r") as file:
             data = json.load(file, object_hook=bilby.core.result.decode_bilby_json)
-        self.assertTrue(data.keys(), ["injections", "prior"])
 
         # prior = bilby.core.prior.PriorDict(self.example_prior_file)
         # self.assertEqual(sorted(data['prior'].keys()),
@@ -88,6 +90,30 @@ class TestParser(unittest.TestCase):
         df = data["injections"]
         self.assertEqual(type(df), pd.core.frame.DataFrame)
         self.assertEqual(len(df), inputs.n_injection)
+
+    def test_create_injection_file_gps_times(self):
+        args = self.known_args_list
+        args.append("--gps-file")
+        args.append("tests/gps_file.txt")
+        args = self.parser.parse_args(args)
+        args.n_injection = 2
+        inputs = bilby_pipe.create_injections.CreateInjectionInput(args, [])
+        filename = os.path.join(self.outdir, "test_injection_file.h5")
+        self.assertFalse(os.path.exists(filename))
+        inputs.create_injection_file(filename)
+        self.assertTrue(os.path.exists(filename))
+
+        with open(filename, "r") as file:
+            data = json.load(file, object_hook=bilby.core.result.decode_bilby_json)
+
+        # prior = bilby.core.prior.PriorDict(self.example_prior_file)
+        # self.assertEqual(sorted(data['prior'].keys()),
+        #                  sorted(prior.keys()))
+
+        df = data["injections"]
+        self.assertEqual(type(df), pd.core.frame.DataFrame)
+        self.assertEqual(len(df), inputs.n_injection)
+        self.assertTrue(np.all(np.abs(inputs.gpstimes - df.geocent_time + 2) < 0.1))
 
 
 if __name__ == "__main__":

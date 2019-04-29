@@ -111,6 +111,8 @@ def fiducial_bbh(args):
 
 def fiducial_bns(args):
     raise Exception("Not implemented yet")
+    filename = None
+    return filename
 
 
 def pp_test(args):

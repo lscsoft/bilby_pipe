@@ -36,7 +36,7 @@ class TestInput(unittest.TestCase):
     def test_detectors(self):
         inputs = bilby_pipe.main.Input()
         with self.assertRaises(AttributeError):
-            inputs.detectors
+            print(inputs.detectors)
 
     def test_set_detectors_list(self):
         inputs = bilby_pipe.main.Input()
@@ -117,7 +117,7 @@ class TestInput(unittest.TestCase):
         inputs = bilby_pipe.main.Input()
         inputs.frequency_domain_source_model = "not_a_source_model"
         with self.assertRaises(BilbyPipeError):
-            inputs.bilby_frequency_domain_source_model
+            print(inputs.bilby_frequency_domain_source_model)
 
     def test_minimum_frequency_int(self):
         inputs = bilby_pipe.main.Input()

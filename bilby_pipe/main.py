@@ -954,8 +954,6 @@ class DataDump(object):
         """
         with open(filename, "rb") as file:
             res = pickle.load(file)
-        if res.__class__ == list:
-            res = cls(res)
         if res.__class__ != cls:
             raise TypeError("The loaded object is not a DataDump")
         return res

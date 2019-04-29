@@ -28,7 +28,7 @@ class TestDagCommandLine(unittest.TestCase):
     def test_unknown_args(self):
         expected_unknown_args = ["--other", "thing"]
         args = self.default_args + expected_unknown_args
-        args, unknown_args = bilby_pipe.main.parse_args(args, self.parser)
+        _, unknown_args = bilby_pipe.main.parse_args(args, self.parser)
         self.assertEqual(unknown_args, expected_unknown_args)
 
 
