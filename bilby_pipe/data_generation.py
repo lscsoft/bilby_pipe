@@ -118,10 +118,14 @@ class DataGenerationInput(Input):
 
         self.data_set = False
         self.injection_file = args.injection_file
+        self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
-        if args.injection_file is not None and args.gps_file is None:
-            self._set_interferometers_from_injection()
+        if self.gaussian_noise:
+            if args.injection_file is not None:
+                self._set_interferometers_from_injection()
+            else:
+                raise BilbyPipeError("Unable to set data: no injection file")
         elif self.data_set is False and args.gracedb is not None:
             self.gracedb = args.gracedb
             self._set_interferometers_from_data()
@@ -133,7 +137,7 @@ class DataGenerationInput(Input):
             self._set_interferometers_from_data()
 
         if self.data_set is False:
-            raise BilbyPipeError("No data setting method provided")
+            raise BilbyPipeError("Unable to set data")
 
     @property
     def cluster(self):

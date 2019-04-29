@@ -219,6 +219,7 @@ class TestDataGenerationInput(unittest.TestCase):
             injection_file_name,
             "--data-label",
             "Test",
+            "--gaussian-noise",
         ]
         self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 

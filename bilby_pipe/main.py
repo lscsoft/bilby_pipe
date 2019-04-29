@@ -282,7 +282,8 @@ class MainInput(Input):
         if trigger_time is not None:
             self._trigger_time = trigger_time
             self.level_A_labels = [str(trigger_time)]
-            self.n_level_A_jobs = 1
+            if self.n_level_A_jobs == 0:
+                self.n_level_A_jobs = 1
         else:
             self._trigger_time = None
 

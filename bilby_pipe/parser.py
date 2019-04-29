@@ -99,6 +99,11 @@ def create_parser(top_level=True):
         type=float,
         help="The trigger time, alternative to --gracedb",
     )
+    data_gen_pars.add(
+        "--gaussian-noise",
+        action="store_true",
+        help="If true, use simulated Gaussian noise with aLIGO design sensitivity",
+    )
 
     det_parser = parser.add_argument_group(title="Detector arguments")
     det_parser.add(
