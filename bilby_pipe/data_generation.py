@@ -98,6 +98,7 @@ class DataGenerationInput(Input):
         self.reference_frequency = args.reference_frequency
         self.calibration_model = args.calibration_model
         self.spline_calibration_nodes = args.spline_calibration_nodes
+        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
         if create_data:
             self.create_data(args)
 
