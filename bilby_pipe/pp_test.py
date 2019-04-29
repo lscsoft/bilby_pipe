@@ -58,11 +58,8 @@ def main():
     print("Checking if results are complete")
     results_u = []
     for r in results:
-        try:
-            r.posterior
+        if r._posterior is not None:
             results_u.append(r)
-        except ValueError:
-            pass
     if len(results_u) < len(results):
         print("Results incomplete, truncating to {}".format(len(results_u)))
         results = results_u

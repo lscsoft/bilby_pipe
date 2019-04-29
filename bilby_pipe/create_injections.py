@@ -142,15 +142,17 @@ class CreateInjectionInput(Input):
         each line. This contains the logic to define the trigger time and
         sample from the geocent_time prior centered on the trigger
         """
-        if "geocent_time" in injection_values:
-            return injection_values
-        else:
-            gct = self.gpstimes + self.duration - self.post_trigger_duration
-            gct += np.random.uniform(
-                -self.deltaT / 2, self.deltaT / 2.0, self.n_injection
-            )
-            injection_values["geocent_time"] = gct
-            return injection_values
+        if "geocent_time" not in injection_values:
+            if hasattr(self, "gpstimes"):
+                gct = self.gpstimes + self.duration - self.post_trigger_duration
+                gct += np.random.uniform(
+                    -self.deltaT / 2, self.deltaT / 2.0, self.n_injection
+                )
+                injection_values["geocent_time"] = gct
+            else:
+                logger.info("Unable to sample geocent time injection value")
+
+        return injection_values
 
     def create_injection_file(self, filename):
         logger.info(

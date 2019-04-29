@@ -12,4 +12,3 @@ ra =  Uniform(name='ra', minimum=0, maximum=2 * np.pi)
 theta_jn =  Sine(name='theta_jn')
 psi =  Uniform(name='psi', minimum=0, maximum=np.pi)
 phase =  Uniform(name='phase', minimum=0, maximum=2 * np.pi)
-geocent_time = 0

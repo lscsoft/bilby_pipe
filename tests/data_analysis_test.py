@@ -111,7 +111,7 @@ class TestDataAnalysisInput(unittest.TestCase):
     def test_unset_bilby_frequency_domain_source_model(self):
         self.inputs.frequency_domain_source_model = "not_a_source_model"
         with self.assertRaises(BilbyPipeError):
-            self.inputs.bilby_frequency_domain_source_model
+            print(self.inputs.bilby_frequency_domain_source_model)
 
 
 if __name__ == "__main__":
