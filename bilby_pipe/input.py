@@ -5,10 +5,12 @@ Module containing the main input class
 from __future__ import division, print_function
 
 import os
+import glob
 import json
 
 import numpy as np
 import bilby
+import pandas as pd
 
 from . import utils
 from .utils import logger, BilbyPipeError, convert_string_to_dict
@@ -255,7 +257,11 @@ class Input(object):
                     file, object_hook=bilby.core.result.decode_bilby_json
                 )
             injection_df = injection_dict["injections"]
-            self.injection_df = injection_df
+            try:
+                self.injection_df = pd.DataFrame(injection_df)
+            except ValueError:
+                self.injection_df = pd.DataFrame(injection_df, index=[0])
+
             self.total_number_of_injections = len(injection_df)
         else:
             raise FileNotFoundError(
@@ -410,3 +416,157 @@ class Input(object):
                     "Input maximum frequency required for detector {}".format(det)
                 )
         self._maximum_frequency_dict = maximum_frequency_dict
+
+    @property
+    def default_prior_files(self):
+        return self.get_default_prior_files()
+
+    @staticmethod
+    def get_default_prior_files():
+        """ Returns a dictionary of the default priors """
+        prior_files_glob = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "data_files/*prior"
+        )
+        filenames = glob.glob(prior_files_glob)
+        return {os.path.basename(ff).rstrip(".prior"): ff for ff in filenames}
+
+    def get_distance_file_lookup_table(self, prior_file_str):
+        direc = os.path.dirname(self.default_prior_files[prior_file_str])
+        fname = "{}_distance_marginalization_lookup.npz".format(prior_file_str)
+        return os.path.join(direc, fname)
+
+    @property
+    def prior_file(self):
+        return self._prior_file
+
+    @prior_file.setter
+    def prior_file(self, prior_file):
+        if prior_file is None:
+            self._prior_file = None
+        elif os.path.isfile(prior_file):
+            self._prior_file = prior_file
+        elif os.path.isfile(os.path.basename(prior_file)):
+            # Allows for the prior-file to be moved to the local directory (file-transfer mechanism)
+            self._prior_file = os.path.basename(prior_file)
+        elif prior_file in self.default_prior_files:
+            self._prior_file = self.default_prior_files[prior_file]
+            self.distance_marginalization_lookup_table = self.get_distance_file_lookup_table(
+                prior_file
+            )
+        else:
+            raise FileNotFoundError("No prior file {} available".format(prior_file))
+
+        logger.info("Prior-file set to {}".format(self._prior_file))
+
+    @property
+    def distance_marginalization_lookup_table(self):
+        return self._distance_marginalization_lookup_table
+
+    @distance_marginalization_lookup_table.setter
+    def distance_marginalization_lookup_table(
+        self, distance_marginalization_lookup_table
+    ):
+        if distance_marginalization_lookup_table is None:
+            if hasattr(self, "_distance_marginalization_lookup_table"):
+                pass
+            else:
+                self._distance_marginalization_lookup_table = None
+        else:
+            if hasattr(self, "_distance_marginalization_lookup_table"):
+                logger.info("Overwriting distance_marginalization_lookup_table")
+            self._distance_marginalization_lookup_table = (
+                distance_marginalization_lookup_table
+            )
+
+    @property
+    def default_prior(self):
+        return getattr(self, "_default_prior", None)
+
+    @default_prior.setter
+    def default_prior(self, default_prior):
+        self._default_prior = default_prior
+
+    @property
+    def combined_default_prior_dicts(self):
+        d = bilby.core.prior.__dict__
+        d.update(bilby.gw.prior.__dict__)
+        return d
+
+    @property
+    def priors(self):
+        if getattr(self, "_priors", None) is not None:
+            return self._priors
+
+        if self.default_prior in self.combined_default_prior_dicts.keys():
+            self._priors = self.combined_default_prior_dicts[self.default_prior](
+                filename=self.prior_file
+            )
+        else:
+            raise ValueError("Unable to set prior: default_prior unavailable")
+
+        if self._priors.get("geocent_time", None) is None:
+            try:
+                logger.info(
+                    "Setting geocent time prior using trigger-time={} and deltaT={}".format(
+                        self.trigger_time, self.deltaT
+                    )
+                )
+                self._priors["geocent_time"] = bilby.core.prior.Uniform(
+                    minimum=self.trigger_time - self.deltaT / 2,
+                    maximum=self.trigger_time + self.deltaT / 2,
+                    name="geocent_time",
+                    latex_label="$t_c$",
+                    unit="$s$",
+                )
+            except (AttributeError, TypeError):
+                logger.info("Unable to set geocent time prior")
+
+        if self.calibration_model is not None:
+            for det in self.detectors:
+                if det in self.spline_calibration_envelope_dict:
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "{self.spline_calibration_envelope_dict[det]}"
+                    )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
+                            self.spline_calibration_envelope_dict[det],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                elif (
+                    det in self.spline_calibration_amplitude_uncertainty_dict
+                    and det in self.spline_calibration_phase_uncertainty_dict
+                ):
+                    logger.info(
+                        f"Creating calibration prior for {det} from "
+                        "provided constant uncertainty values."
+                    )
+                    self._priors.update(
+                        bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
+                            amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
+                                det
+                            ],
+                            phase_sigma=self.spline_calibration_phase_uncertainty_dict[
+                                det
+                            ],
+                            minimum_frequency=self.minimum_frequency_dict[det],
+                            maximum_frequency=self.maximum_frequency_dict[det],
+                            n_nodes=self.spline_calibration_nodes,
+                            label=det,
+                        )
+                    )
+                else:
+                    logger.warning(f"No calibration information for {det}")
+        return self._priors
+
+    @property
+    def calibration_model(self):
+        return getattr(self, "_calibration_model", None)
+
+    @calibration_model.setter
+    def calibration_model(self, calibration_model):
+        self._calibration_model = calibration_model

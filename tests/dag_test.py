@@ -34,13 +34,17 @@ class TestDag(unittest.TestCase):
             email="test@test.com",
             existing_dir=None,
             local_generation=False,
-            trigger_time=None,
+            trigger_time=0,
+            deltaT=0.2,
             waveform_approximant="IMRPhenomPV2",
             request_memory="4 GB",
             request_cpus=1,
             generation_seed=None,
             transfer_files=True,
             prior_file=None,
+            default_prior="BBHPriorDict",
+            postprocessing_executable=None,
+            postprocessing_arguments=None,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
@@ -53,6 +57,12 @@ class TestDag(unittest.TestCase):
             prior_file="tests/example_prior.prior",
             n_injection=3,
             generation_seed=None,
+            default_prior="BBHPriorDict",
+            trigger_time=0,
+            deltaT=0.2,
+            gps_file=None,
+            duration=4,
+            post_trigger_duration=2,
         )
         ci_inputs = bilby_pipe.create_injections.CreateInjectionInput(
             self.create_injection_args, []
@@ -68,6 +78,7 @@ class TestDag(unittest.TestCase):
         test_args = self.test_args
         test_args.detectors = "H1 L1"
         test_args.coherence_test = True
+        test_args.n_injection = 1
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
         dag = bilby_pipe.main.Dag(inputs)
@@ -76,24 +87,24 @@ class TestDag(unittest.TestCase):
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["H1", "L1"], sampler="nestle",
-                            run_id='0'),
+                kwargs=dict(detectors=["H1", "L1"], sampler="nestle", run_id="0"),
             ),
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["H1"], sampler="nestle", run_id='0'),
+                kwargs=dict(detectors=["H1"], sampler="nestle", run_id="0"),
             ),
             JobInput(
                 idx=0,
                 meta_label="test_label",
-                kwargs=dict(detectors=["L1"], sampler="nestle", run_id='0'),
+                kwargs=dict(detectors=["L1"], sampler="nestle", run_id="0"),
             ),
         ]
         self.assertEqual(dag.analysis_jobs_inputs, expected_jobs)
 
     def test_build_submit(self):
         test_args = self.test_args
+        test_args.n_injection = 1
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
         inputs.submit = True
@@ -105,6 +116,7 @@ class TestDag(unittest.TestCase):
         test_args.injection_file = self.injection_file
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
+        inputs.n_level_A_jobs = 1
         bilby_pipe.main.Dag(inputs)
 
     # def test_injection_from_default_existing_file(self):

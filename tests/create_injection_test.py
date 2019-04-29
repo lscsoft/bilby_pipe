@@ -55,11 +55,6 @@ class TestParser(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             inputs.n_injection
 
-    def test_set_prior_file_fail(self):
-        self.args.prior_file = 10
-        with self.assertRaises(BilbyPipeError):
-            bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-
     def test_unknown_prior_file(self):
         self.args.prior_file = "not_a_file"
         with self.assertRaises(FileNotFoundError):
@@ -67,13 +62,13 @@ class TestParser(unittest.TestCase):
 
     def test_unknown_prior(self):
         inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-        with self.assertRaises(BilbyPipeError):
-            inputs.prior = "lksjdf"
+        with self.assertRaises(AttributeError):
+            inputs.priors = "lksjdf"
 
     def test_prior(self):
         inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-        prior = bilby.core.prior.PriorDict(self.example_prior_file)
-        self.assertEqual(prior, inputs.prior)
+        priors = bilby.core.prior.PriorDict(self.example_prior_file)
+        self.assertEqual(priors, inputs.priors)
 
     def test_create_injection_file(self):
         inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])

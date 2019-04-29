@@ -114,6 +114,9 @@ class MainInput(Input):
         self.request_memory = args.request_memory
         self.request_cpus = args.request_cpus
 
+        self.postprocessing_executable = args.postprocessing_executable
+        self.postprocessing_arguments = args.postprocessing_arguments
+
     @property
     def ini(self):
         return self._ini
@@ -167,11 +170,7 @@ class MainInput(Input):
 
     @property
     def n_level_A_jobs(self):
-        try:
-            return self._n_level_A_jobs
-        except AttributeError:
-            logger.debug("n_level_A_jobs not set, defaulting to 1")
-            return 1
+        return getattr(self, "_n_level_A_jobs", 0)
 
     @n_level_A_jobs.setter
     def n_level_A_jobs(self, n_level_A_jobs):
@@ -270,6 +269,7 @@ class MainInput(Input):
         if gracedb is not None:
             self._gracedb = gracedb
             self.level_A_labels = [gracedb]
+            self.n_level_A_jobs = 1
         else:
             self._gracedb = None
 
@@ -282,6 +282,7 @@ class MainInput(Input):
         if trigger_time is not None:
             self._trigger_time = trigger_time
             self.level_A_labels = [str(trigger_time)]
+            self.n_level_A_jobs = 1
         else:
             self._trigger_time = None
 
@@ -379,6 +380,8 @@ class Dag(object):
         self.retry = retry
         self.verbose = verbose
         self.inputs = inputs
+        if self.inputs.n_level_A_jobs == 0:
+            raise BilbyPipeError("ini file contained no data-generation requirement")
 
         self.dag_name = "dag_{}".format(inputs.label)
         self.dag = pycondor.Dagman(
@@ -709,7 +712,42 @@ class Dag(object):
 
     def create_postprocessing_jobs(self):
         """ Generate postprocessing job """
-        pass
+        if self.inputs.postprocessing_arguments is None:
+            logger.debug("No postprocessing job requested")
+            return
+
+        job_name = "postprocessing"
+        submit = self.inputs.submit_directory
+        job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
+
+        extra_lines = ""
+        for arg in ["error", "log", "output"]:
+            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                arg, job_logs_base, arg[:3]
+            )
+        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+
+        exe = shutil.which(self.inputs.postprocessing_executable)
+
+        job = pycondor.Job(
+            name=job_name,
+            executable=exe,
+            submit=submit,
+            getenv=self.getenv,
+            universe=self.universe,
+            initialdir=self.initialdir,
+            notification=self.notification,
+            requirements=self.requirements,
+            queue=self.inputs.queue,
+            dag=self.dag,
+            extra_lines=extra_lines,
+            arguments=self.inputs.postprocessing_arguments,
+            retry=self.retry,
+            verbose=self.verbose,
+        )
+        for analysis_job in self.analysis_jobs:
+            job.add_parent(analysis_job)
+        logger.debug("Adding postprocessing job")
 
     @property
     def summary_jobs_inputs(self):

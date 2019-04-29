@@ -199,6 +199,12 @@ class TestDataGenerationInput(unittest.TestCase):
             outdir=self.outdir,
             label="label",
             generation_seed=None,
+            default_prior="BBHPriorDict",
+            trigger_time=0,
+            deltaT=0.2,
+            gps_file=None,
+            duration=4,
+            post_trigger_duration=2,
         )
         inj_inputs = create_injections.CreateInjectionInput(inj_args, [])
         injection_file_name = os.path.join(self.outdir, "injection_file.h5")
