@@ -534,7 +534,7 @@ class DataGenerationInput(Input):
             )
         )
         data = gwpy.timeseries.TimeSeries.get(
-            channel, start_time, end_time, verbose=True
+            channel, start_time, end_time, verbose=False
         )
         return data
 
