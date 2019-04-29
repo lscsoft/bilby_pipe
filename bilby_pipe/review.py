@@ -71,6 +71,7 @@ def fiducial_bbh(args):
     config_dict["outdir"] = "fiducial_bbh"
     config_dict["create_plots"] = True
     config_dict["trigger-time"] = 0
+    config_dict["gaussian-noise"] = True
     config_dict["injection"] = True
     config_dict["n-injection"] = 1
     config_dict["generation-seed"] = 1010
@@ -133,6 +134,7 @@ def pp_test(args):
     config_dict["trigger-time"] = 0
     config_dict["injection"] = True
     config_dict["n-injection"] = 100
+    config_dict["gaussian-noise"] = True
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         outdir, outdir

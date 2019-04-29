@@ -4,6 +4,9 @@
 
 Changes currently on master, but not under a tag.
 
+### Added
+- Gaussian noise flag
+
 ## [0.0.4] 2018-03-05
 
 ### Added
