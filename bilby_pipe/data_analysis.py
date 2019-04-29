@@ -372,4 +372,6 @@ def main():
     if args.create_plots:
         analysis.result.plot_corner()
         analysis.result.plot_marginals()
+        if analysis.calibration_model is not None:
+            analysis.result.plot_calibration_posterior()
     sys.exit(0)
