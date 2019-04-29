@@ -71,7 +71,6 @@ class DataGenerationInput(Input):
         self.idx = args.idx
         self.x509userproxy = args.X509
         self.prior_file = args.prior_file
-        self._priors = None
         self.deltaT = args.deltaT
         self.default_prior = args.default_prior
         self.detectors = args.detectors
@@ -234,50 +233,6 @@ class DataGenerationInput(Input):
             raise BilbyPipeError(
                 "Detector {} not given in the channel-dict".format(det)
             )
-
-    @property
-    def prior_file(self):
-        if self._prior_file is None:
-            return None
-        elif os.path.isfile(self._prior_file):
-            return self._prior_file
-        elif os.path.isfile(os.path.basename(self._prior_file)):
-            return os.path.basename(self._prior_file)
-        else:
-            raise FileNotFoundError(
-                "No prior file {} available".format(self._prior_file)
-            )
-
-    @prior_file.setter
-    def prior_file(self, prior_file):
-        self._prior_file = prior_file
-
-    @property
-    def priors(self):
-        if self._priors is None:
-            if self.default_prior in bilby.core.prior.__dict__.keys():
-                self._priors = bilby.core.prior.__dict__[self.default_prior](
-                    filename=self.prior_file
-                )
-            elif self.default_prior in bilby.gw.prior.__dict__.keys():
-                self._priors = bilby.gw.prior.__dict__[self.default_prior](
-                    filename=self.prior_file
-                )
-            else:
-                logger.info("No prior {} found.").format(self.default_prior)
-                logger.info("Defaulting to BBHPriorDict")
-                self._priors = bilby.gw.prior.BBHPriorDict(filename=self.prior_file)
-            if isinstance(
-                self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)
-            ):
-                self._priors["geocent_time"] = bilby.core.prior.Uniform(
-                    minimum=self.trigger_time - self.deltaT / 2,
-                    maximum=self.trigger_time + self.deltaT / 2,
-                    name="geocent_time",
-                    latex_label="$t_c$",
-                    unit="$s$",
-                )
-        return self._priors
 
     @property
     def detectors(self):

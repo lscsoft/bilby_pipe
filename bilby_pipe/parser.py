@@ -302,6 +302,13 @@ def create_parser(top_level=True):
         help="Boolean. If true, use a distance-marginalized likelihood",
     )
     likelihood_parser.add(
+        "--distance-marginalization-lookup-table",
+        default=None,
+        type=str,
+        help="Path to the distance-marginalization lookup table",
+    )
+
+    likelihood_parser.add(
         "--phase-marginalization",
         action="store_true",
         default=False,
@@ -370,6 +377,24 @@ def create_parser(top_level=True):
         ),
     )
     prior_parser.add("--prior-file", default=None, help="The prior file")
+
+    postprocessing_parser = parser.add_argument_group(title="Post processing arguments")
+    postprocessing_parser.add(
+        "--postprocessing-executable",
+        type=str,
+        default=None,
+        help=(
+            "An executable name for postprocessing. A single postprocessing "
+            " job is run as a child of all analysis jobs"
+        ),
+    )
+    postprocessing_parser.add(
+        "--postprocessing-arguments",
+        type=str,
+        nargs="*",
+        default=None,
+        help="Arguments to pass to the postprocessing executable",
+    )
 
     sampler_parser = parser.add_argument_group(title="Sampler arguments")
     sampler_parser.add(

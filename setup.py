@@ -73,7 +73,7 @@ setup(
     author_email="gregory.ashton@ligo.org",
     license="MIT",
     version=VERSION,
-    package_data={"bilby_pipe": [version_file]},
+    package_data={"bilby_pipe": [version_file, "data_files/*"]},
     packages=["bilby_pipe"],
     install_requires=[
         "future",
@@ -91,6 +91,7 @@ setup(
             "bilby_pipe_analysis=bilby_pipe.data_analysis:main",
             "bilby_pipe_create_injection_file=bilby_pipe.create_injections:main",
             "bilby_pipe_pp_test=bilby_pipe.pp_test:main",
+            "bilby_pipe_review=bilby_pipe.review:main",
         ]
     },
     classifiers=[

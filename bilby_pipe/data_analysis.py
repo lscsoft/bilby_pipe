@@ -46,13 +46,15 @@ class DataAnalysisInput(Input):
         self.process = args.process
         self.detectors = args.detectors
         self.prior_file = args.prior_file
-        self._priors = None
         self.deltaT = args.deltaT
         self.reference_frequency = args.reference_frequency
         self.minimum_frequency = args.minimum_frequency
         self.maximum_frequency = args.maximum_frequency
         self.waveform_approximant = args.waveform_approximant
         self.distance_marginalization = args.distance_marginalization
+        self.distance_marginalization_lookup_table = (
+            args.distance_marginalization_lookup_table
+        )
         self.phase_marginalization = args.phase_marginalization
         self.time_marginalization = args.time_marginalization
         self.sampler = args.sampler
@@ -222,90 +224,6 @@ class DataAnalysisInput(Input):
             )
 
     @property
-    def prior_file(self):
-        if self._prior_file is None:
-            return None
-        elif os.path.isfile(self._prior_file):
-            return self._prior_file
-        elif os.path.isfile(os.path.basename(self._prior_file)):
-            return os.path.basename(self._prior_file)
-        else:
-            raise FileNotFoundError(
-                "No prior file {} available".format(self._prior_file)
-            )
-
-    @prior_file.setter
-    def prior_file(self, prior_file):
-        self._prior_file = prior_file
-
-    @property
-    def priors(self):
-        if self._priors is None:
-            if self.default_prior in bilby.core.prior.__dict__.keys():
-                self._priors = bilby.core.prior.__dict__[self.default_prior](
-                    filename=self.prior_file
-                )
-            elif self.default_prior in bilby.gw.prior.__dict__.keys():
-                self._priors = bilby.gw.prior.__dict__[self.default_prior](
-                    filename=self.prior_file
-                )
-            else:
-                logger.info("No prior {} found.").format(self.default_prior)
-                logger.info("Defaulting to BBHPriorDict")
-                self._priors = bilby.gw.prior.BBHPriorDict(filename=self.prior_file)
-            if isinstance(
-                self._priors, (bilby.gw.prior.BBHPriorDict, bilby.gw.prior.BNSPriorDict)
-            ):
-                self._priors["geocent_time"] = bilby.core.prior.Uniform(
-                    minimum=self.trigger_time - self.deltaT / 2,
-                    maximum=self.trigger_time + self.deltaT / 2,
-                    name="geocent_time",
-                    latex_label="$t_c$",
-                    unit="$s$",
-                )
-        if self.calibration_model is not None:
-            for det in self.detectors:
-                if det in self.spline_calibration_envelope_dict:
-                    logger.info(
-                        f"Creating calibration prior for {det} from "
-                        "{self.spline_calibration_envelope_dict[det]}"
-                    )
-                    self._priors.update(
-                        bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
-                            self.spline_calibration_envelope_dict[det],
-                            minimum_frequency=self.minimum_frequency_dict[det],
-                            maximum_frequency=self.maximum_frequency_dict[det],
-                            n_nodes=self.spline_calibration_nodes,
-                            label=det,
-                        )
-                    )
-                elif (
-                    det in self.spline_calibration_amplitude_uncertainty_dict
-                    and det in self.spline_calibration_phase_uncertainty_dict
-                ):
-                    logger.info(
-                        f"Creating calibration prior for {det} from "
-                        "provided constant uncertainty values."
-                    )
-                    self._priors.update(
-                        bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
-                            amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
-                                det
-                            ],
-                            phase_sigma=self.spline_calibration_phase_uncertainty_dict[
-                                det
-                            ],
-                            minimum_frequency=self.minimum_frequency_dict[det],
-                            maximum_frequency=self.maximum_frequency_dict[det],
-                            n_nodes=self.spline_calibration_nodes,
-                            label=det,
-                        )
-                    )
-                else:
-                    logger.warning(f"No calibration information for {det}")
-        return self._priors
-
-    @property
     def parameter_conversion(self):
         if "no_spin" in self._frequency_domain_source_model:
             return None
@@ -371,6 +289,7 @@ class DataAnalysisInput(Input):
                 priors=self.priors,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
+                distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
                 time_marginalization=self.time_marginalization,
             )
 
@@ -394,6 +313,7 @@ class DataAnalysisInput(Input):
                 priors=self.priors,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
+                distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
             )
 
         else:
@@ -452,4 +372,4 @@ def main():
     if args.create_plots:
         analysis.result.plot_corner()
         analysis.result.plot_marginals()
-    sys.exit(1)  # HACK to force jobs to complete and not be restarted
+    sys.exit(0)
