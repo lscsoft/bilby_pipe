@@ -206,10 +206,10 @@ class DataAnalysisInput(Input):
             self.data_directory, self.data_label, str(self.idx)
         )
 
-        try:
+        if hasattr(self, "_data_dump"):
             return self._data_dump
-        except AttributeError:
-            logger.debug("Data dump not previously loaded")
+
+        logger.debug("Data dump not previously loaded")
 
         if os.path.isfile(filename):
             self._data_dump = DataDump.from_pickle(filename)

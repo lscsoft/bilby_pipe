@@ -176,4 +176,5 @@ class CreateInjectionInput(Input):
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     inputs = CreateInjectionInput(args, unknown_args)
-    inputs.create_injection_file()
+    filename = "{}/{}_injection_file.json".format(args.outdir, args.label)
+    inputs.create_injection_file(filename)
