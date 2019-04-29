@@ -6,8 +6,6 @@ from __future__ import division, print_function
 
 import os
 import sys
-import urllib
-import urllib.request
 
 import matplotlib
 import numpy as np
@@ -17,7 +15,12 @@ matplotlib.use("agg")  # noqa
 import bilby
 from bilby.gw.detector import PowerSpectralDensity
 
-from bilby_pipe.utils import logger, BilbyPipeError, convert_string_to_dict
+from bilby_pipe.utils import (
+    logger,
+    BilbyPipeError,
+    convert_string_to_dict,
+    test_connection,
+)
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
@@ -288,25 +291,13 @@ class DataGenerationInput(Input):
             self._gracedb = None
         else:
             logger.info("Setting gracedb id to {}".format(gracedb))
-            self.test_connection()
+            test_connection()
             candidate = bilby.gw.utils.gracedb_to_json(
                 gracedb, outdir=self.data_directory, cred=self.x509userproxy
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate["gpstime"]
-
-    def test_connection(self):
-        """ A generic test to see if the network is reachable """
-        try:
-            urllib.request.urlopen("https://google.com", timeout=0.1)
-        except urllib.error.URLError:
-            raise BilbyPipeError(
-                "It appears you are not connected to a network and so won't be "
-                "able to interface with GraceDB. You may wish to specify the "
-                " local-generation argument either in the configuration file "
-                "or by passing the --local-generation command line argument"
-            )
 
     def _parse_gps_file(self):
         """ Reads in the GPS file selects the required time and set the trigger time

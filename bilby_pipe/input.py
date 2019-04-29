@@ -269,22 +269,6 @@ class Input(object):
             )
 
     @property
-    def calibration_model(self):
-        return self._calibration_model
-
-    @calibration_model.setter
-    def calibration_model(self, calibration_model):
-        if calibration_model is not None:
-            logger.info("Setting calibration_model={}".format(calibration_model))
-            self._calibration_model = calibration_model
-        else:
-            logger.info(
-                "No calibration_model model provided, calibration "
-                "marginalization will not be used"
-            )
-            self._calibration_model = None
-
-    @property
     def spline_calibration_envelope_dict(self):
         return self._spline_calibration_envelope_dict
 
@@ -569,4 +553,12 @@ class Input(object):
 
     @calibration_model.setter
     def calibration_model(self, calibration_model):
-        self._calibration_model = calibration_model
+        if calibration_model is not None:
+            logger.info("Setting calibration_model={}".format(calibration_model))
+            self._calibration_model = calibration_model
+        else:
+            logger.info(
+                "No calibration_model model provided, calibration "
+                "marginalization will not be used"
+            )
+            self._calibration_model = None

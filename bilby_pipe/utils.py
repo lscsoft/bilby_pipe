@@ -6,6 +6,8 @@ import os
 import sys
 import logging
 import ast
+import urllib
+import urllib.request
 
 
 class BilbyPipeError(Exception):
@@ -76,7 +78,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
     if "-v" in sys.argv:
         log_level = "DEBUG"
 
-    if type(log_level) is str:
+    if isinstance(log_level, str):
         try:
             level = getattr(logging, log_level.upper())
         except AttributeError:
@@ -88,7 +90,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
     logger.propagate = False
     logger.setLevel(level)
 
-    streams = [type(h) == logging.StreamHandler for h in logger.handlers]
+    streams = [isinstance(h, logging.StreamHandler) for h in logger.handlers]
     if len(streams) == 0 or not all(streams):
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(
@@ -99,7 +101,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
         stream_handler.setLevel(level)
         logger.addHandler(stream_handler)
 
-    if any([type(h) == logging.FileHandler for h in logger.handlers]) is False:
+    if any([isinstance(h, logging.FileHandler) for h in logger.handlers]) is False:
         if label:
             if outdir:
                 check_directory_exists_and_if_not_mkdir(outdir)
@@ -162,6 +164,19 @@ def convert_string_to_dict(string, key):
         dic[key] = string_to_int_float(dic[key])
 
     return dic
+
+
+def test_connection():
+    """ A generic test to see if the network is reachable """
+    try:
+        urllib.request.urlopen("https://google.com", timeout=0.1)
+    except urllib.error.URLError:
+        raise BilbyPipeError(
+            "It appears you are not connected to a network and so won't be "
+            "able to interface with GraceDB. You may wish to specify the "
+            " local-generation argument either in the configuration file "
+            "or by passing the --local-generation command line argument"
+        )
 
 
 def strip_quotes(string):
