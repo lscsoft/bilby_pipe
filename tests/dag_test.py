@@ -45,6 +45,7 @@ class TestDag(unittest.TestCase):
             default_prior="BBHPriorDict",
             postprocessing_executable=None,
             postprocessing_arguments=None,
+            data_dict=None,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)

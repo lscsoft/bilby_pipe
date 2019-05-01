@@ -509,8 +509,9 @@ class Input(object):
             for det in self.detectors:
                 if det in self.spline_calibration_envelope_dict:
                     logger.info(
-                        f"Creating calibration prior for {det} from "
-                        "{self.spline_calibration_envelope_dict[det]}"
+                        "Creating calibration prior for {} from {}".format(
+                            det, self.spline_calibration_envelope_dict[det]
+                        )
                     )
                     self._priors.update(
                         bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
@@ -526,8 +527,8 @@ class Input(object):
                     and det in self.spline_calibration_phase_uncertainty_dict
                 ):
                     logger.info(
-                        f"Creating calibration prior for {det} from "
-                        "provided constant uncertainty values."
+                        "Creating calibration prior for {} from "
+                        "provided constant uncertainty values.".format(det)
                     )
                     self._priors.update(
                         bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(

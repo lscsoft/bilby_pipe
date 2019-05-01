@@ -78,6 +78,8 @@ class DataGenerationInput(Input):
         self.default_prior = args.default_prior
         self.detectors = args.detectors
         self.channel_dict = args.channel_dict
+        self.data_dict = args.data_dict
+        self.data_format = args.data_format
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
         self.deltaT = args.deltaT
@@ -218,6 +220,18 @@ class DataGenerationInput(Input):
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
             return None
+
+    @property
+    def data_dict(self):
+        return self._data_dict
+
+    @data_dict.setter
+    def data_dict(self, data_dict):
+        if data_dict is not None:
+            self._data_dict = convert_string_to_dict(data_dict, "data-dict")
+        else:
+            logger.debug("data-dict set to None")
+            self._data_dict = None
 
     @property
     def channel_dict(self):
@@ -511,32 +525,75 @@ class DataGenerationInput(Input):
         data = None
 
         channel = "{}:{}".format(det, channel_type)
-        try:
+
+        if data is None and self.data_dict is not None:
+            data = self._gwpy_read(det, channel, start_time, end_time)
+        if data is None:
             data = self._gwpy_get(det, channel, start_time, end_time)
+        if data is None:
+            data = self._gwpy_fetch_open_data(det, channel, start_time, end_time)
+
+        data = data.resample(self.sampling_frequency)
+        return data
+
+    def _gwpy_read(self, det, channel, start_time, end_time):
+        logger.debug("data-dict provided, attempt read of data")
+
+        if self.data_format is not None:
+            kwargs = dict(format=self.data_format)
+            logger.info(
+                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}')".format(
+                    self.data_dict[det], channel, start_time, end_time, self.data_format
+                )
+            )
+        else:
+            kwargs = {}
+            logger.info(
+                "Calling TimeSeries.read('{}', '{}', start={}, end={})".format(
+                    self.data_dict[det], channel, start_time, end_time
+                )
+            )
+
+        try:
+            data = gwpy.timeseries.TimeSeries.read(
+                self.data_dict[det], channel, start=start_time, end=end_time, **kwargs
+            )
+            if data.duration.value != self.duration:
+                logger.warning(
+                    "Unable to read in requested {}s duration of data from {}"
+                    " only {}s available".format(
+                        self.duration, self.data_dict[det], data.duration.value
+                    )
+                )
+                data = None
+            return data
+        except ValueError as e:
+            logger.info("Reading of data failed with error {}".format(e))
+            return None
+
+    def _gwpy_get(self, det, channel, start_time, end_time):
+        logger.debug("Attempt to locate data")
+        logger.info(
+            "Calling TimeSeries.get('{}', start={}, end={})".format(
+                channel, start_time, end_time
+            )
+        )
+        try:
+            data = gwpy.timeseries.TimeSeries.get(
+                channel, start_time, end_time, verbose=False
+            )
+            return data
         except RuntimeError as e:
             logger.info("Unable to read data for channel {}".format(channel))
             logger.debug("Error message {}".format(e))
         except ImportError:
             logger.info("Unable to read data as NDS2 is not installed")
 
-        if data is None:
-            logger.warning(
-                "Attempts to download data failed, trying with `fetch_open_data`"
-            )
-            data = gwpy.timeseries.TimeSeries.fetch_open_data(det, start_time, end_time)
-
-        data = data.resample(self.sampling_frequency)
-        return data
-
-    def _gwpy_get(self, det, channel, start_time, end_time):
+    def _gwpy_fetch_open_data(self, det, channel, start_time, end_time):
         logger.info(
-            "Calling TimeSeries.get({}, start_time={}, end_time={})".format(
-                channel, start_time, end_time
-            )
+            "Previous attempts to download data failed, trying with `fetch_open_data`"
         )
-        data = gwpy.timeseries.TimeSeries.get(
-            channel, start_time, end_time, verbose=False
-        )
+        data = gwpy.timeseries.TimeSeries.fetch_open_data(det, start_time, end_time)
         return data
 
     @property
