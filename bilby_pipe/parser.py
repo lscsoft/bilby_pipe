@@ -104,9 +104,23 @@ def create_parser(top_level=True):
         action="store_true",
         help="If true, use simulated Gaussian noise with aLIGO design sensitivity",
     )
-
-    det_parser = parser.add_argument_group(title="Detector arguments")
-    det_parser.add(
+    data_gen_pars.add(
+        "--data-dict",
+        default=None,
+        type=str,
+        help="Dictionary of paths to gwf, or hdf5 data files",
+    )
+    data_gen_pars.add(
+        "--data-format",
+        default=None,
+        type=str,
+        help=(
+            "If given, the data format to pass to "
+            " `gwpy.timeseries.TimeSeries.read(), see "
+            " gwpy.github.io/docs/stable/timeseries/io.html"
+        ),
+    )
+    data_gen_pars.add(
         "--channel-dict",
         default=None,
         help=(
@@ -115,6 +129,8 @@ def create_parser(top_level=True):
             "dictionary should follow basic python dict syntax."
         ),
     )
+
+    det_parser = parser.add_argument_group(title="Detector arguments")
     det_parser.add(
         "--coherence-test",
         action="store_true",
