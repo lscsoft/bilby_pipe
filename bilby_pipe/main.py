@@ -392,6 +392,7 @@ class Dag(object):
         self.generation_jobs = []
         self.generation_job_labels = []
         self.analysis_jobs = []
+        self.analysis_job_labels = []
         self.summary_jobs = []
         self.results_pages = dict()
         if self.inputs.injection:
@@ -399,6 +400,7 @@ class Dag(object):
         self.create_generation_jobs()
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
+        self.create_merge_runs_job()
         if self.inputs.create_summary:
             self.create_summary_jobs()
         self.build_submit()
@@ -676,6 +678,7 @@ class Dag(object):
         for detector in detectors:
             arguments.add("detectors", detector)
         arguments.add("label", job_name)
+        self.analysis_job_labels.append(job_name)
         arguments.add("data-label", self.generation_job_labels[idx])
         arguments.add("idx", idx)
         arguments.add("sampler", sampler)
@@ -717,7 +720,7 @@ class Dag(object):
             logger.debug("No postprocessing job requested")
             return
 
-        job_name = "postprocessing"
+        job_name = "{}_postprocessing".format(self.inputs.label)
         submit = self.inputs.submit_directory
         job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
 
@@ -749,6 +752,56 @@ class Dag(object):
         for analysis_job in self.analysis_jobs:
             job.add_parent(analysis_job)
         logger.debug("Adding postprocessing job")
+
+    @property
+    def result_files_list(self):
+        """ Returns the list of expected results files """
+        return [
+            "{}/{}_result.json".format(self.inputs.result_directory, lab)
+            for lab in self.analysis_job_labels
+        ]
+
+    def create_merge_runs_job(self):
+        if self.inputs.n_parallel < 1:
+            return
+        job_name = "_".join([self.inputs.label, "merge_runs"])
+        submit = self.inputs.submit_directory
+        job_logs_base = os.path.join(self.inputs.data_analysis_log_directory, job_name)
+
+        extra_lines = ""
+        for arg in ["error", "log", "output"]:
+            extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                arg, job_logs_base, arg[:3]
+            )
+        extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+
+        exe = shutil.which("bilby_result")
+        merged_runs_label = self.inputs.label + "_combined"
+        arguments = "-r {} --merge --outdir {} --label {}".format(
+            " ".join(self.result_files_list),
+            self.inputs.result_directory,
+            merged_runs_label,
+        )
+
+        job = pycondor.Job(
+            name=job_name,
+            executable=exe,
+            submit=submit,
+            getenv=self.getenv,
+            universe=self.universe,
+            initialdir=self.initialdir,
+            notification=self.notification,
+            requirements=self.requirements,
+            queue=self.inputs.queue,
+            dag=self.dag,
+            extra_lines=extra_lines,
+            arguments=arguments,
+            retry=self.retry,
+            verbose=self.verbose,
+        )
+        for analysis_job in self.analysis_jobs:
+            job.add_parent(analysis_job)
+        logger.debug("Adding merge-runs job")
 
     @property
     def summary_jobs_inputs(self):
