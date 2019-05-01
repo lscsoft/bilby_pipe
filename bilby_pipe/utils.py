@@ -196,5 +196,9 @@ def string_to_int_float(s):
             return s
 
 
+def is_a_power_of_2(num):
+    return num != 0 and ((num & (num - 1)) == 0)
+
+
 setup_logger(print_version=True)
 logger = logging.getLogger("bilby_pipe")
