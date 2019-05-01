@@ -19,6 +19,7 @@ from bilby_pipe.utils import (
     logger,
     BilbyPipeError,
     convert_string_to_dict,
+    is_a_power_of_2,
     test_connection,
 )
 from bilby_pipe.main import DataDump, parse_args
@@ -275,6 +276,18 @@ class DataGenerationInput(Input):
         det_list.sort()
         det_list = [det.upper() for det in det_list]
         self._detectors = det_list
+
+    @property
+    def sampling_frequency(self):
+        return self._sampling_frequency
+
+    @sampling_frequency.setter
+    def sampling_frequency(self, sampling_frequency):
+        if is_a_power_of_2(sampling_frequency):
+            logger.warning(
+                "Sampling frequency not a power of 2, this can cause problems"
+            )
+        self._sampling_frequency = sampling_frequency
 
     @property
     def trigger_time(self):
