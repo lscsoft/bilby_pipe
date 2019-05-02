@@ -564,7 +564,9 @@ class Dag(object):
         logger.debug("Adding job: {}".format(job_name))
 
         if self.inputs.run_local:
-            subprocess.run([self.generation_executable] + arguments.argument_list)
+            subprocess.run(
+                [self.generation_executable] + arguments.argument_list, check=True
+            )
 
         return generation_job
 

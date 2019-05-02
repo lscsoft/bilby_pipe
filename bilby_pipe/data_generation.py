@@ -712,3 +712,4 @@ def main():
     data.save_interferometer_list()
     if args.likelihood_type == "ROQGravitationalWaveTransient":
         data.save_roq_weights()
+    logger.info("Completed data generation")
