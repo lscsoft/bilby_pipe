@@ -67,6 +67,7 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
+        self.create_plots = args.create_plots
         self.singularity_image = args.singularity_image
         self.outdir = args.outdir
         self.label = args.label
@@ -401,6 +402,8 @@ class Dag(object):
         self.create_analysis_jobs()
         self.create_postprocessing_jobs()
         self.create_merge_runs_job()
+        if self.inputs.create_plots:
+            self.create_plot_jobs()
         if self.inputs.create_summary:
             self.create_summary_jobs()
         self.build_submit()
@@ -761,8 +764,19 @@ class Dag(object):
             for lab in self.analysis_job_labels
         ]
 
+    @property
+    def merged_runs_label(self):
+        return self.inputs.label + "_combined"
+
+    @property
+    def merged_runs_result_file(self):
+        return "{}/{}_result.json".format(
+            self.inputs.result_directory, self.merged_runs_label
+        )
+
     def create_merge_runs_job(self):
-        if self.inputs.n_parallel < 1:
+        if self.inputs.n_parallel < 2:
+            self.merged_runs = False
             return
         job_name = "_".join([self.inputs.label, "merge_runs"])
         submit = self.inputs.submit_directory
@@ -776,11 +790,10 @@ class Dag(object):
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
 
         exe = shutil.which("bilby_result")
-        merged_runs_label = self.inputs.label + "_combined"
         arguments = "-r {} --merge --outdir {} --label {}".format(
             " ".join(self.result_files_list),
             self.inputs.result_directory,
-            merged_runs_label,
+            self.merged_runs_label,
         )
 
         job = pycondor.Job(
@@ -801,7 +814,54 @@ class Dag(object):
         )
         for analysis_job in self.analysis_jobs:
             job.add_parent(analysis_job)
+        self.merged_runs = True
+        self.merged_runs_job = job
         logger.debug("Adding merge-runs job")
+
+    def create_plot_jobs(self):
+
+        if self.merged_runs:
+            files = [self.merged_runs_result_file]
+            parent_jobs = [self.merged_runs_job]
+        else:
+            files = self.result_files_list
+            parent_jobs = self.analysis_jobs
+
+        for file, parent_job in zip(files, parent_jobs):
+            job_name = parent_job.name + "_plot"
+            job_logs_base = os.path.join(
+                self.inputs.data_analysis_log_directory, job_name
+            )
+
+            extra_lines = ""
+            extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
+            for arg in ["error", "log", "output"]:
+                extra_lines += "\n{} = {}_$(Cluster)_$(Process).{}".format(
+                    arg, job_logs_base, arg[:3]
+                )
+
+            arguments = ArgumentsString()
+            arguments.add_positional_argument(self.inputs.ini)
+            arguments.add("result", file)
+
+            job = pycondor.Job(
+                name=job_name,
+                executable=shutil.which("bilby_pipe_plot"),
+                submit=self.inputs.submit_directory,
+                getenv=self.getenv,
+                universe=self.universe,
+                initialdir=self.initialdir,
+                notification=self.notification,
+                requirements=self.requirements,
+                queue=self.inputs.queue,
+                dag=self.dag,
+                extra_lines=extra_lines,
+                arguments=arguments.print(),
+                retry=self.retry,
+                verbose=self.verbose,
+            )
+            job.add_parent(parent_job)
+            logger.debug("Adding plot job")
 
     @property
     def summary_jobs_inputs(self):

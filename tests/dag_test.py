@@ -46,6 +46,7 @@ class TestDag(unittest.TestCase):
             postprocessing_executable=None,
             postprocessing_arguments=None,
             data_dict=None,
+            create_plots=False,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
