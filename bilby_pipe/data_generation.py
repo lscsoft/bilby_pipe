@@ -91,6 +91,7 @@ class DataGenerationInput(Input):
         self.psd_method = args.psd_method
         self.psd_dict = args.psd_dict
         self.zero_noise = args.zero_noise
+        self.tukey_roll_off = args.tukey_roll_off
         self.minimum_frequency = args.minimum_frequency
         self.maximum_frequency = args.maximum_frequency
         self.outdir = args.outdir
@@ -472,6 +473,9 @@ class DataGenerationInput(Input):
     def _set_interferometers_from_data(self):
         """ Method to generate the interferometers data from data"""
         end_time = self.start_time + self.duration
+        roll_off = self.tukey_roll_off
+        if 2 * roll_off > self.duration:
+            raise ValueError("2 * tukey-roll-off is longer than segment duration.")
         ifo_list = []
         for det in self.detectors:
             logger.info("Getting analysis-segment data for {}".format(det))
@@ -479,6 +483,7 @@ class DataGenerationInput(Input):
                 det, self.get_channel_type(det), self.start_time, end_time
             )
             ifo = bilby.gw.detector.get_empty_interferometer(det)
+            ifo.strain_data.roll_off = roll_off
             if self.injection_file is not None:
                 data = self.inject_signal_into_time_domain_data(data, ifo)
             ifo.strain_data.set_from_gwpy_timeseries(data)
@@ -498,7 +503,6 @@ class DataGenerationInput(Input):
                     actual_psd_start_time,
                     actual_psd_end_time,
                 )
-                roll_off = 0.2
                 psd_alpha = 2 * roll_off / self.duration
                 overlap = self.psd_fractional_overlap * self.duration
                 logger.info(
