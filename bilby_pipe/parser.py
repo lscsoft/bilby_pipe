@@ -221,6 +221,12 @@ def create_parser(top_level=True):
     det_parser.add(
         "--zero-noise", default=False, type=bool, help="Use a zero noise realisation"
     )
+    det_parser.add(
+        "--tukey-roll-off",
+        default=0.4,
+        type=float,
+        help="Roll off duration of tukey window in seconds, default is 0.4s",
+    )
 
     injection_parser = parser.add_argument_group(title="Injection arguments")
     injection_parser.add(
