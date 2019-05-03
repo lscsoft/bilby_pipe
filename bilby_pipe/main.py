@@ -113,6 +113,7 @@ class MainInput(Input):
         ]
 
         self.request_memory = args.request_memory
+        self.request_memory_generation = args.request_memory_generation
         self.request_cpus = args.request_cpus
 
         self.postprocessing_executable = args.postprocessing_executable
@@ -298,6 +299,17 @@ class MainInput(Input):
         self._request_memory = "{} GB".format(request_memory)
 
     @property
+    def request_memory_generation(self):
+        return self._request_memory_generation
+
+    @request_memory_generation.setter
+    def request_memory_generation(self, request_memory_generation):
+        logger.info(
+            "request_memory_generation = {} GB".format(request_memory_generation)
+        )
+        self._request_memory_generation = "{} GB".format(request_memory_generation)
+
+    @property
     def request_cpus(self):
         return self._request_cpus
 
@@ -317,10 +329,6 @@ class Dag(object):
 
     Other parameters
     ----------------
-    request_memory : str or None, optional
-        Memory request to be included in submit file.
-        request_disk : str or None, optional
-        Disk request to be included in submit file.
     request_cpus : int or None, optional
         Number of CPUs to request in submit file.
     getenv : bool or None, optional
@@ -371,7 +379,6 @@ class Dag(object):
         retry=None,
         verbose=0,
     ):
-        self.request_memory = inputs.request_memory
         self.request_disk = request_disk
         self.request_cpus = inputs.request_cpus
         self.getenv = getenv
@@ -546,7 +553,7 @@ class Dag(object):
             name=job_name,
             executable=self.generation_executable,
             submit=submit,
-            request_memory=self.request_memory,
+            request_memory=self.inputs.request_memory_generation,
             request_disk=self.request_disk,
             request_cpus=1,
             getenv=self.getenv,
@@ -695,7 +702,7 @@ class Dag(object):
             name=job_name,
             executable=self.analysis_executable,
             submit=submit,
-            request_memory=self.request_memory,
+            request_memory=self.inputs.request_memory,
             request_disk=self.request_disk,
             request_cpus=self.request_cpus,
             getenv=self.getenv,
@@ -962,7 +969,7 @@ class Dag(object):
             name=job_name,
             executable=self.summary_executable,
             submit=submit,
-            request_memory=self.request_memory,
+            request_memory=self.inputs.request_memory,
             request_disk=self.request_disk,
             request_cpus=self.request_cpus,
             getenv=self.getenv,
