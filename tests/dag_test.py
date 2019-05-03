@@ -38,6 +38,7 @@ class TestDag(unittest.TestCase):
             deltaT=0.2,
             waveform_approximant="IMRPhenomPV2",
             request_memory="4 GB",
+            request_memory_generation="4 GB",
             request_cpus=1,
             generation_seed=None,
             transfer_files=True,
