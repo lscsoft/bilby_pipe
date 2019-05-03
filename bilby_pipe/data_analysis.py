@@ -225,15 +225,12 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_conversion(self):
-        if "no_spin" in self._frequency_domain_source_model:
-            return None
+        if "binary_neutron_star" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
+        elif "binary_black_hole" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
-            if "binary_neutron_star" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-            elif "binary_black_hole" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-            else:
-                return None
+            return None
 
     @property
     def waveform_generator(self):
@@ -321,15 +318,12 @@ class DataAnalysisInput(Input):
 
     @property
     def parameter_generation(self):
-        if "no_spin" in self._frequency_domain_source_model:
-            return None
+        if "binary_neutron_star" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bns_parameters
+        elif "binary_black_hole" in self._frequency_domain_source_model:
+            return bilby.gw.conversion.generate_all_bbh_parameters
         else:
-            if "binary_neutron_star" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.generate_all_bns_parameters
-            elif "binary_black_hole" in self._frequency_domain_source_model:
-                return bilby.gw.conversion.generate_all_bbh_parameters
-            else:
-                return None
+            return None
 
     @property
     def result_class(self):
