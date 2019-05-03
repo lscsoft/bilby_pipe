@@ -197,6 +197,7 @@ def string_to_int_float(s):
 
 
 def is_a_power_of_2(num):
+    num = int(num)
     return num != 0 and ((num & (num - 1)) == 0)
 
 
