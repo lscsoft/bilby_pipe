@@ -22,6 +22,7 @@ from bilby_pipe.utils import (
     is_a_power_of_2,
     test_connection,
 )
+
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
@@ -74,7 +75,7 @@ class DataGenerationInput(Input):
         self.process = args.process
         self.idx = args.idx
         self.x509userproxy = args.X509
-        self.prior_file = args.prior_file
+#        self.prior_file = args.prior_file
         self.deltaT = args.deltaT
         self.default_prior = args.default_prior
         self.detectors = args.detectors
@@ -105,6 +106,7 @@ class DataGenerationInput(Input):
         self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
         if create_data:
             self.create_data(args)
+        self.prior_file = args.prior_file
 
     def create_data(self, args):
         """ Function to iterarate through data generation method
@@ -327,6 +329,7 @@ class DataGenerationInput(Input):
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
             self.trigger_time = candidate["gpstime"]
+            self.mchirp = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
 
     def _parse_gps_file(self):
         """ Reads in the GPS file selects the required time and set the trigger time

@@ -12,8 +12,13 @@ import numpy as np
 import bilby
 import pandas as pd
 
+import bilby_pipe
+
 from . import utils
 from .utils import logger, BilbyPipeError, convert_string_to_dict
+
+from . import determine_mchirp_prior
+from .determine_mchirp_prior import determine_prior_file_from_parameters
 
 
 class Input(object):
@@ -437,6 +442,12 @@ class Input(object):
             self.distance_marginalization_lookup_table = self.get_distance_file_lookup_table(
                 prior_file
             )
+        elif prior_file == "auto":
+            logger.info("Prior-file set to auto")
+            mchirp = # call from data_generation.py, where mchirp is set in gracedb() function
+            logger.info("mchirp = %f" % mchirp)
+            prior_file = determine_prior_file_from_parameters(mchirp)
+            self._prior_file = self.default_prior_files[prior_file]
         else:
             raise FileNotFoundError("No prior file {} available".format(prior_file))
 
