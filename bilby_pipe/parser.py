@@ -150,7 +150,7 @@ def create_parser(top_level=True):
     )
     det_parser.add(
         "--duration",
-        type=int,
+        type=float,
         default=4,
         help="The duration of data around the event to use",
     )
@@ -175,12 +175,12 @@ def create_parser(top_level=True):
         default=2,
         help=("Time (in s) after the trigger_time to the end of the segment"),
     )
-    det_parser.add("--sampling-frequency", default=2048, type=int)
+    det_parser.add("--sampling-frequency", default=2048, type=float)
 
     det_parser.add(
         "--psd-length",
         default=32,
-        type=int,
+        type=float,
         help=("Number of duration-lenths used to generate the PSD, default" " is 32."),
     )
     det_parser.add(
@@ -370,6 +370,12 @@ def create_parser(top_level=True):
         "Need to specify --roq-folder if ROQ likelihood used",
     )
     likelihood_parser.add("--roq-folder", default=None, help="The data for ROQ")
+    likelihood_parser.add(
+        "--roq-scale-factor",
+        default=1,
+        type=float,
+        help="Rescaling factor for the ROQ, default is 1 (no rescaling)",
+    )
 
     output_parser = parser.add_argument_group(title="Output arguments")
     output_parser.add(

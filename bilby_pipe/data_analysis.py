@@ -67,6 +67,7 @@ class DataAnalysisInput(Input):
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
         self.roq_folder = args.roq_folder
+        self.roq_scale_factor = args.roq_scale_factor
         self.calibration_model = args.calibration_model
         self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
         self.spline_calibration_amplitude_uncertainty_dict = (
@@ -250,6 +251,8 @@ class DataAnalysisInput(Input):
             )
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
+            freq_nodes_linear *= self.roq_scale_factor
+            freq_nodes_quadratic *= self.roq_scale_factor
 
             waveform_arguments = self.waveform_arguments.copy()
             waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
@@ -297,6 +300,11 @@ class DataAnalysisInput(Input):
                     "ROQGravitationalWaveTransient: option ignored"
                 )
 
+            params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+            params["flow"] *= self.roq_scale_factor
+            params["fhigh"] *= self.roq_scale_factor
+            params["seglen"] /= self.roq_scale_factor
+
             weight_file = os.path.join(
                 self.data_directory, self.data_label + "_roq_weights.json"
             )
@@ -308,6 +316,7 @@ class DataAnalysisInput(Input):
                 waveform_generator=self.waveform_generator,
                 weights=weight_file,
                 priors=self.priors,
+                roq_params=params,
                 phase_marginalization=self.phase_marginalization,
                 distance_marginalization=self.distance_marginalization,
                 distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
