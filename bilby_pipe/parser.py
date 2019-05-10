@@ -254,6 +254,16 @@ def create_parser(top_level=True):
         required=required,
         help="Accounting group to use (see, https://accounting.ligo.org/user)",
     )
+    submission_parser.add(
+        "--gracedb-url",
+        type=str,
+        default=None,
+        help=(
+            "Service url for GraceDB events"
+            " GraceDB 'https://gracedb.ligo.org/api/' (default)"
+            " GraceDB-playground 'https://gracedb-playground.ligo.org/api/'",
+        )
+    )
     submission_parser.add("--label", type=str, default="label", help="Output label")
     submission_parser.add(
         "--local",
@@ -299,16 +309,6 @@ def create_parser(top_level=True):
         type=int,
         default=1,
         help="CPU allocation request (required multi-processing jobs)",
-    )
-    submission_parser.add(
-        "--gracedb-url",
-        type=str,
-        default=None,
-        help=(
-            "Service url for GraceDB events"
-            "GraceDB 'https://gracedb.ligo.org/api/'"
-            "GraceDB-playground 'https://gracedb-playground.ligo.org/api/'",
-        )
     )
     submission_parser.add(
         "--singularity-image", type=str, default=None, help="Singularity image to use"
