@@ -97,6 +97,7 @@ class DataGenerationInput(Input):
         self.outdir = args.outdir
         self.label = args.label
         self.roq_folder = args.roq_folder
+        self.roq_scale_factor = args.roq_scale_factor
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
@@ -669,8 +670,18 @@ class DataGenerationInput(Input):
         logger.info(
             "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
         )
+
+        params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+        params["flow"] *= self.roq_scale_factor
+        params["fhigh"] *= self.roq_scale_factor
+        params["seglen"] /= self.roq_scale_factor
+        if params["seglen"] != self.duration:
+            raise ValueError("Segment duration does not match ROQ basis")
+
         freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
         freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
+        freq_nodes_linear *= self.roq_scale_factor
+        freq_nodes_quadratic *= self.roq_scale_factor
 
         basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
         basis_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
@@ -683,6 +694,7 @@ class DataGenerationInput(Input):
             sampling_frequency=self.interferometers.sampling_frequency,
             duration=self.interferometers.duration,
             frequency_domain_source_model=bilby.gw.source.roq,
+            parameter_conversion=self.parameter_conversion,
             start_time=self.interferometers.start_time,
             waveform_arguments=waveform_arguments,
         )
@@ -690,10 +702,18 @@ class DataGenerationInput(Input):
         likelihood = bilby.gw.likelihood.ROQGravitationalWaveTransient(
             interferometers=self.interferometers,
             priors=self.priors,
+            roq_params=params,
             waveform_generator=waveform_generator,
             linear_matrix=basis_matrix_linear,
             quadratic_matrix=basis_matrix_quadratic,
         )
+
+        if self.injection_parameters is not None:
+            likelihood.parameters.update(self.injection_parameters)
+            logger.info(
+                "ROQ likelihood at injection values = "
+                "{}".format(likelihood.log_likelihood_ratio())
+            )
 
         weight_file = os.path.join(
             self.data_directory, self.label + "_roq_weights.json"
