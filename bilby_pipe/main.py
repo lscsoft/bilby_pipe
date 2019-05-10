@@ -98,6 +98,7 @@ class MainInput(Input):
         self.injection_file = args.injection_file
         self.n_injection = args.n_injection
 
+        self.gracedb_url = args.gracedb_url
         self.gracedb = args.gracedb
         self.trigger_time = args.trigger_time
 

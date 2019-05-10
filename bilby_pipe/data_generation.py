@@ -73,6 +73,7 @@ class DataGenerationInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
+        self.gracedb_url = args.gracedb_url
         self.x509userproxy = args.X509
         self.prior_file = args.prior_file
         self.deltaT = args.deltaT
@@ -322,7 +323,8 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             test_connection()
             candidate = bilby.gw.utils.gracedb_to_json(
-                gracedb, outdir=self.data_directory, cred=self.x509userproxy
+                gracedb, outdir=self.data_directory, cred=self.x509userproxy,
+                service_url=self.gracedb_url
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb
