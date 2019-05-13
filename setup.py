@@ -82,7 +82,6 @@ setup(
         "ligo-gracedb",
         "bilby>=0.4.1",
         "scipy>=1.2.0",
-        "pesummary",
         "gwpy",
     ],
     entry_points={

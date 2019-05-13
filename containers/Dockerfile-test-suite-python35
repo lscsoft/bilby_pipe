@@ -24,7 +24,7 @@ echo "conda activate base" >> ~/.bashrc
 RUN conda install -y python==3.5
 
 # Install LALtools
-RUN conda install -y -c conda-forge ldas-tools-framecpp
+RUN conda install -y -c conda-forge python-ldas-tools-framecpp
 RUN conda install -y -c conda-forge python-nds2-client
 
 # Install singularity
@@ -38,7 +38,7 @@ RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singulari
 # Install conda-installable programs
 RUN conda install -y matplotlib numpy scipy pandas
 
-RUN conda install -c conda-forge deepdish
+RUN conda install -c conda-forge ligo-gracedb gwpy lalsuite ligo.skymap
 
 # Install requirements
 RUN pip install --upgrade pip \
