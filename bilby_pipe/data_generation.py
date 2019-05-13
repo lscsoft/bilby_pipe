@@ -326,8 +326,10 @@ class DataGenerationInput(Input):
             logger.info("Setting gracedb id to {}".format(gracedb))
             test_connection()
             candidate = bilby.gw.utils.gracedb_to_json(
-                gracedb, outdir=self.data_directory, cred=self.x509userproxy,
-                service_url=self.gracedb_url
+                gracedb,
+                outdir=self.data_directory,
+                cred=self.x509userproxy,
+                service_url=self.gracedb_url,
             )
             self.meta_data["gracedb_candidate"] = candidate
             self._gracedb = gracedb

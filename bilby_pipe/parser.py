@@ -262,7 +262,7 @@ def create_parser(top_level=True):
             "Service url for GraceDB events"
             " GraceDB 'https://gracedb.ligo.org/api/' (default)"
             " GraceDB-playground 'https://gracedb-playground.ligo.org/api/'",
-        )
+        ),
     )
     submission_parser.add("--label", type=str, default="label", help="Output label")
     submission_parser.add(
@@ -291,7 +291,6 @@ def create_parser(top_level=True):
             " This is used to decrease the chance of HTCondor hard evictions"
         ),
     )
-
     submission_parser.add(
         "--request-memory",
         type=float,
