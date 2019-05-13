@@ -26,7 +26,7 @@ def create_parser(top_level=True):
         required = False
 
     parser = BilbyArgParser(
-        usage=__doc__, ignore_unknown_config_file_keys=True, allow_abbrev=False
+        usage=__doc__, ignore_unknown_config_file_keys=False, allow_abbrev=False
     )
     parser.add("ini", type=str, is_config_file=True, help="Configuration ini file")
     parser.add("-v", "--verbose", action="store_true", help="Verbose output")
@@ -175,7 +175,7 @@ def create_parser(top_level=True):
         default=2,
         help=("Time (in s) after the trigger_time to the end of the segment"),
     )
-    det_parser.add("--sampling-frequency", default=2048, type=float)
+    det_parser.add("--sampling-frequency", default=4096, type=float)
 
     det_parser.add(
         "--psd-length",

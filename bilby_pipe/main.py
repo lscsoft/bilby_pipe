@@ -1089,9 +1089,16 @@ def create_main_parser():
 
 def main():
     """ Top-level interface for bilby_pipe """
-    args, unknown_args = parse_args(
-        utils.get_command_line_arguments(), create_main_parser()
-    )
+    parser = create_main_parser()
+    args, unknown_args = parse_args(utils.get_command_line_arguments(), parser)
+
     inputs = MainInput(args, unknown_args)
-    # Create a Directed Acyclic Graph (DAG) of the workflow
+
+    args.outdir = os.path.abspath(args.outdir)
+    complete_ini_file = "{}/{}_config_complete.ini".format(inputs.outdir, inputs.label)
+    parser.write_config_file(args, [complete_ini_file])
+
     Dag(inputs)
+
+    if len(unknown_args) > 1:
+        logger.warning("Unrecognized arguments {}".format(unknown_args))

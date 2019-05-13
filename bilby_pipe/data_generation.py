@@ -286,9 +286,11 @@ class DataGenerationInput(Input):
 
     @sampling_frequency.setter
     def sampling_frequency(self, sampling_frequency):
-        if is_a_power_of_2(sampling_frequency):
+        if is_a_power_of_2(sampling_frequency) is False:
             logger.warning(
-                "Sampling frequency not a power of 2, this can cause problems"
+                "Sampling frequency {} not a power of 2, this can cause problems".format(
+                    sampling_frequency
+                )
             )
         self._sampling_frequency = sampling_frequency
 
