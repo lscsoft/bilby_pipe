@@ -18,6 +18,8 @@ for filename in glob.glob("*prior"):
         ifos,
         wfg,
         distance_marginalization=True,
+        time_marginalization=False,
+        phase_marginalization=True,
         priors=priors,
         distance_marginalization_lookup_table=dest,
     )
