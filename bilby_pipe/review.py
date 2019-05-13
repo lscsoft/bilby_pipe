@@ -193,8 +193,8 @@ def pp_test(args):
     config_dict["n-injection"] = 100
     config_dict["gaussian-noise"] = True
     config_dict[
-        "sampler-kwargs"
-    ] = "{nlive: 1000, walks: 100, verbose=False, check_point_plot=False}"
+        "sampler_kwargs"
+    ] = "{nlive: 1000, walks: 100, verbose=False, check_point_plot=False, n_check_point=5000}"
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         outdir, outdir
