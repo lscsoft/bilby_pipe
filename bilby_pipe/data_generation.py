@@ -133,7 +133,7 @@ class DataGenerationInput(Input):
         # The following are all mutually exclusive methods to set the data
         if self.gaussian_noise:
             if args.injection_file is not None:
-                self._set_interferometers_from_injection()
+                self._set_interferometers_from_injection_in_gaussian_noise()
             else:
                 raise BilbyPipeError("Unable to set data: no injection file")
         elif self.data_set is False and args.gracedb is not None:
@@ -344,19 +344,23 @@ class DataGenerationInput(Input):
         self.start_time = gps_start_times[self.idx]
         self.trigger_time = self.start_time + self.duration - self.post_trigger_duration
 
-    def _set_interferometers_from_injection(self):
-        """ Method to generate the interferometers data from an injection """
+    def _set_interferometers_from_injection_in_gaussian_noise(self):
+        """ Method to generate the interferometers data from an injection in Gaussian noise """
 
         self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
         self.meta_data["injection_parameters"] = self.injection_parameters
         self.trigger_time = self.injection_parameters["geocent_time"]
+        self.start_time = self.trigger_time + self.post_trigger_duration - self.duration
 
-        logger.info(
-            "injected waveform minimum frequency: " + str(self.minimum_frequency)
-        )
-        logger.info(
-            "injected waveform maximum frequency: " + str(self.maximum_frequency)
-        )
+        logger.info("injected waveform with ")
+        for prop in [
+            "minimum_frequency",
+            "maximum_frequency",
+            "trigger_time",
+            "start_time",
+            "duration",
+        ]:
+            logger.info("{} = {}".format(prop, getattr(self, prop)))
 
         waveform_arguments = dict(
             waveform_approximant=self.waveform_approximant,
@@ -366,6 +370,7 @@ class DataGenerationInput(Input):
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration,
+            start_time=self.start_time,
             sampling_frequency=self.sampling_frequency,
             frequency_domain_source_model=self.bilby_frequency_domain_source_model,
             parameter_conversion=self.parameter_conversion,
@@ -383,13 +388,13 @@ class DataGenerationInput(Input):
             ifos.set_strain_data_from_zero_noise(
                 sampling_frequency=self.sampling_frequency,
                 duration=self.duration,
-                start_time=self.trigger_time - self.duration / 2,
+                start_time=self.start_time,
             )
         else:
             ifos.set_strain_data_from_power_spectral_densities(
                 sampling_frequency=self.sampling_frequency,
                 duration=self.duration,
-                start_time=self.trigger_time - self.duration / 2,
+                start_time=self.start_time,
             )
 
         ifos.inject_signal(
