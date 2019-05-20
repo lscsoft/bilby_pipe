@@ -300,8 +300,8 @@ def create_parser(top_level=True):
     submission_parser.add(
         "--request-memory-generation",
         type=float,
-        default=16,
-        help="Memory allocation request (GB) for data generation step, defaults is 16GB",
+        default=32,
+        help="Memory allocation request (GB) for data generation step, defaults is 32GB",
     )
     submission_parser.add(
         "--request-cpus",

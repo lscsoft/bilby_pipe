@@ -21,20 +21,20 @@ duration_lookups = {
 fiducial_injections = {
     "128s": dict(
         chirp_mass=2.1,
-        mass_ratio=0.7,
+        mass_ratio=0.8,
         a_1=0.12,
         a_2=0.23262056301313416,
         tilt_1=1.0264673717225983,
         tilt_2=2.1701305583885513,
         phi_12=5.0962562029664955,
         phi_jl=2.518241237045709,
-        luminosity_distance=70.0,
+        luminosity_distance=50.0,
         dec=0.2205292600865073,
         ra=3.952677097361719,
         theta_jn=1.8795187965094322,
         psi=2.6973435044499543,
         phase=3.686990398567503,
-        geocent_time=0.040833669551002205,
+        geocent_time=-0.01,
     ),
     "4s": dict(
         chirp_mass=17.051544979894693,
