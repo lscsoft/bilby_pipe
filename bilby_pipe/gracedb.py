@@ -158,7 +158,7 @@ def main():
     args = parser.parse_args()
 
     if args.gracedb_url is None:
-        args.gracedb_url = "https://gracedb-playground.ligo.org/api/"
+        args.gracedb_url = "https://gracedb.ligo.org/api/"
 
     if args.coinc:
         candidate = coinc(args)
