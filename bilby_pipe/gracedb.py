@@ -67,7 +67,7 @@ def create_config_file(args, candidate):
         channel_dict[ifo] = channel
 
     if args.gracedb is None:
-        args.gracedb = candidate["gracedb_id"]
+        args.gracedb = candidate["graceid"]
 
     config_dict = dict(
         label=args.gracedb,
@@ -162,7 +162,7 @@ def main():
 
     if args.coinc:
         candidate = coinc(args)
-        gracedb = candidate["gracedb_id"]
+        gracedb = candidate["graceid"]
         if args.outdir is None:
             args.outdir = "outdir_{}".format(gracedb)
         if not os.path.exists(args.outdir):
