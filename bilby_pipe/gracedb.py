@@ -4,7 +4,6 @@ import json
 import os
 import subprocess
 import shutil
-import time
 
 import bilby
 import bilby_pipe
@@ -107,10 +106,10 @@ def write_config_file(config_dict):
 
 
 def determine_prior_file_from_parameters(chirp_mass):
-    """ 
+    """
     Determine appropriate prior from chirp mass
 
-    Parameters 
+    Parameters
     ----------
     chirp_mass: float
         The chirp mass of the source (in solar masses)
