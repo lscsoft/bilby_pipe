@@ -43,6 +43,7 @@ def get_gracedb(args):
 
     return candidate
 
+
 def coinc(args):
     try:
         with open(args.coinc, "r") as file:
@@ -52,14 +53,15 @@ def coinc(args):
 
     return candidate
 
+
 def create_config_file(args, candidate):
-    chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"] 
+    chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
     trigger_time = candidate["gpstime"]
     singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
 
     ifos = [sngl["ifo"] for sngl in singleinspiraltable]
     channels = [sngl["channel"] for sngl in singleinspiraltable]
-    ifo_channel = zip(ifos,channels)
+    ifo_channel = zip(ifos, channels)
     channel_dict = {}
     for ifo, channel in ifo_channel:
         channel_dict[ifo] = channel
@@ -71,10 +73,10 @@ def create_config_file(args, candidate):
         label=args.gracedb,
         outdir=args.outdir,
         accounting="ligo.dev.o3.cbc.pe.lalinference",
-        maximum_frequency = 1024,
-        minimum_frequency = 20,
-        sampling_frequency = 4096,
-        reference_frequency = 20,
+        maximum_frequency=1024,
+        minimum_frequency=20,
+        sampling_frequency=4096,
+        reference_frequency=20,
         trigger_time=trigger_time,
         detectors="[H1, L1, V1]",
         channel_dict=channel_dict,
@@ -151,9 +153,7 @@ def main():
     group2.add_argument("--local", action="store_true", help="Run the job locally")
     group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument("--outdir", type=str, help="Output directory")
-    parser.add_argument(
-        "--gracedb-url", type=str, help="GraceDB service url"
-    )
+    parser.add_argument("--gracedb-url", type=str, help="GraceDB service url")
 
     args = parser.parse_args()
 
@@ -162,7 +162,7 @@ def main():
 
     if args.coinc:
         candidate = coinc(args)
-        gracedb = candidate["gracedb_id"] 
+        gracedb = candidate["gracedb_id"]
         if args.outdir is None:
             args.outdir = "outdir_{}".format(gracedb)
         if not os.path.exists(args.outdir):
