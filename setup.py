@@ -93,6 +93,7 @@ setup(
             "bilby_pipe_pp_test=bilby_pipe.pp_test:main",
             "bilby_pipe_review=bilby_pipe.review:main",
             "bilby_pipe_plot=bilby_pipe.plot:main",
+            "bilby_pipe_gracedb=bilby_pipe.gracedb:main",
         ]
     },
     classifiers=[
