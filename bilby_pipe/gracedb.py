@@ -121,11 +121,12 @@ def create_config_file(candidate, gracedb, outdir):
 
     try:
         chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
-    except:
-        raise KeyError("Unable to retrieve chirp mass for {} from GraceDB".format(gracedb))
+    except KeyError:
+        raise ValueError(
+            "Unable to determine chirp mass for {} from GraceDB".format(gracedb)
+        )
     trigger_time = candidate["gpstime"]
     singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
-
 
     ifos = [sngl["ifo"] for sngl in singleinspiraltable]
     channels = [sngl["channel"] for sngl in singleinspiraltable]
