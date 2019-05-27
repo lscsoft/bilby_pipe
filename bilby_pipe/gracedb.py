@@ -9,8 +9,31 @@ import bilby
 import bilby_pipe
 from .utils import logger
 
+duration_lookups = {
+    "high_mass": 4,
+    "4s": 4,
+    "8s": 8,
+    "16s": 16,
+    "32s": 32,
+    "64s": 64,
+    "128s": 128,
+}
 
 def x509userproxy(args):
+    """ Sets X509_USER_PROXY
+
+    Parameters
+    ----------
+    outdir: str
+        Output directory
+
+    Returns
+    -------
+    x509userproxy: str
+        Path to X509_USER_PROXY certification file
+
+    """
+
     cert_alias = "X509_USER_PROXY"
     try:
         cert_path = os.environ[cert_alias]
@@ -32,6 +55,21 @@ def x509userproxy(args):
 
 
 def get_gracedb(args):
+    """
+    Read GraceDB events from GraceDB
+
+    Parameters
+    ----------
+    gracedb: str
+        GraceDB id of event
+
+    Returns
+    -------
+    candidate:
+        Contains contents of GraceDB event from GraceDB, json format
+    
+    """
+
     bilby_pipe.utils.test_connection()
     candidate = bilby.gw.utils.gracedb_to_json(
         gracedb=args.gracedb,
@@ -39,21 +77,51 @@ def get_gracedb(args):
         cred=x509userproxy(args),
         service_url=args.gracedb_url,
     )
-
     return candidate
 
 
 def coinc(args):
+    """ Read GraceDB events from json file with coinc contents
+
+    Parameters
+    ----------
+    coinc: str
+        Filename of coinc json file output
+
+    Returns
+    -------
+    candidate: 
+        Contains contents of GraceDB event from coinc, json format
+
+    """
+
     try:
         with open(args.coinc, "r") as file:
             candidate = json.load(file)
     except IOError:
         print("Unable to load event contents of json file")
-
     return candidate
 
 
 def create_config_file(args, candidate):
+    """ Creates ini file from defaults and candidate contents
+
+    Parameters 
+    ----------
+    candidate:
+        Contains contents of GraceDB event
+    gracedb: str
+        GraceDB id of event
+    outdir: str
+        Output directory
+
+    Returns
+    -------
+    filename: str
+        Generated ini filename
+
+    """
+
     chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
     trigger_time = candidate["gpstime"]
     singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
@@ -68,6 +136,8 @@ def create_config_file(args, candidate):
     if args.gracedb is None:
         args.gracedb = candidate["graceid"]
 
+    prior = determine_prior_file_from_parameters(chirp_mass)
+
     config_dict = dict(
         label=args.gracedb,
         outdir=args.outdir,
@@ -79,9 +149,9 @@ def create_config_file(args, candidate):
         trigger_time=trigger_time,
         detectors="[H1, L1, V1]",
         channel_dict=channel_dict,
-        deltaT=0.1,
-        prior_file=determine_prior_file_from_parameters(chirp_mass),
-        duration=8,
+        deltaT=0.2,
+        prior_file=prior,
+        duration=duration_lookups[prior],
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
         create_plots=True,
@@ -95,6 +165,20 @@ def create_config_file(args, candidate):
 
 
 def write_config_file(config_dict):
+    """ Writes ini file
+
+    Parameters
+    ----------
+    config_dict: dict
+        Dictionary of parameters for ini file
+
+    Returns
+    -------
+    filename: str
+        Generated ini filename
+
+    """
+
     if None in config_dict.values():
         raise ValueError("config-dict is not complete")
     filename = "{}.ini".format(config_dict["label"])
@@ -106,8 +190,7 @@ def write_config_file(config_dict):
 
 
 def determine_prior_file_from_parameters(chirp_mass):
-    """
-    Determine appropriate prior from chirp mass
+    """ Determine appropriate prior from chirp mass
 
     Parameters
     ----------
@@ -118,6 +201,7 @@ def determine_prior_file_from_parameters(chirp_mass):
     -------
     prior: str
         A string repesentation of the appropriate prior to use
+
     """
 
     if chirp_mass > 40:
@@ -152,12 +236,9 @@ def main():
     group2.add_argument("--local", action="store_true", help="Run the job locally")
     group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument("--outdir", type=str, help="Output directory")
-    parser.add_argument("--gracedb-url", type=str, help="GraceDB service url")
+    parser.add_argument("--gracedb-url", type=str, help="GraceDB service url", default="https://gracedb.ligo.org/api/")
 
     args = parser.parse_args()
-
-    if args.gracedb_url is None:
-        args.gracedb_url = "https://gracedb.ligo.org/api/"
 
     if args.coinc:
         candidate = coinc(args)
