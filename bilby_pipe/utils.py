@@ -208,10 +208,6 @@ def write_config_file(config_dict, filename):
     config_dict: dict
         Dictionary of parameters for ini file
 
-    Returns
-    -------
-    filename: str
-        Generated ini filename
     """
 
     if None in config_dict.values():
@@ -219,8 +215,6 @@ def write_config_file(config_dict, filename):
     with open(filename, "w+") as file:
         for key, val in config_dict.items():
             print("{}={}".format(key, val), file=file)
-
-    return filename
 
 
 def test_connection():

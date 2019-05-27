@@ -143,7 +143,7 @@ def fiducial_bbh(args):
         )
     config_dict["injection-file"] = injection_filename
     filename = "review_{}.ini".format(config_dict["label"])
-    filename = write_config_file(config_dict, filename)
+    write_config_file(config_dict, filename)
     return filename
 
 
@@ -182,7 +182,8 @@ def pp_test(args):
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         outdir, outdir
     )
-    filename = write_config_file(config_dict)
+    filename = "review_{}.ini".format(config_dict["label"])
+    write_config_file(config_dict, filename)
     return filename
 
 

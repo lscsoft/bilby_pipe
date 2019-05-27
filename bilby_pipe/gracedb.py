@@ -165,7 +165,7 @@ def create_config_file(candidate, gracedb, outdir):
         phase_marginalization=True,
     )
     filename = "{}.ini".format(config_dict["label"])
-    filename = write_config_file(config_dict, filename)
+    write_config_file(config_dict, filename)
 
     return filename
 
