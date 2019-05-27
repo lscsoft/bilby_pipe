@@ -2,22 +2,11 @@
 import argparse
 import json
 import os
-import subprocess
 import shutil
 
 import bilby
 import bilby_pipe
-from .utils import logger
-
-duration_lookups = {
-    "high_mass": 4,
-    "4s": 4,
-    "8s": 8,
-    "16s": 16,
-    "32s": 32,
-    "64s": 64,
-    "128s": 128,
-}
+from .utils import logger, duration_lookups, write_config_file, run_command_line
 
 
 def x509userproxy(outdir):
@@ -164,32 +153,8 @@ def create_config_file(candidate, gracedb, outdir):
         distance_marginalization=True,
         phase_marginalization=True,
     )
-    filename = write_config_file(config_dict)
-
-    return filename
-
-
-def write_config_file(config_dict):
-    """ Writes ini file
-
-    Parameters
-    ----------
-    config_dict: dict
-        Dictionary of parameters for ini file
-
-    Returns
-    -------
-    filename: str
-        Generated ini filename
-
-    """
-
-    if None in config_dict.values():
-        raise ValueError("config-dict is not complete")
     filename = "{}.ini".format(config_dict["label"])
-    with open(filename, "w+") as file:
-        for key, val in config_dict.items():
-            print("{}={}".format(key, val), file=file)
+    filename = write_config_file(config_dict, filename)
 
     return filename
 
@@ -225,11 +190,6 @@ def determine_prior_file_from_parameters(chirp_mass):
         prior = "128s"
 
     return prior
-
-
-def run_command_line(arguments):
-    print("\nRunning command $ {}\n".format(" ".join(arguments)))
-    subprocess.call(arguments)
 
 
 def main():

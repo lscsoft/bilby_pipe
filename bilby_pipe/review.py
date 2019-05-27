@@ -2,21 +2,12 @@
 import argparse
 import json
 import os
-import subprocess
 import time
 
 import bilby
 import bilby_pipe
+from .utils import duration_lookups, write_config_file, run_command_line
 
-duration_lookups = {
-    "high_mass": 4,
-    "4s": 4,
-    "8s": 8,
-    "16s": 16,
-    "32s": 32,
-    "64s": 64,
-    "128s": 128,
-}
 
 fiducial_injections = {
     "128s": dict(
@@ -110,23 +101,6 @@ def get_default_config_dict(args, review_name):
     return base_dict
 
 
-def write_config_file(config_dict):
-    if None in config_dict.values():
-        raise ValueError("config-dict is not complete")
-
-    filename = "review_{}.ini".format(config_dict["label"])
-    with open(filename, "w+") as file:
-        for key, val in config_dict.items():
-            print("{}={}".format(key, val), file=file)
-
-    return filename
-
-
-def run_command_line(arguments):
-    print("\nRunning command $ {}\n".format(" ".join(arguments)))
-    subprocess.call(arguments)
-
-
 def fiducial_bbh(args):
     """ Review test: fiducial binary black hole in Gaussian noise
 
@@ -159,8 +133,8 @@ def fiducial_bbh(args):
             cls=bilby.core.result.BilbyJsonEncoder,
         )
     config_dict["injection-file"] = injection_filename
-
-    filename = write_config_file(config_dict)
+    filename = "review_{}.ini".format(config_dict["label"])
+    filename = write_config_file(config_dict, filename)
     return filename
 
 
