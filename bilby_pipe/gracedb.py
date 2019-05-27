@@ -19,7 +19,7 @@ duration_lookups = {
     "128s": 128,
 }
 
-def x509userproxy(args):
+def x509userproxy(outdir):
     """ Sets X509_USER_PROXY
 
     Parameters
@@ -37,7 +37,7 @@ def x509userproxy(args):
     cert_alias = "X509_USER_PROXY"
     try:
         cert_path = os.environ[cert_alias]
-        new_cert_path = os.path.join(args.outdir, "." + os.path.basename(cert_path))
+        new_cert_path = os.path.join(outdir, "." + os.path.basename(cert_path))
         shutil.copyfile(cert_path, new_cert_path)
         x509userproxy = new_cert_path
     except FileNotFoundError:
@@ -54,7 +54,7 @@ def x509userproxy(args):
     return x509userproxy
 
 
-def get_gracedb(args):
+def read_from_gracedb(gracedb,gracedb_url,outdir):
     """
     Read GraceDB events from GraceDB
 
@@ -62,6 +62,12 @@ def get_gracedb(args):
     ----------
     gracedb: str
         GraceDB id of event
+    gracedb_url: str
+        Service url for GraceDB events
+        GraceDB 'https://gracedb.ligo.org/api/' (default)
+        GraceDB-playground 'https://gracedb-playground.ligo.org/api/'
+    outdir: str
+        Output directory
 
     Returns
     -------
@@ -72,15 +78,15 @@ def get_gracedb(args):
 
     bilby_pipe.utils.test_connection()
     candidate = bilby.gw.utils.gracedb_to_json(
-        gracedb=args.gracedb,
-        outdir=args.outdir,
-        cred=x509userproxy(args),
-        service_url=args.gracedb_url,
+        gracedb=gracedb,
+        outdir=outdir,
+        cred=x509userproxy(outdir),
+        service_url=gracedb_url,
     )
     return candidate
 
 
-def coinc(args):
+def read_from_coinc(coinc):
     """ Read GraceDB events from json file with coinc contents
 
     Parameters
@@ -96,14 +102,14 @@ def coinc(args):
     """
 
     try:
-        with open(args.coinc, "r") as file:
+        with open(coinc, "r") as file:
             candidate = json.load(file)
     except IOError:
         print("Unable to load event contents of json file")
     return candidate
 
 
-def create_config_file(args, candidate):
+def create_config_file(candidate, gracedb, outdir):
     """ Creates ini file from defaults and candidate contents
 
     Parameters 
@@ -133,14 +139,11 @@ def create_config_file(args, candidate):
     for ifo, channel in ifo_channel:
         channel_dict[ifo] = channel
 
-    if args.gracedb is None:
-        args.gracedb = candidate["graceid"]
-
     prior = determine_prior_file_from_parameters(chirp_mass)
 
     config_dict = dict(
-        label=args.gracedb,
-        outdir=args.outdir,
+        label=gracedb,
+        outdir=outdir,
         accounting="ligo.dev.o3.cbc.pe.lalinference",
         maximum_frequency=1024,
         minimum_frequency=20,
@@ -240,22 +243,28 @@ def main():
 
     args = parser.parse_args()
 
+    if args.outdir:
+        outdir = args.outdir
+
     if args.coinc:
-        candidate = coinc(args)
+        coinc = args.coinc
+        candidate = read_from_coinc(coinc)
         gracedb = candidate["graceid"]
         if args.outdir is None:
-            args.outdir = "outdir_{}".format(gracedb)
-        if not os.path.exists(args.outdir):
-            os.mkdir(args.outdir)
+            outdir = "outdir_{}".format(gracedb)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
 
     if args.gracedb:
+        gracedb = args.gracedb
+        gracedb_url = args.gracedb_url
         if args.outdir is None:
-            args.outdir = "outdir_{}".format(args.gracedb)
-        if not os.path.exists(args.outdir):
-            os.mkdir(args.outdir)
-        candidate = get_gracedb(args)
+            outdir = "outdir_{}".format(gracedb)
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        candidate = read_from_gracedb(gracedb,gracedb_url,outdir)
 
-    filename = create_config_file(args, candidate)
+    filename = create_config_file(candidate, gracedb, outdir)
 
     arguments = ["bilby_pipe", filename]
     if args.local:
