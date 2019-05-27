@@ -1100,7 +1100,9 @@ def main():
 
     args.outdir = os.path.abspath(args.outdir)
     complete_ini_file = "{}/{}_config_complete.ini".format(inputs.outdir, inputs.label)
-    parser.write_config_file(args, [complete_ini_file])
+    with open(complete_ini_file, "w") as f:
+        for key, val in args.__dict__.items():
+            print("{}={}".format(key, val), file=f)
 
     Dag(inputs)
 
