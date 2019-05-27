@@ -132,6 +132,7 @@ class DataGenerationInput(Input):
 
         # The following are all mutually exclusive methods to set the data
         if self.gaussian_noise:
+            self.trigger_time = args.trigger_time
             if args.injection_file is not None:
                 self._set_interferometers_from_injection_in_gaussian_noise()
             else:
@@ -349,7 +350,14 @@ class DataGenerationInput(Input):
 
         self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
         self.meta_data["injection_parameters"] = self.injection_parameters
-        self.trigger_time = self.injection_parameters["geocent_time"]
+        if self.trigger_time is None:
+            self.trigger_time = self.injection_parameters["geocent_time"]
+            logger.info(
+                "Setting trigger_time to {} from injection parameter geocent_time".format(
+                    self.trigger_time
+                )
+            )
+
         self.start_time = self.trigger_time + self.post_trigger_duration - self.duration
 
         logger.info("injected waveform with ")
