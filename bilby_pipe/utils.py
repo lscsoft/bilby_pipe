@@ -8,6 +8,7 @@ import logging
 import ast
 import urllib
 import urllib.request
+import subprocess
 
 
 class BilbyPipeError(Exception):
@@ -15,9 +16,25 @@ class BilbyPipeError(Exception):
         super().__init__(message)
 
 
+duration_lookups = {
+    "high_mass": 4,
+    "4s": 4,
+    "8s": 8,
+    "16s": 16,
+    "32s": 32,
+    "64s": 64,
+    "128s": 128,
+}
+
+
 def get_command_line_arguments():
     """ Helper function to return the list of command line arguments """
     return sys.argv[1:]
+
+
+def run_command_line(arguments):
+    print("\nRunning command $ {}\n".format(" ".join(arguments)))
+    subprocess.call(arguments)
 
 
 def parse_args(input_args, parser, allow_unknown=True):
@@ -164,6 +181,29 @@ def convert_string_to_dict(string, key):
         dic[key] = string_to_int_float(dic[key])
 
     return dic
+
+
+def write_config_file(config_dict, filename):
+    """ Writes ini file
+
+    Parameters
+    ----------
+    config_dict: dict
+        Dictionary of parameters for ini file
+
+    Returns
+    -------
+    filename: str
+        Generated ini filename
+    """
+
+    if None in config_dict.values():
+        raise ValueError("config-dict is not complete")
+    with open(filename, "w+") as file:
+        for key, val in config_dict.items():
+            print("{}={}".format(key, val), file=file)
+
+    return filename
 
 
 def test_connection():
