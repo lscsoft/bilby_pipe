@@ -82,7 +82,8 @@ class MainInput(Input):
         self.transfer_files = args.transfer_files
 
         self.waveform_approximant = args.waveform_approximant
-
+        self.likelihood_type = args.likelihood_type
+        self.duration = args.duration
         self.prior_file = args.prior_file
 
         self.webdir = args.webdir
@@ -305,9 +306,12 @@ class MainInput(Input):
 
     @request_memory_generation.setter
     def request_memory_generation(self, request_memory_generation):
-        logger.info(
-            "request_memory_generation = {} GB".format(request_memory_generation)
-        )
+        if request_memory_generation is None:
+            roq = self.likelihood_type == "ROQGravitationalWaveTransient"
+            request_memory_generation = utils.request_memory_generation_lookup(
+                self.duration, roq=roq
+            )
+        logger.info("request_memory_generation={}GB".format(request_memory_generation))
         self._request_memory_generation = "{} GB".format(request_memory_generation)
 
     @property
