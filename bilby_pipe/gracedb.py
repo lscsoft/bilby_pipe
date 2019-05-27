@@ -19,6 +19,7 @@ duration_lookups = {
     "128s": 128,
 }
 
+
 def x509userproxy(outdir):
     """ Sets X509_USER_PROXY
 
@@ -54,7 +55,7 @@ def x509userproxy(outdir):
     return x509userproxy
 
 
-def read_from_gracedb(gracedb,gracedb_url,outdir):
+def read_from_gracedb(gracedb, gracedb_url, outdir):
     """
     Read GraceDB events from GraceDB
 
@@ -73,7 +74,7 @@ def read_from_gracedb(gracedb,gracedb_url,outdir):
     -------
     candidate:
         Contains contents of GraceDB event from GraceDB, json format
-    
+
     """
 
     bilby_pipe.utils.test_connection()
@@ -96,7 +97,7 @@ def read_from_coinc(coinc):
 
     Returns
     -------
-    candidate: 
+    candidate:
         Contains contents of GraceDB event from coinc, json format
 
     """
@@ -106,13 +107,14 @@ def read_from_coinc(coinc):
             candidate = json.load(file)
     except IOError:
         print("Unable to load event contents of json file")
+
     return candidate
 
 
 def create_config_file(candidate, gracedb, outdir):
     """ Creates ini file from defaults and candidate contents
 
-    Parameters 
+    Parameters
     ----------
     candidate:
         Contains contents of GraceDB event
@@ -239,7 +241,12 @@ def main():
     group2.add_argument("--local", action="store_true", help="Run the job locally")
     group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument("--outdir", type=str, help="Output directory")
-    parser.add_argument("--gracedb-url", type=str, help="GraceDB service url", default="https://gracedb.ligo.org/api/")
+    parser.add_argument(
+        "--gracedb-url",
+        type=str,
+        help="GraceDB service url",
+        default="https://gracedb.ligo.org/api/",
+    )
 
     args = parser.parse_args()
 
@@ -262,7 +269,7 @@ def main():
             outdir = "outdir_{}".format(gracedb)
         if not os.path.exists(outdir):
             os.mkdir(outdir)
-        candidate = read_from_gracedb(gracedb,gracedb_url,outdir)
+        candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
     filename = create_config_file(candidate, gracedb, outdir)
 
