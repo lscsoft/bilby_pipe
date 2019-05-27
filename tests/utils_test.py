@@ -78,6 +78,10 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
             cstd('{a= 10, b : "string", c: "1.0"}', key), dict(a=10, b="string", c=1.0)
         )
+        self.assertEqual(
+            cstd('{a=False, b : "True", c: true, "d": "False"}', key),
+            dict(a=False, b=True, c=True, d=False),
+        )
 
 
 if __name__ == "__main__":

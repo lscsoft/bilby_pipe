@@ -6,15 +6,20 @@ import time
 
 import bilby
 import bilby_pipe
-from .utils import duration_lookups, write_config_file, run_command_line
+from .utils import (
+    duration_lookups,
+    maximum_frequency_lookups,
+    write_config_file,
+    run_command_line,
+)
 
 
 fiducial_injections = {
     "128s": dict(
         chirp_mass=2.1,
         mass_ratio=0.8,
-        a_1=0.12,
-        a_2=0.23262056301313416,
+        a_1=0.6,
+        a_2=0.4,
         tilt_1=1.0264673717225983,
         tilt_2=2.1701305583885513,
         phi_12=5.0962562029664955,
@@ -36,7 +41,7 @@ fiducial_injections = {
         tilt_2=2.1701305583885513,
         phi_12=5.0962562029664955,
         phi_jl=2.518241237045709,
-        luminosity_distance=597.2983560174788,
+        luminosity_distance=497.2983560174788,
         dec=0.2205292600865073,
         ra=3.952677097361719,
         theta_jn=1.8795187965094322,
@@ -53,7 +58,7 @@ fiducial_injections = {
         tilt_2=2.1701305583885513,
         phi_12=5.0962562029664955,
         phi_jl=2.518241237045709,
-        luminosity_distance=597.2983560174788,
+        luminosity_distance=497.2983560174788,
         dec=0.2205292600865073,
         ra=3.952677097361719,
         theta_jn=1.8795187965094322,
@@ -72,13 +77,14 @@ def get_default_config_dict(args, review_name):
     if args.duration is None:
         args.duration = duration_lookups[args.prior]
 
-    label = "{}_{}_{}".format(review_name, args.prior, get_date_string())
+    base_label = "{}_{}".format(review_name, args.prior)
     if args.roq:
-        label += "_ROQ"
+        base_label += "_ROQ"
+    label_with_date = "{}_{}".format(base_label, get_date_string())
 
     base_dict = dict(
-        label=label,
-        outdir="outdir_{}".format(label),
+        label=label_with_date,
+        outdir="outdir_{}".format(base_label),
         accounting="ligo.dev.o3.cbc.pe.lalinference",
         detectors="[H1, L1]",
         deltaT=0.2,
@@ -87,6 +93,8 @@ def get_default_config_dict(args, review_name):
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
         create_plots=None,
+        sampling_frequency=4 * maximum_frequency_lookups[args.prior],
+        maximum_frequency=maximum_frequency_lookups[args.prior],
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
@@ -122,6 +130,7 @@ def fiducial_bbh(args):
     config_dict["n-injection"] = 1
     config_dict["generation-seed"] = 1010
     config_dict["sampling-seed"] = 4567
+    config_dict["n-parallel"] = 4
 
     injection_filename = "{}/injection_file.json".format(config_dict["outdir"])
     os.mkdir(config_dict["outdir"])

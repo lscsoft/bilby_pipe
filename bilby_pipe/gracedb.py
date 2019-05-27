@@ -6,7 +6,13 @@ import shutil
 
 import bilby
 import bilby_pipe
-from .utils import logger, duration_lookups, write_config_file, run_command_line
+from .utils import (
+    logger,
+    duration_lookups,
+    maximum_frequency_lookups,
+    write_config_file,
+    run_command_line,
+)
 
 
 def x509userproxy(outdir):
@@ -141,9 +147,9 @@ def create_config_file(candidate, gracedb, outdir):
         label=gracedb,
         outdir=outdir,
         accounting="ligo.dev.o3.cbc.pe.lalinference",
-        maximum_frequency=1024,
+        maximum_frequency=maximum_frequency_lookups[prior],
         minimum_frequency=20,
-        sampling_frequency=4096,
+        sampling_frequency=maximum_frequency_lookups[prior] * 4,
         reference_frequency=20,
         trigger_time=trigger_time,
         detectors="[H1, L1, V1]",

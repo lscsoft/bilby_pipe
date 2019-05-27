@@ -5,6 +5,7 @@ import re
 import os
 import sys
 import logging
+import math
 import ast
 import urllib
 import urllib.request
@@ -24,6 +25,17 @@ duration_lookups = {
     "32s": 32,
     "64s": 64,
     "128s": 128,
+}
+
+
+maximum_frequency_lookups = {
+    "high_mass": 1024,
+    "4s": 1024,
+    "8s": 2048,
+    "16s": 2048,
+    "32s": 2048,
+    "64s": 2048,
+    "128s": 4096,
 }
 
 
@@ -176,9 +188,14 @@ def convert_string_to_dict(string, key):
     except ValueError as e:
         raise BilbyPipeError("Error {}. Unable to parse {}: {}".format(e, key, string))
 
-    # Convert values to floats/ints where possible
+    # Convert values to bool/floats/ints where possible
     for key in dic:
-        dic[key] = string_to_int_float(dic[key])
+        if dic[key].lower() == "true":
+            dic[key] = True
+        elif dic[key].lower() == "false":
+            dic[key] = False
+        else:
+            dic[key] = string_to_int_float(dic[key])
 
     return dic
 
@@ -239,6 +256,18 @@ def string_to_int_float(s):
 def is_a_power_of_2(num):
     num = int(num)
     return num != 0 and ((num & (num - 1)) == 0)
+
+
+def next_power_of_2(x):
+    return 1 if x == 0 else 2 ** math.ceil(math.log2(x))
+
+
+def request_memory_generation_lookup(duration, roq=False):
+    """ Function to determine memory required at the data generation step """
+    if roq:
+        return int(max([8, next_power_of_2(duration / 128 * 64)]))
+    else:
+        return 8
 
 
 setup_logger(print_version=True)
