@@ -33,7 +33,7 @@ class Input(object):
         try:
             return self._known_detectors
         except AttributeError:
-            return ["H1", "L1", "V1"]
+            return ["H1", "L1", "V1", "K1", "INDIA", "OZHF"]
 
     @known_detectors.setter
     def known_detectors(self, known_detectors):
