@@ -53,8 +53,6 @@ class MainInput(Input):
         A list of the detectors to include, e.g., ['H1', 'L1']
     unknown_args: list
         A list of unknown command line arguments
-    x509userproxy: str
-        A path to the users X509 certificate used for authentication
 
     """
 
@@ -78,7 +76,6 @@ class MainInput(Input):
         self.detectors = args.detectors
         self.coherence_test = args.coherence_test
         self.n_parallel = args.n_parallel
-        self.x509userproxy = args.X509
         self.transfer_files = args.transfer_files
 
         self.waveform_approximant = args.waveform_approximant
@@ -99,8 +96,6 @@ class MainInput(Input):
         self.injection_file = args.injection_file
         self.n_injection = args.n_injection
 
-        self.gracedb_url = args.gracedb_url
-        self.gracedb = args.gracedb
         self.trigger_time = args.trigger_time
 
         # These keys are used in the webpages summary
@@ -192,44 +187,6 @@ class MainInput(Input):
     def level_A_labels(self, labels):
         self._level_A_jobs = labels
 
-    @property
-    def x509userproxy(self):
-        """ A path to the users X509 certificate used for authentication """
-        try:
-            return self._x509userproxy
-        except AttributeError:
-            raise BilbyPipeError(
-                "The X509 user proxy has not been correctly set, please check"
-                " the logs"
-            )
-
-    @x509userproxy.setter
-    def x509userproxy(self, x509userproxy):
-        if x509userproxy is None:
-            cert_alias = "X509_USER_PROXY"
-            try:
-                cert_path = os.environ[cert_alias]
-                new_cert_path = os.path.join(
-                    self.outdir, "." + os.path.basename(cert_path)
-                )
-                shutil.copyfile(cert_path, new_cert_path)
-                self._x509userproxy = new_cert_path
-            except FileNotFoundError:
-                logger.warning(
-                    "Environment variable X509_USER_PROXY does not point to a"
-                    " file. Try running `$ ligo-proxy-init albert.einstein`"
-                )
-            except KeyError:
-                logger.warning(
-                    "Environment variable X509_USER_PROXY not set"
-                    " Try running `$ ligo-proxy-init albert.einstein`"
-                )
-                self._x509userproxy = None
-        elif os.path.isfile(x509userproxy):
-            self._x509userproxy = x509userproxy
-        else:
-            raise BilbyPipeError("Input X509 not a file or not understood")
-
     def _parse_gps_file(self):
         gpstimes = self.read_gps_file()
         n = len(gpstimes)
@@ -264,19 +221,6 @@ class MainInput(Input):
         else:
             logger.info("No injections")
             self._n_injection = None
-
-    @property
-    def gracedb(self):
-        return self._gracedb
-
-    @gracedb.setter
-    def gracedb(self, gracedb):
-        if gracedb is not None:
-            self._gracedb = gracedb
-            self.level_A_labels = [gracedb]
-            self.n_level_A_jobs = 1
-        else:
-            self._gracedb = None
 
     @property
     def trigger_time(self):
@@ -537,7 +481,6 @@ class Dag(object):
                 arg, job_logs_base, arg[:3]
             )
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
-        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
 
         arguments = ArgumentsString()
         if self.inputs.use_singularity:
@@ -550,7 +493,6 @@ class Dag(object):
         arguments.add("idx", idx)
         arguments.add("cluster", "$(Cluster)")
         arguments.add("process", "$(Process)")
-        arguments.add("X509", self.inputs.x509userproxy)
         if self.inputs.injection_file is not None:
             arguments.add("injection-file", self.inputs.injection_file)
         arguments.add_unknown_args(self.inputs.unknown_args)
@@ -659,7 +601,6 @@ class Dag(object):
             )
 
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
-        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
 
         extra_lines += "\n+WantCheckpointSignal = True"
         extra_lines += "\n+WantFTOnCheckpoint = True"
@@ -958,7 +899,6 @@ class Dag(object):
                 arg, job_logs_base, arg[:3]
             )
         extra_lines += "\naccounting_group = {}".format(self.inputs.accounting)
-        extra_lines += "\nx509userproxy = {}".format(self.inputs.x509userproxy)
         arguments = ArgumentsString()
         arguments.add("webdir", webdir)
         arguments.add("email", email)

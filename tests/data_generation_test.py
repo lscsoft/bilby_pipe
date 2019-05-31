@@ -147,10 +147,6 @@ class TestDataGenerationInput(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.inputs.detectors = 10
 
-    # def test_set_gracedb_fail(self):
-    #     with self.assertRaises(BilbyPipeError):
-    #         self.inputs.gracedb = "NOT-A-GRACEDB"
-
     def test_trigger_time(self):
         args_list = [
             "--ini",

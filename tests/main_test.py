@@ -16,8 +16,6 @@ class TestMainInput(unittest.TestCase):
             "--submit",
             "--outdir",
             self.outdir,
-            "--X509",
-            os.path.join(self.directory, "X509.txt"),
         ]
         self.unknown_args_list = ["--argument", "value"]
         self.all_args_list = self.known_args_list + self.unknown_args_list
@@ -134,32 +132,6 @@ class TestMainInput(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             args.detectors = ["H1", "error"]
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-
-    def test_x506_fail(self):
-        with self.assertRaises(BilbyPipeError):
-            args = copy.copy(self.args)
-            args.X509 = "random_string"
-            bilby_pipe.main.MainInput(args, self.unknown_args_list)
-
-    def test_x506_from_path(self):
-        args = copy.copy(self.args)
-        inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.x509userproxy, args.X509)
-
-    def test_x509_environ_unset(self):
-        args = copy.copy(self.args)
-        args.X509 = None
-        os.environ.unsetenv("X509_USER_PROXY")
-        inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        self.assertEqual(inputs.x509userproxy, None)
-
-    def test_x509_from_env_variable(self):
-        args = copy.copy(self.args)
-        os.environ["X509_USER_PROXY"] = os.path.realpath(args.X509)
-        args.X509 = None
-        inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-        X509_cached_copy = os.path.relpath(os.path.join(args.outdir, ".X509.txt"))
-        self.assertEqual(inputs.x509userproxy, X509_cached_copy)
 
     def test_create_summary_page(self):
         self.assertEqual(self.inputs.create_summary, self.args.create_summary)
