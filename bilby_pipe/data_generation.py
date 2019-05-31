@@ -20,7 +20,6 @@ from bilby_pipe.utils import (
     BilbyPipeError,
     convert_string_to_dict,
     is_a_power_of_2,
-    test_connection,
 )
 from bilby_pipe.main import DataDump, parse_args
 from bilby_pipe.input import Input
@@ -73,8 +72,6 @@ class DataGenerationInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.idx = args.idx
-        self.gracedb_url = args.gracedb_url
-        self.x509userproxy = args.X509
         self.prior_file = args.prior_file
         self.deltaT = args.deltaT
         self.default_prior = args.default_prior
@@ -137,9 +134,6 @@ class DataGenerationInput(Input):
                 self._set_interferometers_from_injection_in_gaussian_noise()
             else:
                 raise BilbyPipeError("Unable to set data: no injection file")
-        elif self.data_set is False and args.gracedb is not None:
-            self.gracedb = args.gracedb
-            self._set_interferometers_from_data()
         elif self.data_set is False and args.gps_file is not None:
             self.gps_file = args.gps_file
             self._set_interferometers_from_data()
@@ -302,39 +296,6 @@ class DataGenerationInput(Input):
     @trigger_time.setter
     def trigger_time(self, trigger_time):
         self._trigger_time = trigger_time
-
-    @property
-    def gracedb(self):
-        """ The gracedb of the candidate """
-        return self._gracedb
-
-    @gracedb.setter
-    def gracedb(self, gracedb):
-        """ Set the gracedb ID
-
-        At setting, will load the json candidate data and path to the frame
-        cache file.
-
-        Parameters
-        ----------
-        gracedb: str
-            The gracedb UID string
-
-        """
-        if gracedb is None:
-            self._gracedb = None
-        else:
-            logger.info("Setting gracedb id to {}".format(gracedb))
-            test_connection()
-            candidate = bilby.gw.utils.gracedb_to_json(
-                gracedb,
-                outdir=self.data_directory,
-                cred=self.x509userproxy,
-                service_url=self.gracedb_url,
-            )
-            self.meta_data["gracedb_candidate"] = candidate
-            self._gracedb = gracedb
-            self.trigger_time = candidate["gpstime"]
 
     def _parse_gps_file(self):
         """ Reads in the GPS file selects the required time and set the trigger time

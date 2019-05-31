@@ -16,37 +16,41 @@ from .utils import (
 
 
 def x509userproxy(outdir):
-    """ Sets X509_USER_PROXY
+    """ Copies X509_USER_PROXY certificate from user's os.environ and
+    places it inside the outdir, if the X509_USER_PROXY exists.
 
     Parameters
     ----------
     outdir: str
-        Output directory
+        Output directory where X509_USER_PROXY certificate is copied to.
 
     Returns
     -------
-    x509userproxy: str
-        Path to X509_USER_PROXY certification file
+    x509userproxy: str, None
+        New path to X509_USER_PROXY certification file
 
+        None if X509_USER_PROXY certificate does not exist, or if
+        the X509_USER_PROXY cannot be copied.
     """
-
+    x509userproxy = None
     cert_alias = "X509_USER_PROXY"
+    print(os.environ)
     try:
         cert_path = os.environ[cert_alias]
         new_cert_path = os.path.join(outdir, "." + os.path.basename(cert_path))
-        shutil.copyfile(cert_path, new_cert_path)
+        shutil.copyfile(src=cert_path, dst=new_cert_path)
         x509userproxy = new_cert_path
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         logger.warning(
-            "Environment variable X509_USER_PROXY does not point to a"
-            " file. Try running `$ ligo-proxy-init albert.einstein`"
+            "Environment variable X509_USER_PROXY does not point to a file. "
+            "Error while copying file: {}. "
+            "Try running `$ ligo-proxy-init albert.einstein`".format(e)
         )
     except KeyError:
         logger.warning(
             "Environment variable X509_USER_PROXY not set"
             " Try running `$ ligo-proxy-init albert.einstein`"
         )
-        x509userproxy = None
     return x509userproxy
 
 
