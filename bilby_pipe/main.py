@@ -249,19 +249,20 @@ class MainInput(Input):
 
     @n_injection.setter
     def n_injection(self, n_injection):
-        if n_injection is None and hasattr(self, "gpstimes"):
+        if n_injection is None and self.injection and hasattr(self, "gpstimes"):
             logger.info("Injecting signals into segments defined by gpstimes")
             self._n_injection = self.n_level_A_jobs
             self.level_A_labels = [
-                label + "_inj{}".format(ii)
+                label + "_injection{}".format(ii)
                 for ii, label in enumerate(self.level_A_labels)
             ]
         elif n_injection is not None:
             logger.info("n_injection={}, setting level A jobs".format(n_injection))
             self.n_level_A_jobs = n_injection
             self._n_injection = n_injection
-            self.level_A_labels = ["injection_{}".format(x) for x in range(n_injection)]
+            self.level_A_labels = ["injection{}".format(x) for x in range(n_injection)]
         else:
+            logger.info("No injections")
             self._n_injection = None
 
     @property

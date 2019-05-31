@@ -179,7 +179,7 @@ class TestMainInput(unittest.TestCase):
         inputs.n_injection = 1
         self.assertEqual(inputs.n_injection, 1)
         self.assertEqual(inputs.n_level_A_jobs, 1)
-        self.assertEqual(inputs.level_A_labels, ["injection_0"])
+        self.assertEqual(inputs.level_A_labels, ["injection0"])
 
 
 if __name__ == "__main__":
