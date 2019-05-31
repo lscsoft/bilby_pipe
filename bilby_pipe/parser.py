@@ -92,12 +92,8 @@ def create_parser(top_level=True):
         help="File containing segment GPS start times",
         default=None,
     )
-    data_gen_pars.add("--gracedb", type=str, help="Gracedb UID", default=None)
     data_gen_pars.add(
-        "--trigger-time",
-        default=None,
-        type=float,
-        help="The trigger time, alternative to --gracedb",
+        "--trigger-time", default=None, type=float, help="The trigger time"
     )
     data_gen_pars.add(
         "--gaussian-noise",
@@ -181,7 +177,7 @@ def create_parser(top_level=True):
         "--psd-length",
         default=32,
         type=float,
-        help=("Number of duration-lenths used to generate the PSD, default" " is 32."),
+        help=("Number of duration-lengths used to generate the PSD, default" " is 32."),
     )
     det_parser.add(
         "--psd-method",
@@ -254,16 +250,6 @@ def create_parser(top_level=True):
         required=required,
         help="Accounting group to use (see, https://accounting.ligo.org/user)",
     )
-    submission_parser.add(
-        "--gracedb-url",
-        type=str,
-        default="https://gracedb.ligo.org/api/",
-        help=(
-            "Service url for GraceDB events"
-            " GraceDB 'https://gracedb.ligo.org/api/' (default)"
-            " GraceDB-playground 'https://gracedb-playground.ligo.org/api/'"
-        ),
-    )
     submission_parser.add("--label", type=str, default="label", help="Output label")
     submission_parser.add(
         "--local",
@@ -322,17 +308,6 @@ def create_parser(top_level=True):
         action="store_true",
         default=False,
         help="If true, use HTCondor file transfer mechanism, default is False",
-    )
-    submission_parser.add(
-        "--X509",
-        type=str,
-        default=None,
-        help=(
-            "The path to the users X509 certificate file."
-            " Defaults to a copy of the file at the environment variable"
-            " $X509_USER_PROXY saved in outdir and linked in"
-            " the condor jobs submission"
-        ),
     )
 
     likelihood_parser = parser.add_argument_group(title="Likelihood arguments")
