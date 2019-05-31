@@ -2,18 +2,16 @@
 Installation
 ============
 
-Singularity
------------
+Installing bilby_pipe from conda (recommended)
+----------------------------------------------
 
-Installing :code:`bilby_pipe` should only be required if you are developing or
-testing. For most users, and in particular production-use, we recommend using a
-`singularity image <singularity.txt>`_.
+(To be implemented)
 
 Installing bilby_pipe from pip
 ------------------------------
 
 To install the latest :code:`bilby_pipe` release from `PyPi
-<https://pypi.org/project/bilby-pipe/>`, run
+<https://pypi.org/project/bilby-pipe/>`_, run
 
 .. code-block:: console
 
@@ -26,11 +24,11 @@ need to test the latest features, see below for how to obtain this.
 Install bilby_pipe for development
 ----------------------------------
 
-:code:`bilby_pipe` is developed and tested for Python 3.5, 3.6, and 3.7. In the
+:code:`bilby_pipe` is developed and tested for Python 3.6, and 3.7. In the
 following, we demonstrate how to install a development version of
 :code:`bilby_pipe` on a LIGO Data Grid (LDG) cluster.
 
-First off, you'll need to clone the repository
+First off, clone the repository
 
 .. code-block:: console
 
@@ -38,14 +36,16 @@ First off, you'll need to clone the repository
    $ cd bilby_pipe/
 
 .. note::
-   If you do not have a git.ligo account, and recieve an error message:
+   If you receive an error message:
 
    .. code-block:: console
 
       git@git.ligo.org: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
       fatal: Could not read from remote repository.
 
-   Then you need to use the HTTPS URL, e.g., replace the first line above with
+   Then this indicates you have not correctly authenticated with your
+   git.ligo account. It is recommended to resolve the authentication issue, but
+   you can alternatively use the HTTPS URL: replace the first line above with
 
    .. code-block:: console
 
@@ -56,26 +56,45 @@ do this will depend on the python installation you intend to use. Below are
 several easy-to-use options. Feel free to disregard these should you already
 have an alternative.
 
-CVMFS conda python
-==================
+Python installation
+===================
 
-To source a :code:`Python 3.7` installation on the LDG using CVMFS, run the
-commands
+.. tabs::
 
-.. code-block:: console
+   .. tab:: conda
 
-   $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh 
-   $ conda activate ligo-py37
+      :code:`conda` is a package manager which allows you to manage installation and
+      maintenance of various packages in environments. A local installation
+      can be obtained `here <https://www.anaconda.com/distribution/#download-section>`_.
+      For detailed help on creating and managing environments see `here
+      <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_.
+      Here is an example of creating and activating an environment named  bilby
 
-Using virtualenv
-================
+      .. code-block:: console
 
-Virtualenv is a similar tool to conda. To obtain an environment, run
+         $ conda create -n bilby python=3.7
+         $ conda activate bilby
 
-.. code-block:: console
+   .. tab:: virtualenv
 
-   virtualenv --python=/usr/bin/python3.6 $HOME/virtualenvs/bilby_pipe
-   source virtualenvs/bilby_pipe/bin/activate
+      :code`virtualenv` is a similar tool to conda. To obtain an environment, run
+
+      .. code-block:: console
+
+         $ virtualenv --python=/usr/bin/python3.6 $HOME/virtualenvs/bilby_pipe
+         $ source virtualenvs/bilby_pipe/bin/activate
+
+
+   .. tab:: CVMFS
+
+      To source a :code:`Python 3.7` installation on the LDG using CVMFS, run the
+      commands
+
+      .. code-block:: console
+
+         $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh 
+         $ conda activate ligo-py37
+
 
 
 Installing bilby_pipe
@@ -137,19 +156,19 @@ also printed everytime the code is called and therefore will be at the top of
 your log files.
 
 
-Working with time-domain inteferometer data
--------------------------------------------
+Dependencies
+------------
 
 :code:`bilby_pipe` handles data from the interferometers using the `gwpy
 <https://gwpy.github.io/docs/stable/timeseries/remote-access.html>`_ library.
 When requesting data, we first look for local frame-files, then use the `NDS2
 <https://www.lsc-group.phys.uwm.edu/daswg/projects/nds-client/doc/manual/>`_
-library to fetch properitary data remotely, finally we search the open data.
+library to fetch proprietary data remotely, finally we search the open data.
 
 To best utilise this tool, you should ensure your python installation has
 access to `LDAS-tools <https://anaconda.org/conda-forge/ldas-tools-framecpp>`_
 for local frame-file lookup and `NDS2
-<https://anaconda.org/conda-forge/python-nds2-client>`_ for properietary remote
+<https://anaconda.org/conda-forge/python-nds2-client>`_ for proprietary remote
 data look up. These libraries are typically part of most LIGO data stacks and
 can be installed with conda using the commands
 

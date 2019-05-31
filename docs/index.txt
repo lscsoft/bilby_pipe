@@ -9,6 +9,7 @@
 
    installation
    user-interface
+   examples
+   ini_file
    structure
    singularity
-   ini_file
