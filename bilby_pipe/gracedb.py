@@ -7,6 +7,7 @@ import shutil
 import bilby
 import bilby_pipe
 from .utils import (
+    check_directory_exists_and_if_not_mkdir,
     logger,
     duration_lookups,
     maximum_frequency_lookups,
@@ -234,16 +235,14 @@ def main():
         gracedb = candidate["graceid"]
         if args.outdir is None:
             outdir = "outdir_{}".format(gracedb)
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
+        check_directory_exists_and_if_not_mkdir(outdir)
 
     if args.gracedb:
         gracedb = args.gracedb
         gracedb_url = args.gracedb_url
         if args.outdir is None:
             outdir = "outdir_{}".format(gracedb)
-        if not os.path.exists(outdir):
-            os.mkdir(outdir)
+        check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
     filename = create_config_file(candidate, gracedb, outdir)

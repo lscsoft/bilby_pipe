@@ -1,12 +1,12 @@
 """ Tools for running review accessed through bilby_pipe_review """
 import argparse
 import json
-import os
 import time
 
 import bilby
 import bilby_pipe
 from .utils import (
+    check_directory_exists_and_if_not_mkdir,
     duration_lookups,
     maximum_frequency_lookups,
     write_config_file,
@@ -133,7 +133,7 @@ def fiducial_bbh(args):
     config_dict["n-parallel"] = 4
 
     injection_filename = "{}/injection_file.json".format(config_dict["outdir"])
-    os.mkdir(config_dict["outdir"])
+    check_directory_exists_and_if_not_mkdir(config_dict["outdir"])
     with open(injection_filename, "w") as file:
         json.dump(
             dict(injections=fiducial_injections[args.prior]),
@@ -177,7 +177,7 @@ def pp_test(args):
     config_dict["gaussian-noise"] = True
     config_dict[
         "sampler_kwargs"
-    ] = "{nlive: 1000, walks: 100, verbose=False, check_point_plot=False, n_check_point=5000}"
+    ] = "{nlive: 1000, walks: 100, verbse=False, check_point_plot=False, n_check_point=5000}"
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         outdir, outdir
