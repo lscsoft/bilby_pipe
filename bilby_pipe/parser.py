@@ -257,7 +257,7 @@ def create_parser(top_level=True):
     submission_parser.add(
         "--gracedb-url",
         type=str,
-        default=None,
+        default="https://gracedb.ligo.org/api/",
         help=(
             "Service url for GraceDB events"
             " GraceDB 'https://gracedb.ligo.org/api/' (default)"
