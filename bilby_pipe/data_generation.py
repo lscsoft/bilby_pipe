@@ -19,9 +19,10 @@ from bilby_pipe.utils import (
     logger,
     BilbyPipeError,
     convert_string_to_dict,
+    DataDump,
     is_a_power_of_2,
 )
-from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.main import parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
 

@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import math
+import pickle
 import ast
 import urllib
 import urllib.request
@@ -15,6 +16,74 @@ import subprocess
 class BilbyPipeError(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+
+class ArgumentsString(object):
+    """ A convienience object to aid in the creation of argument strings """
+
+    def __init__(self):
+        self.argument_list = []
+
+    def append(self, argument):
+        self.argument_list.append(argument)
+
+    def add_positional_argument(self, value):
+        self.argument_list.append("{}".format(value))
+
+    def add(self, argument, value):
+        self.argument_list.append("--{}".format(argument))
+        self.argument_list.append("{}".format(value))
+
+    def add_unknown_args(self, unknown_args):
+        self.argument_list += unknown_args
+
+    def add_command_line_arguments(self):
+        """ Adds command line arguments given in addition to the ini file """
+        command_line_args_list = get_command_line_arguments()
+        # Remove the first positional ini-file argument
+        command_line_args_list = command_line_args_list[1:]
+        self.argument_list += command_line_args_list
+
+    def print(self):
+        return " ".join(self.argument_list)
+
+
+class DataDump(object):
+    def __init__(self, label, outdir, trigger_time, interferometers, meta_data, idx):
+        self.trigger_time = trigger_time
+        self.label = label
+        self.outdir = outdir
+        self.interferometers = interferometers
+        self.meta_data = meta_data
+        self.idx = idx
+
+    @staticmethod
+    def get_filename(outdir, label, idx):
+        return os.path.join(outdir, "_".join([label, str(idx), "data_dump.pickle"]))
+
+    @property
+    def filename(self):
+        return self.get_filename(self.outdir, self.label, self.idx)
+
+    def to_pickle(self):
+        with open(self.filename, "wb+") as file:
+            pickle.dump(self, file)
+
+    @classmethod
+    def from_pickle(cls, filename=None):
+        """ Loads in a data dump
+
+        Parameters
+        ----------
+        filename: str
+            If given, try to load from this filename
+
+        """
+        with open(filename, "rb") as file:
+            res = pickle.load(file)
+        if res.__class__ != cls:
+            raise TypeError("The loaded object is not a DataDump")
+        return res
 
 
 duration_lookups = {
