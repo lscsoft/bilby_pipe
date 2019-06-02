@@ -39,7 +39,7 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(self.inputs.ini, os.path.relpath(self.args.ini))
 
     def test_ini_not_a_file(self):
-        with self.assertRaises(BilbyPipeError):
+        with self.assertRaises(FileNotFoundError):
             self.inputs.ini = "not_a_file"
 
     def test_set_singularity_image(self):

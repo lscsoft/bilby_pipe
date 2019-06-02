@@ -10,11 +10,10 @@ import shutil
 import subprocess
 import itertools
 from collections import namedtuple
-import pickle
 
 import pycondor
 
-from .utils import logger, parse_args, BilbyPipeError
+from .utils import logger, parse_args, BilbyPipeError, DataDump, ArgumentsString
 from . import utils
 from . import create_injections
 from .input import Input
@@ -91,23 +90,10 @@ class MainInput(Input):
         self.local_generation = args.local_generation
 
         self.gps_file = args.gps_file
-
+        self.trigger_time = args.trigger_time
         self.injection = args.injection
         self.injection_file = args.injection_file
         self.n_injection = args.n_injection
-
-        self.trigger_time = args.trigger_time
-
-        # These keys are used in the webpages summary
-        self.meta_keys = [
-            "label",
-            "outdir",
-            "ini",
-            "detectors",
-            "coherence_test",
-            "sampler",
-            "accounting",
-        ]
 
         self.request_memory = args.request_memory
         self.request_memory_generation = args.request_memory_generation
@@ -123,7 +109,7 @@ class MainInput(Input):
     @ini.setter
     def ini(self, ini):
         if os.path.isfile(ini) is False:
-            raise BilbyPipeError("ini file is not a file")
+            raise FileNotFoundError("No ini file {} found".format(ini))
         self._ini = os.path.relpath(ini)
 
     @property
@@ -242,7 +228,7 @@ class MainInput(Input):
 
     @request_memory.setter
     def request_memory(self, request_memory):
-        logger.info("request_memory = {} GB".format(request_memory))
+        logger.info("request_memory={}GB".format(request_memory))
         self._request_memory = "{} GB".format(request_memory)
 
     @property
@@ -378,7 +364,6 @@ class Dag(object):
     @property
     def generation_executable(self):
         if self.inputs.use_singularity:
-            # This hard-codes the path to singularity: TODO infer this from the users env
             return "/bin/singularity"
         else:
             return self._get_executable_path("bilby_pipe_generation")
@@ -386,14 +371,13 @@ class Dag(object):
     @property
     def analysis_executable(self):
         if self.inputs.use_singularity:
-            # This hard-codes the path to singularity: TODO infer this from the users env
             return "/bin/singularity"
         else:
             return self._get_executable_path("bilby_pipe_analysis")
 
     @property
     def summary_executable(self):
-        return self._get_executable_path("summarypages.py")
+        return self._get_executable_path("summarypages")
 
     def check_injection(self):
         """ If injections are requested, create an injection file """
@@ -465,7 +449,17 @@ class Dag(object):
             )
 
     def _create_generation_job(self, job_input, universe):
-        """ Create a job to generate the data """
+        """ Create a generation condor job to generate the data
+
+        Parameters
+        ----------
+        job_input: JobInput
+            A NamedTuple holding the specifics of the job input
+        universe: str
+            The condor universe string
+
+        """
+
         idx = job_input.idx
         job_name = "_".join([self.inputs.label, "generation", str(idx)])
         if job_input.meta_label is not None:
@@ -570,14 +564,12 @@ class Dag(object):
         return jobs_inputs
 
     def _create_analysis_job(self, job_input):
-        """ Create a condor job and add it to the dag
+        """ Create an analysis condor job and add it to the dag
 
         Parameters
         ----------
-        detectors: list, str
-            A list of the detectors to include, e.g. `['H1', 'L1']`
-        sampler: str
-            The sampler to use for the job
+        job_input: JobInput
+            A NamedTuple holding the specifics of the job input
 
         """
         detectors = job_input.kwargs["detectors"]
@@ -822,16 +814,9 @@ class Dag(object):
 
     @property
     def summary_jobs_inputs(self):
-        """ A list of dictionaries enumerating all the main jobs to generate
+        """ Input for the summary jobs """
+        logger.debug("Generating list of summary jobs")
 
-        This contains the logic of generating multiple parallel running jobs
-        The keys of each dictionary should be the keyword arguments to
-        `self._create_jobs()`
-
-        """
-        logger.debug("Generating list of jobs")
-
-        # Create level B inputs
         sampler = self.inputs.sampler
         webdir = self.inputs.webdir
         email = self.inputs.email
@@ -958,74 +943,6 @@ class Dag(object):
                     command_line
                 )
             )
-
-
-class ArgumentsString(object):
-    """ A convienience object to aid in the creation of argument strings """
-
-    def __init__(self):
-        self.argument_list = []
-
-    def append(self, argument):
-        self.argument_list.append(argument)
-
-    def add_positional_argument(self, value):
-        self.argument_list.append("{}".format(value))
-
-    def add(self, argument, value):
-        self.argument_list.append("--{}".format(argument))
-        self.argument_list.append("{}".format(value))
-
-    def add_unknown_args(self, unknown_args):
-        self.argument_list += unknown_args
-
-    def add_command_line_arguments(self):
-        """ Adds command line arguments given in addition to the ini file """
-        command_line_args_list = utils.get_command_line_arguments()
-        # Remove the first positional ini-file argument
-        command_line_args_list = command_line_args_list[1:]
-        self.argument_list += command_line_args_list
-
-    def print(self):
-        return " ".join(self.argument_list)
-
-
-class DataDump(object):
-    def __init__(self, label, outdir, trigger_time, interferometers, meta_data, idx):
-        self.trigger_time = trigger_time
-        self.label = label
-        self.outdir = outdir
-        self.interferometers = interferometers
-        self.meta_data = meta_data
-        self.idx = idx
-
-    @staticmethod
-    def get_filename(outdir, label, idx):
-        return os.path.join(outdir, "_".join([label, str(idx), "data_dump.pickle"]))
-
-    @property
-    def filename(self):
-        return self.get_filename(self.outdir, self.label, self.idx)
-
-    def to_pickle(self):
-        with open(self.filename, "wb+") as file:
-            pickle.dump(self, file)
-
-    @classmethod
-    def from_pickle(cls, filename=None):
-        """ Loads in a data dump
-
-        Parameters
-        ----------
-        filename: str
-            If given, try to load from this filename
-
-        """
-        with open(filename, "rb") as file:
-            res = pickle.load(file)
-        if res.__class__ != cls:
-            raise TypeError("The loaded object is not a DataDump")
-        return res
 
 
 def create_main_parser():

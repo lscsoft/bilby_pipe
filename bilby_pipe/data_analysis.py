@@ -14,8 +14,8 @@ import matplotlib
 matplotlib.use("agg")  # noqa
 import bilby
 
-from bilby_pipe.utils import logger, BilbyPipeError, convert_string_to_dict
-from bilby_pipe.main import DataDump, parse_args
+from bilby_pipe.utils import DataDump, logger, BilbyPipeError, convert_string_to_dict
+from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.input import Input
 
