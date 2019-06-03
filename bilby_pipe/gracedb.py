@@ -165,6 +165,7 @@ def create_config_file(candidate, gracedb, outdir):
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
         create_plots=True,
+        local_generation=True,
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
