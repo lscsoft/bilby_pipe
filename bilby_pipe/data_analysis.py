@@ -261,7 +261,7 @@ class DataAnalysisInput(Input):
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
-                frequency_domain_source_model=bilby.gw.source.roq,
+                frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
                 start_time=self.interferometers.start_time,
                 parameter_conversion=self.parameter_conversion,
                 waveform_arguments=waveform_arguments,
