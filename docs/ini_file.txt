@@ -8,14 +8,14 @@ single file. To handle both command line arguments and ini-files, we use the
 `ConfigArgParse <https://pypi.org/project/ConfigArgParse/>`_ python module.
 
 An ini file can contain multiple types of input. In this example, we
-demonstrate passing in a string for the :code:`gracedb` attribute, an integer
+demonstrate passing in a float for the :code:`trigger-time` attribute, an integer
 for the :code:`duration`, a list for the :code:`detectors`, a boolen for the
 :code:`coherence-test`, and a dictionary of :code:`sampler-kwargs`:
 
 .. code-block:: text
 
     # config.ini
-    gracedb = G184098
+    trigger-time = 1126259462.4
     duration = 4
     detectors = [H1, L1]
     sampler-kwargs = {nlive: 500, n_check_point: 1000}
@@ -35,3 +35,37 @@ overwritten, for example
    $ bilby_pipe config.ini --duration 8
 
 will overwrite the :code:`duration` argument provided in the ini file.
+
+The ini file for GraceDB events can be generated using the command line 
+program :code:`bilby_pipe_gracedb` with the arguments :code:`--gracedb` for
+example, to generate an ini file for the GraceDB event G298936 we use the 
+following command,
+
+.. code-block:: text
+
+   $ bilby_pipe_gracedb --gracedb G298936
+
+This will produce an ini file, G298936.ini, which automatically sets an 
+appropriate configuration and is ready for submission.
+
+.. code-block:: text
+
+   label=G298936
+   outdir=outdir_G298936
+   accounting=ligo.dev.o3.cbc.pe.lalinference
+   maximum_frequency=1024
+   minimum_frequency=20
+   sampling_frequency=4096
+   reference_frequency=20
+   trigger_time=1187529256.517903
+   detectors=[H1, L1, V1]
+   channel_dict={'H1': 'GDS-CALIB_STRAIN', 'L1': 'GDS-CALIB_STRAIN'}
+   deltaT=0.2
+   prior_file=4s
+   duration=4
+   sampler=dynesty
+   sampler_kwargs={nlive: 1000, walks: 100, n_check_point: 5000}
+   create_plots=True
+   time_marginalization=True
+   distance_marginalization=True
+   phase_marginalization=True
