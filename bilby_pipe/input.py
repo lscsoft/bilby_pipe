@@ -192,6 +192,15 @@ class Input(object):
             )
 
     @property
+    def bilby_roq_frequency_domain_source_model(self):
+        if "binary_neutron_star" in self.frequency_domain_source_model:
+            return bilby.gw.source.binary_neutron_star_roq
+        elif "binary_black_hole" in self.frequency_domain_source_model:
+            return bilby.gw.source.binary_black_hole_roq
+        else:
+            BilbyPipeError("Unable to determine roq_source from source model")
+
+    @property
     def frequency_domain_source_model(self):
         """ String of which frequency domain source model to use """
         return self._frequency_domain_source_model
