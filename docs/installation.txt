@@ -63,9 +63,10 @@ Python installation
 
    .. tab:: conda
 
-      :code:`conda` is a package manager which allows you to manage installation and
-      maintenance of various packages in environments. A local installation
-      can be obtained `here <https://www.anaconda.com/distribution/#download-section>`_.
+      :code:`conda` is a recommended package manager which allows you to manage
+      installation and maintenance of various packages in environments. For
+      help getting started, see the `LSCsoft documentation <https://lscsoft.docs.ligo.org/conda/>`_.
+
       For detailed help on creating and managing environments see `here
       <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_.
       Here is an example of creating and activating an environment named  bilby
