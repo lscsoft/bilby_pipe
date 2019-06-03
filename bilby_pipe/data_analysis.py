@@ -338,7 +338,7 @@ class DataAnalysisInput(Input):
     def result_class(self):
         """ The bilby result class to store results in """
         try:
-            return bilby.gw.result.CompactBinaryCoalesenceResult
+            return bilby.gw.result.CompactBinaryCoalescenceResult
         except AttributeError:
             logger.debug("Unable to use CBC specific result class")
             return None
