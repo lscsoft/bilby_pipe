@@ -6,12 +6,13 @@ User interface
 --------------
 
 `Installing <installation.txt>`_ the :code:`bilby_pipe` module provides the
-user with four command line programs:
+user with five command line programs:
 
 1. `bilby_pipe <main.txt>`_
 2. `bilby_pipe_generation <data_generation.txt>`_
 3. `bilby_pipe_analysis <data_analysis.txt>`_
 4. `bilby_pipe_create_injection_file <create_injections.txt>`_
+5. `bilby_pipe_gracedb <gracedb.txt>`_
 
 For most users, only the first of these will be used in practise. In this
 document, we'll give a brief overview of how these are used internally to
@@ -31,6 +32,7 @@ sub-modules as visualised here:
          "bilby_pipe" -> ".data_analysis";
          "bilby_pipe" -> ".create_injections";
          "bilby_pipe" -> ".utils";
+	 "bilby_pipe" -> ".gracedb";
             }
 
 each submodule (e.g., :code:`bilby_pipe.utils`) serves a different purpose.
@@ -145,4 +147,5 @@ Submodules API
    data_generation
    data_analysis
    create_injections
+   gracedb
    utils
