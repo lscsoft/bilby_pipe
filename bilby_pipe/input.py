@@ -185,7 +185,9 @@ class Input(object):
     def bilby_frequency_domain_source_model(self):
         """ The bilby function to pass to the waveform_generator """
         if self.frequency_domain_source_model in bilby.gw.source.__dict__.keys():
-            return bilby.gw.source.__dict__[self._frequency_domain_source_model]
+            model = self._frequency_domain_source_model
+            logger.info("Using the {} source model".format(model))
+            return bilby.gw.source.__dict__[model]
         else:
             raise BilbyPipeError(
                 "No source model {} found.".format(self._frequency_domain_source_model)
@@ -194,8 +196,10 @@ class Input(object):
     @property
     def bilby_roq_frequency_domain_source_model(self):
         if "binary_neutron_star" in self.frequency_domain_source_model:
+            logger.info("Using the binary_neutron_star_roq source model")
             return bilby.gw.source.binary_neutron_star_roq
         elif "binary_black_hole" in self.frequency_domain_source_model:
+            logger.info("Using the binary_black_hole_roq source model")
             return bilby.gw.source.binary_black_hole_roq
         else:
             BilbyPipeError("Unable to determine roq_source from source model")

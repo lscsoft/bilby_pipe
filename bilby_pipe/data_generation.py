@@ -63,11 +63,16 @@ class DataGenerationInput(Input):
 
         logger.info("Command line arguments: {}".format(args))
         logger.info("Unknown command line arguments: {}".format(unknown_args))
+
+        # Generic initialisation
         self.meta_data = dict(
             command_line_args=args,
             unknown_command_line_args=unknown_args,
             injection_parameters=None,
         )
+        self.injection_parameters = None
+
+        # Read in from args
         self.ini = args.ini
         self.create_plots = args.create_plots
         self.cluster = args.cluster
@@ -144,6 +149,15 @@ class DataGenerationInput(Input):
 
         if self.data_set is False:
             raise BilbyPipeError("Unable to set data")
+
+    @property
+    def injection_parameters(self):
+        return self._injection_parameters
+
+    @injection_parameters.setter
+    def injection_parameters(self, injection_parameters):
+        self._injection_parameters = injection_parameters
+        self.meta_data["injection_parameters"] = injection_parameters
 
     @property
     def cluster(self):
@@ -311,7 +325,6 @@ class DataGenerationInput(Input):
         """ Method to generate the interferometers data from an injection in Gaussian noise """
 
         self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
-        self.meta_data["injection_parameters"] = self.injection_parameters
         if self.trigger_time is None:
             self.trigger_time = self.injection_parameters["geocent_time"]
             logger.info(
@@ -390,7 +403,7 @@ class DataGenerationInput(Input):
 
         """
 
-        if hasattr(self, "injection_parameters"):
+        if self.injection_parameters is not None:
             parameters = self.injection_parameters
         else:
             parameters = self.injection_df.iloc[self.idx].to_dict()
@@ -398,7 +411,6 @@ class DataGenerationInput(Input):
                 self.trigger_time - self.deltaT / 2.0,
                 self.trigger_time + self.deltaT / 2.0,
             )
-            self.meta_data["injection_parameters"] = parameters
             self.injection_parameters = parameters
 
         waveform_arguments = dict(
@@ -503,6 +515,7 @@ class DataGenerationInput(Input):
                     frequency_array=psd.frequencies.value, psd_array=psd.value
                 )
             ifo_list.append(ifo)
+
         self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
 
     def _get_data(self, det, channel_type, start_time, end_time):
@@ -537,6 +550,10 @@ class DataGenerationInput(Input):
 
     def _gwpy_read(self, det, channel, start_time, end_time):
         logger.debug("data-dict provided, attempt read of data")
+
+        if det not in self.data_dict:
+            logger.info("Detector {} not found in data-dict".format(det))
+            return None
 
         if self.data_format is not None:
             kwargs = dict(format=self.data_format)
@@ -649,15 +666,22 @@ class DataGenerationInput(Input):
 
     def save_roq_weights(self):
         logger.info(
-            "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+            "Using ROQ likelihood with roq-folder={} and roq-scale-factor={}".format(
+                self.roq_folder, self.roq_scale_factor
+            )
         )
 
         params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+        if params["seglen"] != self.duration:
+            raise BilbyPipeError(
+                "Segment duration {} does not match ROQ basis seglen={}".format(
+                    self.duration, params["seglen"]
+                )
+            )
+
         params["flow"] *= self.roq_scale_factor
         params["fhigh"] *= self.roq_scale_factor
         params["seglen"] /= self.roq_scale_factor
-        if params["seglen"] != self.duration:
-            raise ValueError("Segment duration does not match ROQ basis")
 
         freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
         freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
