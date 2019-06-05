@@ -4,11 +4,19 @@
 
 Changes currently on master, but not under a tag.
 
+## v0.2.0 : 2019-06-05
+Release coinciding with bilby 0.5.1, planned for initial review
+
 ### Added
 -   Gaussian noise flag
+-   Review script
+-   Gracedb module and CLI
+-   Plotting module and CLI
+-   PP-test module and CLI
 
 ### Changed
--   Various bug fixes
+-   examples_ini_file -> examples 
+-   Many bug fixes
 
 ## v0.1.0 : 2019-04-29
 
