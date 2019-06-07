@@ -129,7 +129,6 @@ def fiducial_bbh(args):
     config_dict["injection"] = True
     config_dict["n-injection"] = 1
     config_dict["generation-seed"] = 1010
-    config_dict["sampling-seed"] = 4567
     config_dict["n-parallel"] = 4
 
     injection_filename = "{}/injection_file.json".format(config_dict["outdir"])
