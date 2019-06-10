@@ -437,11 +437,7 @@ def create_parser(top_level=True):
     sampler_parser.add(
         "--sampler-kwargs",
         default=None,
-        help=(
-            "Channel dictionary: keys relate to the detector with values "
-            "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
-            "dictionary should follow basic python dict syntax."
-        ),
+        help="Dictionary of sampler-kwargs to pass in, e.g., {nlive: 1000}",
     )
 
     # Waveform arguments
