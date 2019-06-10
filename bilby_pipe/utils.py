@@ -11,6 +11,7 @@ import ast
 import urllib
 import urllib.request
 import subprocess
+from pathlib import Path
 
 
 class BilbyPipeError(Exception):
@@ -225,14 +226,13 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
 
 
 def get_version_information():
-    version_file = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "bilby_pipe/.version"
-    )
+    version_file = Path(__file__).parent / ".version"
     try:
         with open(version_file, "r") as f:
             return f.readline().rstrip()
-    except EnvironmentError:
+    except FileNotFoundError:
         print("No version information file '.version' found")
+        return ""
 
 
 def convert_string_to_dict(string, key):

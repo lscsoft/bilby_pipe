@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 import os
-import sys
-from setuptools import setup
 import subprocess
+import sys
+from pathlib import Path
+
+from setuptools import setup
 
 # check that python version is 3.5 or above
 python_version = sys.version_info
 print("Running Python version %s.%s.%s" % python_version[:3])
 if python_version < (3, 5):
     sys.exit("Python < 3.5 is not supported, aborting setup")
-else:
-    print("Confirmed Python version 3.5.0 or above")
+print("Confirmed Python version 3.5.0 or above")
 
 
 def write_version_file(version):
@@ -25,9 +26,11 @@ def write_version_file(version):
     Returns
     -------
     version_file: str
-        A path to the version file
-
+        A path to the version file (relative to the bilby_pipe
+        package directory)
     """
+    version_file = Path("bilby_pipe") / ".version"
+
     try:
         git_log = subprocess.check_output(
             ["git", "log", "-1", "--pretty=%h %ai"]
@@ -36,20 +39,29 @@ def write_version_file(version):
             subprocess.check_output(["git", "diff", "."])
             + subprocess.check_output(["git", "diff", "--cached", "."])
         ).decode("utf-8")
-        if git_diff == "":
-            git_status = "(CLEAN) " + git_log
-        else:
-            git_status = "(UNCLEAN) " + git_log
-    except Exception as e:
-        print("Unable to obtain git version information, exception: {}".format(e))
-        git_status = ""
+    except subprocess.CalledProcessError as exc:  # git calls failed
+        # we already have a version file, let's use it
+        if version_file.is_file():
+            return version_file.name
+        # otherwise error out
+        exc.args = (
+            "unable to obtain git version information, and {} doesn't "
+            "exist, cannot continue ({})".format(version_file, str(exc)),
+        )
+        raise
+    else:
+        git_version = "{}: ({}) {}".format(
+            version,
+            "UNCLEAN" if git_diff else "CLEAN",
+            git_log.rstrip(),
+        )
+        print("parsed git version info as: {!r}".format(git_version))
 
-    version_file = ".version"
-    if os.path.isfile(version_file) is False:
-        with open("bilby_pipe/" + version_file, "w+") as f:
-            f.write("{}: {}".format(version, git_status))
+    with open(version_file, "w") as f:
+        print(git_version, file=f)
+        print("created {}".format(version_file))
 
-    return version_file
+    return version_file.name
 
 
 def get_long_description():
