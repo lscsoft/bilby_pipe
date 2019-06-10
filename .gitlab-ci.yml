@@ -21,7 +21,7 @@ python-3.7:
     - python setup.py install
 
     # Run black check
-    - black --check bilby_pipe/
+    - black --check bilby_pipe/ --diff
 
     # Run pyflakes
     - flake8 .
