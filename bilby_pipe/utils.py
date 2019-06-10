@@ -232,6 +232,7 @@ def get_version_information():
             return f.readline().rstrip()
     except FileNotFoundError:
         print("No version information file '.version' found")
+        return ""
 
 
 def convert_string_to_dict(string, key):

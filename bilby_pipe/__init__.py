@@ -13,4 +13,4 @@ from . import bilbyargparser
 from . import utils
 from . import parser
 
-__version__ = utils.get_version_information()
+__version__ = utils.get_version_information().split(":", 1)[0]
