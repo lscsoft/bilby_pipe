@@ -40,6 +40,9 @@ class DataAnalysisInput(Input):
     def __init__(self, args, unknown_args):
         logger.info("Command line arguments: {}".format(args))
 
+        self.meta_data = dict()
+        self.result = None
+
         self.ini = args.ini
         self.idx = args.idx
         self.cluster = args.cluster
@@ -77,7 +80,6 @@ class DataAnalysisInput(Input):
             args.spline_calibration_phase_uncertainty_dict
         )
         self.spline_calibration_nodes = args.spline_calibration_nodes
-        self.result = None
         self.periodic_restart_time = args.periodic_restart_time
 
     @property
@@ -194,35 +196,34 @@ class DataAnalysisInput(Input):
             )
 
     @property
-    def meta_data(self):
-        return self.data_dump.meta_data
-
-    @property
     def trigger_time(self):
         return self.data_dump.trigger_time
 
     @property
     def data_dump(self):
+        if hasattr(self, "_data_dump"):
+            return self._data_dump
+
         filename = DataDump.get_filename(
             self.data_directory, self.data_label, str(self.idx)
         )
-
-        if hasattr(self, "_data_dump"):
-            return self._data_dump
+        self.meta_data["data_dump"] = filename
 
         logger.debug("Data dump not previously loaded")
 
         if os.path.isfile(filename):
-            self._data_dump = DataDump.from_pickle(filename)
-            return self._data_dump
+            pass
         elif os.path.isfile(os.path.basename(filename)):
-            self._data_dump = DataDump.from_pickle(os.path.basename(filename))
-            return self._data_dump
+            filename = os.path.basename(filename)
         else:
             raise FileNotFoundError(
                 "No dump data {} file found. Most likely the generation "
                 "step failed".format(filename)
             )
+
+        self._data_dump = DataDump.from_pickle(filename)
+        self.meta_data.update(self._data_dump.meta_data)
+        return self._data_dump
 
     @property
     def parameter_conversion(self):
@@ -358,7 +359,8 @@ class DataAnalysisInput(Input):
             label=self.label,
             outdir=self.result_directory,
             conversion_function=self.parameter_generation,
-            injection_parameters=self.data_dump.meta_data["injection_parameters"],
+            injection_parameters=self.meta_data["injection_parameters"],
+            meta_data=self.meta_data,
             result_class=self.result_class,
             **self.sampler_kwargs,
         )

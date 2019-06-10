@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("agg")  # noqa
 import bilby
 
-from .utils import parse_args, get_command_line_arguments
+from .utils import DataDump, parse_args, get_command_line_arguments, logger
 from .bilbyargparser import BilbyArgParser
 
 
@@ -31,7 +31,23 @@ def main():
     """ Top-level interface for bilby_pipe """
     args, unknown_args = parse_args(get_command_line_arguments(), create_parser())
 
+    logger.info("Generating plots for results file {}".format(args.result))
+
     result = bilby.gw.result.CBCResult.from_json(args.result)
-    result.plot_corner()
-    result.plot_marginals()
+    data_dump = DataDump.from_pickle(result.meta_data["data_dump"])
+    outdir = result.outdir
+    label = result.label
+    result.plot_marginals(priors=True)
     result.plot_calibration_posterior()
+
+    result.plot_corner()
+    result.plot_corner(
+        ["mass_1", "mass_2", "chirp_mass", "mass_ratio"],
+        filename="{}/{}_mass_corner.png".format(outdir, label),
+    )
+    result.plot_corner(
+        ["luminosity_distance", "theta_jn", "ra", "dec", "geocent_time"],
+        filename="{}/{}_distance-sky-time_corner.png".format(outdir, label),
+    )
+    result.plot_waveform_posterior(interferometers=data_dump.interferometers)
+    result.plot_skymap(1000)
