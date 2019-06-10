@@ -796,7 +796,7 @@ class Dag(object):
                 name=job_name,
                 executable=shutil.which("bilby_pipe_plot"),
                 submit=self.inputs.submit_directory,
-                request_memory="16 GB",
+                request_memory="32 GB",
                 getenv=self.getenv,
                 universe=self.universe,
                 initialdir=self.initialdir,
@@ -815,8 +815,6 @@ class Dag(object):
     @property
     def summary_jobs_inputs(self):
         """ Input for the summary jobs """
-        logger.debug("Generating list of summary jobs")
-
         sampler = self.inputs.sampler
         webdir = self.inputs.webdir
         email = self.inputs.email
@@ -851,30 +849,20 @@ class Dag(object):
         return jobs_inputs
 
     def create_summary_jobs(self):
-        """ Generate job to generate summary pages """
-        for job_input in self.summary_jobs_inputs:
-            self.summary_jobs.append(self._create_summary_job(job_input))
-
-    def _create_summary_job(self, job_input):
         """ Create a condor job for pesummary and add it to the dag """
-        webdir = job_input.kwargs["webdir"]
-        email = job_input.kwargs["email"]
-        detectors_list = job_input.kwargs["detectors_list"]
-        sampler = job_input.kwargs["sampler"]
-        existing_dir = job_input.kwargs["existing_dir"]
-        idx = job_input.idx
-        base_path = self.inputs.result_directory + "/"
-        result_files = [
-            base_path
-            + "_".join(
-                [self.inputs.label, "".join(i), sampler, job_input.meta_label, "result"]
-            )
-            + ".json"
-            for i in detectors_list
-        ]
-        job_name = "_".join([self.inputs.label, "results_page", str(idx)])
-        if job_input.meta_label is not None:
-            job_name = "_".join([job_name, job_input.meta_label])
+        logger.debug("Generating pesummary jobs")
+
+        if self.merged_runs:
+            files = [self.merged_runs_result_file]
+            parent_jobs = [self.merged_runs_job]
+        else:
+            files = self.result_files_list
+            parent_jobs = self.analysis_jobs
+
+        webdir = self.inputs.webdir
+        email = self.inputs.email
+        existing_dir = self.inputs.existing_dir
+        job_name = "_".join([self.inputs.label, "results_page"])
         job_name = job_name.replace(".", "-")
         job_logs_base = os.path.join(self.inputs.summary_log_directory, job_name)
         submit = self.inputs.submit_directory
@@ -887,13 +875,12 @@ class Dag(object):
         arguments = ArgumentsString()
         arguments.add("webdir", webdir)
         arguments.add("email", email)
-        arguments.add("config", " ".join([self.inputs.ini] * len(result_files)))
-        arguments.add("samples", " ".join(result_files))
+        arguments.add("config", " ".join([self.inputs.ini] * len(files)))
+        arguments.add("samples", " ".join(files))
         arguments.append(
-            "-a {}".format(
-                " ".join([self.inputs.waveform_approximant] * len(result_files))
-            )
+            "-a {}".format(" ".join([self.inputs.waveform_approximant] * len(files)))
         )
+        arguments.append("--labels {}".format(" ".join(files)))
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
 
@@ -916,7 +903,8 @@ class Dag(object):
             retry=self.retry,
             verbose=self.verbose,
         )
-        job.add_parent(self.analysis_jobs[idx])
+        for parent_job in parent_jobs:
+            job.add_parent(parent_job)
         logger.debug("Adding job: {}".format(job_name))
 
     def build_submit(self):

@@ -66,7 +66,7 @@ class DataGenerationInput(Input):
 
         # Generic initialisation
         self.meta_data = dict(
-            command_line_args=args,
+            command_line_args=args.__dict__,
             unknown_command_line_args=unknown_args,
             injection_parameters=None,
         )
