@@ -7,6 +7,7 @@ import shutil
 import bilby
 import bilby_pipe
 from .utils import (
+    BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
     logger,
     duration_lookups,
@@ -87,26 +88,29 @@ def read_from_gracedb(gracedb, gracedb_url, outdir):
     return candidate
 
 
-def read_from_coinc(coinc):
-    """ Read GraceDB events from json file with coinc contents
+def read_from_json(json_file):
+    """ Read GraceDB events from json file
 
     Parameters
     ----------
-    coinc: str
-        Filename of coinc json file output
+    json_file: str
+        Filename of json json file output
 
     Returns
     -------
-    candidate:
-        Contains contents of GraceDB event from coinc, json format
+    candidate: dict
+        Contains contents of GraceDB event from json, json format
 
     """
 
+    if os.path.isfile(json_file) is False:
+        raise FileNotFoundError("File {} not found".format(json_file))
+
     try:
-        with open(coinc, "r") as file:
+        with open(json_file, "r") as file:
             candidate = json.load(file)
     except IOError:
-        print("Unable to load event contents of json file")
+        logger.warning("Unable to load event contents of json file")
 
     return candidate
 
@@ -135,7 +139,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
     try:
         chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
     except KeyError:
-        raise ValueError(
+        raise BilbyPipeError(
             "Unable to determine chirp mass for {} from GraceDB".format(gracedb)
         )
     trigger_time = candidate["gpstime"]
@@ -219,11 +223,11 @@ def determine_prior_file_from_parameters(chirp_mass):
     return prior
 
 
-def main():
+def create_parser():
     parser = argparse.ArgumentParser(prog="bilby_pipe gracedb access", usage="")
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
-    group1.add_argument("--coinc", type=str, help="Path to coinc_file")
+    group1.add_argument("--json", type=str, help="Path to json gracedb file")
     group2 = parser.add_mutually_exclusive_group(required=False)
     group2.add_argument("--local", action="store_true", help="Run the job locally")
     group2.add_argument("--submit", action="store_true", help="Submit the job")
@@ -234,15 +238,20 @@ def main():
         help="GraceDB service url",
         default="https://gracedb.ligo.org/api/",
     )
+    return parser
 
-    args = parser.parse_args()
+
+def main(args=None):
+
+    if args is None:
+        args = create_parser().parse_args()
 
     if args.outdir:
         outdir = args.outdir
 
-    if args.coinc:
-        coinc = args.coinc
-        candidate = read_from_coinc(coinc)
+    if args.json:
+        json = args.json
+        candidate = read_from_json(json)
         gracedb = candidate["graceid"]
         if args.outdir is None:
             outdir = "outdir_{}".format(gracedb)
