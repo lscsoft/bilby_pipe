@@ -19,7 +19,7 @@ class TestMainInput(unittest.TestCase):
         ]
         self.unknown_args_list = ["--argument", "value"]
         self.all_args_list = self.known_args_list + self.unknown_args_list
-        self.parser = bilby_pipe.main.create_main_parser()
+        self.parser = bilby_pipe.main.create_parser()
         self.args = self.parser.parse_args(self.known_args_list)
         self.inputs = bilby_pipe.main.MainInput(
             *self.parser.parse_known_args(self.all_args_list)
