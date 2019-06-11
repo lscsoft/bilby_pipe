@@ -4,17 +4,24 @@ bilby_pipe is a command line tools for taking user input (as command line
 arguments or an ini file) and creating DAG files for submitting bilby parameter
 estimation jobs.
 """
-import os
-import sys
-import shutil
-import subprocess
 import itertools
 from collections import namedtuple
+import os
+import shutil
+import sys
+import subprocess
 
 import pycondor
 
-from .utils import logger, parse_args, BilbyPipeError, DataDump, ArgumentsString
-from . import utils
+from .utils import (
+    logger,
+    parse_args,
+    BilbyPipeError,
+    DataDump,
+    ArgumentsString,
+    get_command_line_arguments,
+    request_memory_generation_lookup,
+)
 from . import create_injections
 from .input import Input
 from .parser import create_parser
@@ -59,8 +66,6 @@ class MainInput(Input):
         logger.debug("Creating new Input object")
         logger.info("Command line arguments: {}".format(args))
 
-        logger.debug("Known detector list = {}".format(self.known_detectors))
-
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
@@ -68,7 +73,6 @@ class MainInput(Input):
         self.singularity_image = args.singularity_image
         self.outdir = args.outdir
         self.label = args.label
-        self.queue = 1
         self.create_summary = args.create_summary
         self.accounting = args.accounting
         self.sampler = args.sampler
@@ -239,7 +243,7 @@ class MainInput(Input):
     def request_memory_generation(self, request_memory_generation):
         if request_memory_generation is None:
             roq = self.likelihood_type == "ROQGravitationalWaveTransient"
-            request_memory_generation = utils.request_memory_generation_lookup(
+            request_memory_generation = request_memory_generation_lookup(
                 self.duration, roq=roq
             )
         logger.info("request_memory_generation={}GB".format(request_memory_generation))
@@ -503,7 +507,6 @@ class Dag(object):
             initialdir=self.initialdir,
             notification=self.notification,
             requirements=self.requirements,
-            queue=self.inputs.queue,
             extra_lines=extra_lines,
             dag=self.dag,
             arguments=arguments.print(),
@@ -649,7 +652,6 @@ class Dag(object):
             initialdir=self.initialdir,
             notification=self.notification,
             requirements=self.requirements,
-            queue=self.inputs.queue,
             extra_lines=extra_lines,
             dag=self.dag,
             arguments=arguments.print(),
@@ -693,7 +695,6 @@ class Dag(object):
             initialdir=self.initialdir,
             notification=self.notification,
             requirements=self.requirements,
-            queue=self.inputs.queue,
             dag=self.dag,
             extra_lines=extra_lines,
             arguments=self.inputs.postprocessing_arguments,
@@ -753,7 +754,6 @@ class Dag(object):
             initialdir=self.initialdir,
             notification=self.notification,
             requirements=self.requirements,
-            queue=self.inputs.queue,
             dag=self.dag,
             extra_lines=extra_lines,
             arguments=arguments,
@@ -802,7 +802,6 @@ class Dag(object):
                 initialdir=self.initialdir,
                 notification=self.notification,
                 requirements=self.requirements,
-                queue=self.inputs.queue,
                 dag=self.dag,
                 extra_lines=extra_lines,
                 arguments=arguments.print(),
@@ -811,42 +810,6 @@ class Dag(object):
             )
             job.add_parent(parent_job)
             logger.debug("Adding plot job")
-
-    @property
-    def summary_jobs_inputs(self):
-        """ Input for the summary jobs """
-        sampler = self.inputs.sampler
-        webdir = self.inputs.webdir
-        email = self.inputs.email
-        existing_dir = self.inputs.existing_dir
-
-        detectors_list = []
-        detectors_list.append(self.inputs.detectors)
-        if self.inputs.coherence_test:
-            for detector in self.inputs.detectors:
-                detectors_list.append([detector])
-        level_B_prod_list = self.inputs.sampler
-
-        level_A_jobs_numbers = range(self.inputs.n_level_A_jobs)
-        jobs_inputs = []
-        for idx in list(level_A_jobs_numbers):
-            for sampler in level_B_prod_list:
-                jobs_inputs.append(
-                    JobInput(
-                        idx=idx,
-                        meta_label=self.inputs.level_A_labels[idx],
-                        kwargs=dict(
-                            detectors_list=detectors_list,
-                            sampler=sampler,
-                            webdir=webdir,
-                            email=email,
-                            existing_dir=existing_dir,
-                        ),
-                    )
-                )
-
-        logger.debug("List of job inputs = {}".format(jobs_inputs))
-        return jobs_inputs
 
     def create_summary_jobs(self):
         """ Create a condor job for pesummary and add it to the dag """
@@ -880,7 +843,9 @@ class Dag(object):
         arguments.append(
             "-a {}".format(" ".join([self.inputs.waveform_approximant] * len(files)))
         )
-        arguments.append("--labels {}".format(" ".join(files)))
+        arguments.append(
+            "--labels {}".format(" ".join([os.path.basename(f) for f in files]))
+        )
         if existing_dir is not None:
             arguments.add("existing_webdir", existing_dir)
 
@@ -896,7 +861,6 @@ class Dag(object):
             initialdir=self.initialdir,
             notification=self.notification,
             requirements=self.requirements,
-            queue=self.inputs.queue,
             extra_lines=extra_lines,
             dag=self.dag,
             arguments=arguments.print(),
@@ -933,14 +897,10 @@ class Dag(object):
             )
 
 
-def create_main_parser():
-    return create_parser(top_level=True)
-
-
 def main():
     """ Top-level interface for bilby_pipe """
-    parser = create_main_parser()
-    args, unknown_args = parse_args(utils.get_command_line_arguments(), parser)
+    parser = create_parser(top_level=True)
+    args, unknown_args = parse_args(get_command_line_arguments(), parser)
 
     inputs = MainInput(args, unknown_args)
 
