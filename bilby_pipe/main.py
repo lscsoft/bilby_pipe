@@ -92,6 +92,7 @@ class MainInput(Input):
 
         self.run_local = args.local
         self.local_generation = args.local_generation
+        self.local_plot = args.local_plot
 
         self.gps_file = args.gps_file
         self.trigger_time = args.trigger_time
@@ -768,6 +769,11 @@ class Dag(object):
 
     def create_plot_jobs(self):
 
+        if self.inputs.local_plot:
+            universe = "local"
+        else:
+            universe = self.universe
+
         if self.merged_runs:
             files = [self.merged_runs_result_file]
             parent_jobs = [self.merged_runs_job]
@@ -796,9 +802,9 @@ class Dag(object):
                 name=job_name,
                 executable=shutil.which("bilby_pipe_plot"),
                 submit=self.inputs.submit_directory,
-                request_memory="32 GB",
+                request_memory="16 GB",
                 getenv=self.getenv,
-                universe=self.universe,
+                universe=universe,
                 initialdir=self.initialdir,
                 notification=self.notification,
                 requirements=self.requirements,
