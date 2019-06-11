@@ -6,17 +6,19 @@ import glob
 import json
 import os
 
-from bilby.core.result import read_in_result, make_pp_plot
+from bilby.core.result import read_in_result, make_pp_plot, ResultList
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import tqdm
 
-import matplotlib as mpl
+from .utils import logger
+
 
 mpl.rcParams.update(mpl.rcParamsDefault)
 
 
-def main():
+def create_parser():
     parser = argparse.ArgumentParser(
         prog="bilby_pipe PP test",
         usage="Generates a pp plot from a directory containing a set of results",
@@ -32,23 +34,34 @@ def main():
     parser.add_argument(
         "-n", type=int, help="Number of samples to truncate to", default=None
     )
-    args, _ = parser.parse_known_args()
+    return parser
 
+
+def get_results_filenames(args):
     results_files = []
     for extension in ["json", "h5", "hdf5"]:
         glob_string = os.path.join(args.directory, "*result*" + extension)
         results_files += glob.glob(glob_string)
     results_files = [rf for rf in results_files if os.path.isfile(rf)]
-
     if len(results_files) == 0:
-        raise ValueError("No results found in path {}".format(args.directory))
+        raise FileNotFoundError("No results found in path {}".format(args.directory))
 
     if args.n is not None:
         results_files = results_files[: args.n]
+    return results_files
 
+
+def check_consistency(results):
+    results._check_consistent_sampler()
+    results._check_consistent_data()
+    results._check_consistent_parameters()
+    results._check_consistent_priors()
+
+
+def read_in_result_list(args, results_filenames):
     print("Reading in results ...")
     results = []
-    for f in tqdm.tqdm(results_files):
+    for f in tqdm.tqdm(results_filenames):
         try:
             results.append(read_in_result(f))
         except json.decoder.JSONDecodeError:
@@ -70,32 +83,44 @@ def main():
         print(
             "List of result-labels: {}".format(sorted([res.label for res in results]))
         )
+    return ResultList(results)
 
-    r0 = results[0]
-    sampler = r0.sampler
+
+def get_basename(args):
     if args.outdir is None:
         args.outdir = args.directory
-    basename = "{}/{}".format(args.outdir, sampler)
+    basename = "{}/".format(args.outdir)
     if args.label is not None:
-        basename += "_{}".format(args.label)
+        basename += "{}_".format(args.label)
+    return basename
 
-    print("Create the PP plot")
-    keys = r0.priors.keys()
-    print("Parameters = {}".format(keys))
-    make_pp_plot(results, filename="{}_pp.png".format(basename), keys=keys)
 
-    print("Create sampling-time histogram")
+def main(args=None):
+    if args is None:
+        args = create_parser().parse_known_args()
+    results_filenames = get_results_filenames(args)
+    results = read_in_result_list(args, results_filenames)
+    check_consistency(results)
+    basename = get_basename(args)
+
+    logger.info("Generating PP plot")
+    keys = results[0].priors.keys()
+    logger.info("Parameters = {}".format(keys))
+    make_pp_plot(results, filename="{}pp.png".format(basename), keys=keys)
+
+    logger.info("Create sampling-time histogram")
     stimes = [r.sampling_time for r in results]
     fig, ax = plt.subplots()
     ax.hist(np.array(stimes) / 3600, bins=50)
     ax.set_xlabel("Sampling time [hr]")
     fig.tight_layout()
-    fig.savefig("{}_sampling_times.png".format(basename))
+    fig.savefig("{}sampling_times.png".format(basename))
 
-    print("Create optimal SNR plot")
+    logger.info("Create optimal SNR plot")
     fig, ax = plt.subplots()
     snrs = []
-    for det in ["H1", "L1"]:
+    detectors = list(results[0].meta_data["likelihood"]["interferometers"].keys())
+    for det in detectors:
         snrs.append(
             [
                 r.meta_data["likelihood"]["interferometers"][det]["optimal_SNR"]
@@ -107,4 +132,4 @@ def main():
     ax.hist(network_snr, bins=50, label=det)
     ax.set_xlabel("Network optimal SNR")
     fig.tight_layout()
-    fig.savefig("{}_optimal_SNR.png".format(basename))
+    fig.savefig("{}optimal_SNR.png".format(basename))
