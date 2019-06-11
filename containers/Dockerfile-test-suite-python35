@@ -38,7 +38,7 @@ RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singulari
 # Install conda-installable programs
 RUN conda install -y matplotlib numpy scipy pandas
 
-RUN conda install -c conda-forge ligo-gracedb gwpy lalsuite ligo.skymap
+RUN conda install -c conda-forge ligo-gracedb gwpy lalsuite ligo.skymap pesummary
 
 # Install requirements
 RUN pip install --upgrade pip \
