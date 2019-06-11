@@ -111,7 +111,7 @@ def read_from_coinc(coinc):
     return candidate
 
 
-def create_config_file(candidate, gracedb, outdir):
+def create_config_file(candidate, gracedb, outdir, roq=True):
     """ Creates ini file from defaults and candidate contents
 
     Parameters
@@ -122,6 +122,8 @@ def create_config_file(candidate, gracedb, outdir):
         GraceDB id of event
     outdir: str
         Output directory
+    roq: bool
+        If True, use the default ROQ settings if required
 
     Returns
     -------
@@ -163,13 +165,19 @@ def create_config_file(candidate, gracedb, outdir):
         prior_file=prior,
         duration=duration_lookups[prior],
         sampler="dynesty",
-        sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
+        sampler_kwargs="{nlive: 1000, walks: 100, check_point_plot=True, n_check_point: 5000}",
         create_plots=True,
         local_generation=True,
+        transfer_files=False,
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
     )
+
+    if roq and config_dict["duration"] > 4:
+        config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
+        config_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(prior)
+
     filename = "{}.ini".format(config_dict["label"])
     write_config_file(config_dict, filename)
 
@@ -219,6 +227,9 @@ def main():
     group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument("--outdir", type=str, help="Output directory")
     parser.add_argument(
+        "--roq", action="store_true", help="Use the default ROQ settings if required"
+    )
+    parser.add_argument(
         "--gracedb-url",
         type=str,
         help="GraceDB service url",
@@ -246,7 +257,7 @@ def main():
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
-    filename = create_config_file(candidate, gracedb, outdir)
+    filename = create_config_file(candidate, gracedb, outdir, roq=args.roq)
 
     arguments = ["bilby_pipe", filename]
     if args.local:
