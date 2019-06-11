@@ -333,5 +333,39 @@ def request_memory_generation_lookup(duration, roq=False):
         return 8
 
 
+def convert_detectors_input(string):
+    """ Convert string inputs into a standard form for the detectors
+
+    Parameters
+    ----------
+    string: str
+        A string representation to be converted
+
+    Returns
+    -------
+    detectors: list
+        A sorted list of detectors
+
+    """
+    if string is None:
+        raise BilbyPipeError("No detector input")
+    if isinstance(string, list):
+        string = ",".join(string)
+    # Remove square brackets
+    string = string.replace("[", "").replace("]", "")
+    # Remove added quotes
+    string = strip_quotes(string)
+    # Replace multiple spaces with a single space
+    string = " ".join(string.split())
+    # Spaces can be either space or comma in input, convert to comma
+    string = string.replace(" ,", ",").replace(", ", ",").replace(" ", ",")
+
+    detectors = string.split(",")
+
+    detectors.sort()
+    detectors = [det.upper() for det in detectors]
+    return detectors
+
+
 setup_logger(print_version=True)
 logger = logging.getLogger("bilby_pipe")

@@ -5,7 +5,7 @@ import shutil
 import logging
 import sys
 
-from bilby_pipe.utils import BilbyPipeError
+import bilby_pipe.utils
 
 
 class TestParseArgs(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestParseArgs(unittest.TestCase):
         parser = bilby_pipe.bilbyargparser.BilbyArgParser(
             usage=__doc__, ignore_unknown_config_file_keys=True, allow_abbrev=False
         )
-        with self.assertRaises(BilbyPipeError):
+        with self.assertRaises(bilby_pipe.utils.BilbyPipeError):
             bilby_pipe.main.parse_args(input_args, parser)
 
 
@@ -81,6 +81,42 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
             cstd('{a=False, b : "True", c: true, "d": "False"}', key),
             dict(a=False, b=True, c=True, d=False),
+        )
+
+    def test_convert_detectors_input(self):
+        self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("H1"))
+        self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("[H1]"))
+        self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("'H1'"))
+        self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input('"H1"'))
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input("H1 L1")
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input("[H1 L1]")
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input("['H1' 'L1']")
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input('["H1" "L1"]')
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input("['H1', 'L1']")
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input('["H1", "L1"]')
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input("'H1', 'L1'")
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input('"H1", "L1"')
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input('"L1", "H1"')
+        )
+        self.assertEqual(
+            ["H1", "L1"], bilby_pipe.utils.convert_detectors_input(["L1", "H1"])
         )
 
 

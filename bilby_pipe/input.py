@@ -37,7 +37,7 @@ class Input(object):
 
     @known_detectors.setter
     def known_detectors(self, known_detectors):
-        self._known_detectors = self._convert_detectors_input(known_detectors)
+        self._known_detectors = utils.convert_detectors_input(known_detectors)
 
     @property
     def detectors(self):
@@ -46,25 +46,8 @@ class Input(object):
 
     @detectors.setter
     def detectors(self, detectors):
-        self._detectors = self._convert_detectors_input(detectors)
+        self._detectors = utils.convert_detectors_input(detectors)
         self._check_detectors_against_known_detectors()
-
-    def _convert_detectors_input(self, detectors):
-        if isinstance(detectors, str):
-            det_list = self._split_string_by_space(detectors)
-        elif isinstance(detectors, list):
-            if len(detectors) == 1:
-                det_list = self._split_string_by_space(detectors[0])
-            else:
-                det_list = detectors
-        else:
-            raise BilbyPipeError(
-                "Input `detectors` = {} not understood".format(detectors)
-            )
-
-        det_list.sort()
-        det_list = [det.upper() for det in det_list]
-        return det_list
 
     def _check_detectors_against_known_detectors(self):
         for element in self.detectors:
