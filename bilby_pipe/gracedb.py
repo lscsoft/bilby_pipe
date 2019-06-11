@@ -159,7 +159,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         sampling_frequency=maximum_frequency_lookups[prior] * 4,
         reference_frequency=20,
         trigger_time=trigger_time,
-        detectors="[H1, L1, V1]",
+        detectors="[{}]".format(",".join(channel_dict.keys())),
         channel_dict=channel_dict,
         deltaT=0.2,
         prior_file=prior,
@@ -172,13 +172,15 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
+        n_parallel=4,
+        create_summary=True,
     )
 
     if roq and config_dict["duration"] > 4:
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         config_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(prior)
 
-    filename = "{}.ini".format(config_dict["label"])
+    filename = "{}/{}.ini".format(config_dict["outdir"], config_dict["label"])
     write_config_file(config_dict, filename)
 
     return filename
@@ -227,9 +229,6 @@ def main():
     group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument("--outdir", type=str, help="Output directory")
     parser.add_argument(
-        "--roq", action="store_true", help="Use the default ROQ settings if required"
-    )
-    parser.add_argument(
         "--gracedb-url",
         type=str,
         help="GraceDB service url",
@@ -257,7 +256,7 @@ def main():
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
-    filename = create_config_file(candidate, gracedb, outdir, roq=args.roq)
+    filename = create_config_file(candidate, gracedb, outdir)
 
     arguments = ["bilby_pipe", filename]
     if args.local:
