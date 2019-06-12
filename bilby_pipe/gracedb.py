@@ -172,6 +172,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         sampler_kwargs="{nlive: 1000, walks: 100, check_point_plot=True, n_check_point: 5000}",
         create_plots=True,
         local_generation=True,
+        local_plot=True,
         transfer_files=False,
         time_marginalization=True,
         distance_marginalization=True,

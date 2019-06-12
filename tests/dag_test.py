@@ -32,6 +32,7 @@ class TestDag(unittest.TestCase):
             email="test@test.com",
             existing_dir=None,
             local_generation=False,
+            local_plot=False,
             trigger_time=0,
             deltaT=0.2,
             waveform_approximant="IMRPhenomPV2",

@@ -266,6 +266,10 @@ def create_parser(top_level=True):
             "data generation job locally."
         ),
     )
+    submission_parser.add(
+        "--local-plot", action="store_true", help="Run the plot job locally"
+    )
+
     submission_parser.add("--outdir", type=str, default=".", help="Output directory")
     parser.add(
         "--periodic-restart-time",
