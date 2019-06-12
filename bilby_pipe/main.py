@@ -119,7 +119,7 @@ class MainInput(Input):
 
     @property
     def initialdir(self):
-        return os.path.abspath(os.path.dirname(self.ini))
+        return os.getcwd()
 
     @property
     def singularity_image(self):

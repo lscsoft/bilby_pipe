@@ -125,7 +125,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
     gracedb: str
         GraceDB id of event
     outdir: str
-        Output directory
+        Output directory where the ini file and all output is written
     roq: bool
         If True, use the default ROQ settings if required
 
@@ -185,7 +185,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         config_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(prior)
 
-    filename = "{}/{}.ini".format(config_dict["outdir"], config_dict["label"])
+    filename = "{}/{}.ini".format(outdir, config_dict["label"])
     write_config_file(config_dict, filename)
 
     return filename
@@ -232,7 +232,11 @@ def create_parser():
     group2 = parser.add_mutually_exclusive_group(required=False)
     group2.add_argument("--local", action="store_true", help="Run the job locally")
     group2.add_argument("--submit", action="store_true", help="Submit the job")
-    parser.add_argument("--outdir", type=str, help="Output directory")
+    parser.add_argument(
+        "--outdir",
+        type=str,
+        help="Output directory where the ini file and all output is written",
+    )
     parser.add_argument(
         "--gracedb-url",
         type=str,
