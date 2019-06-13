@@ -176,7 +176,7 @@ def create_parser(top_level=True):
     det_parser.add(
         "--psd-length",
         default=32,
-        type=float,
+        type=int,
         help=("Number of duration-lengths used to generate the PSD, default" " is 32."),
     )
     det_parser.add(

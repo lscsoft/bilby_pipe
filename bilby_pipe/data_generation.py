@@ -200,7 +200,9 @@ class DataGenerationInput(Input):
                 )
             )
         else:
-            raise BilbyPipeError("Unable to set the psd length")
+            raise BilbyPipeError(
+                "Unable to set the psd duration from psd_length={}".format(psd_length)
+            )
 
     @property
     def psd_start_time(self):
@@ -209,7 +211,11 @@ class DataGenerationInput(Input):
             return self._psd_start_time
         elif self.trigger_time is not None:
             psd_start_time = -self.psd_duration
-            logger.info("Using default PSD start time {}".format(psd_start_time))
+            logger.info(
+                "Using default PSD start time {} relative to start time".format(
+                    psd_start_time
+                )
+            )
             return psd_start_time
         else:
             raise BilbyPipeError("PSD start time not set")
