@@ -547,14 +547,34 @@ class DataGenerationInput(Input):
         if data is None and self.data_dict is not None:
             data = self._gwpy_read(det, channel, start_time, end_time)
         if data is None:
-            data = self._gwpy_get(det, channel, start_time, end_time)
+            data = self._gwpy_get(channel, start_time, end_time)
         if data is None:
-            data = self._gwpy_fetch_open_data(det, channel, start_time, end_time)
+            data = self._gwpy_fetch_open_data(det, start_time, end_time)
 
         data = data.resample(self.sampling_frequency)
         return data
 
-    def _gwpy_read(self, det, channel, start_time, end_time):
+    def _gwpy_read(self, det, channel, start_time, end_time, dtype="float64"):
+        """ Wrapper function to gwpy.timeseries.TimeSeries.read()
+
+        Parameters
+        ----------
+        det: str
+            The detector name corresponding to the key in data-dict
+        channel: str
+            The name of the channel to read, e.g. 'L1:GDS-CALIB_STRAIN'
+        start_time, end_time: float
+            GPS start and end time of required data
+        dtype: str or np.dtype
+            Data type requested
+
+        Returns
+        -------
+        data: TimeSeries
+            If succesful, the data, otherwise None is returned
+
+        """
+
         logger.debug("data-dict provided, attempt read of data")
 
         if det not in self.data_dict:
@@ -564,21 +584,31 @@ class DataGenerationInput(Input):
         if self.data_format is not None:
             kwargs = dict(format=self.data_format)
             logger.info(
-                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}')".format(
-                    self.data_dict[det], channel, start_time, end_time, self.data_format
+                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}', dtype={})".format(
+                    self.data_dict[det],
+                    channel,
+                    start_time,
+                    end_time,
+                    self.data_format,
+                    dtype,
                 )
             )
         else:
             kwargs = {}
             logger.info(
-                "Calling TimeSeries.read('{}', '{}', start={}, end={})".format(
-                    self.data_dict[det], channel, start_time, end_time
+                "Calling TimeSeries.read('{}', '{}', start={}, end={}, dtype={})".format(
+                    self.data_dict[det], channel, start_time, end_time, dtype
                 )
             )
 
         try:
             data = gwpy.timeseries.TimeSeries.read(
-                self.data_dict[det], channel, start=start_time, end=end_time, **kwargs
+                self.data_dict[det],
+                channel,
+                start=start_time,
+                end=end_time,
+                dtype=dtype,
+                **kwargs
             )
             if data.duration.value != self.duration:
                 logger.warning(
@@ -593,16 +623,33 @@ class DataGenerationInput(Input):
             logger.info("Reading of data failed with error {}".format(e))
             return None
 
-    def _gwpy_get(self, det, channel, start_time, end_time):
+    def _gwpy_get(self, channel, start_time, end_time, dtype="float64"):
+        """ Wrapper function to gwpy.timeseries.TimeSeries.get()
+
+        Parameters
+        ----------
+        channel: str
+            The name of the channel to read, e.g. 'L1:GDS-CALIB_STRAIN'
+        start_time, end_time: float
+            GPS start and end time of required data
+        dtype: str or np.dtype
+            Data type requested
+
+        Returns
+        -------
+        data: TimeSeries
+            If succesful, the data, otherwise None is returned
+
+        """
         logger.debug("Attempt to locate data")
         logger.info(
-            "Calling TimeSeries.get('{}', start={}, end={})".format(
-                channel, start_time, end_time
+            "Calling TimeSeries.get('{}', start={}, end={}, dtype={})".format(
+                channel, start_time, end_time, dtype
             )
         )
         try:
             data = gwpy.timeseries.TimeSeries.get(
-                channel, start_time, end_time, verbose=False
+                channel, start_time, end_time, verbose=False, dtype=dtype
             )
             return data
         except RuntimeError as e:
@@ -611,9 +658,30 @@ class DataGenerationInput(Input):
         except ImportError:
             logger.info("Unable to read data as NDS2 is not installed")
 
-    def _gwpy_fetch_open_data(self, det, channel, start_time, end_time):
+    def _gwpy_fetch_open_data(self, det, start_time, end_time):
+        """ Wrapper function to gwpy.timeseries.TimeSeries.fetch_open_data()
+
+        Parameters
+        ----------
+        det: str
+            The detector name, e.g 'H1'
+        start_time, end_time: float
+            GPS start and end time of required data
+
+        Returns
+        -------
+        data: TimeSeries
+            If succesful, the data, otherwise None is returned
+
+        """
+
         logger.info(
             "Previous attempts to download data failed, trying with `fetch_open_data`"
+        )
+        logger.info(
+            "Calling TimeSeries.fetch_open_data('{}', start={}, end={})".format(
+                det, start_time, end_time
+            )
         )
         data = gwpy.timeseries.TimeSeries.fetch_open_data(det, start_time, end_time)
         return data
