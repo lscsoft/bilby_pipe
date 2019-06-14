@@ -167,7 +167,8 @@ When requesting data, we first look for local frame-files, then use the `NDS2
 library to fetch proprietary data remotely, finally we search the open data.
 
 To best utilise this tool, you should ensure your python installation has
-access to `LDAS-tools <https://anaconda.org/conda-forge/ldas-tools-framecpp>`_
+access to `LDAStools-frameCPP
+<https://anaconda.org/conda-forge/python-ldas-tools-framecpp>`_
 for local frame-file lookup and `NDS2
 <https://anaconda.org/conda-forge/python-nds2-client>`_ for proprietary remote
 data look up. These libraries are typically part of most LIGO data stacks and

@@ -35,11 +35,11 @@ except ImportError:
     )
 
 try:
-    import LDAStools  # noqa
+    import LDAStools.frameCPP  # noqa
 except ImportError:
     logger.warning(
-        "You do not have LDAStools (python-ldas-tools-framecpp) installed."
-        " You may experience problems accessing interferometer data."
+        "You do not have LDAStools.frameCPP (python-ldas-tools-framecpp) "
+        "installed. You may experience problems accessing interferometer data."
     )
 
 
