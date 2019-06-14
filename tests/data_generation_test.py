@@ -144,7 +144,7 @@ class TestDataGenerationInput(unittest.TestCase):
         self.assertEqual(inputs.detectors, ["H1", "L1"])
 
     def test_detectors_not_understood(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(BilbyPipeError):
             self.inputs.detectors = 10
 
     def test_trigger_time(self):

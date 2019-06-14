@@ -351,6 +351,8 @@ def convert_detectors_input(string):
         raise BilbyPipeError("No detector input")
     if isinstance(string, list):
         string = ",".join(string)
+    if isinstance(string, str) is False:
+        raise BilbyPipeError("Detector input {} not understood".format(string))
     # Remove square brackets
     string = string.replace("[", "").replace("]", "")
     # Remove added quotes

@@ -277,26 +277,6 @@ class DataGenerationInput(Input):
             )
 
     @property
-    def detectors(self):
-        """ A list of the detectors to search over, e.g., ['H1', 'L1'] """
-        return self._detectors
-
-    @detectors.setter
-    def detectors(self, detectors):
-        """ Handles various types of user input """
-        if isinstance(detectors, list):
-            if len(detectors) == 1:
-                det_list = self._convert_string_to_list(detectors[0])
-            else:
-                det_list = detectors
-        else:
-            raise ValueError("Input `detectors` = {} not understood".format(detectors))
-
-        det_list.sort()
-        det_list = [det.upper() for det in det_list]
-        self._detectors = det_list
-
-    @property
     def sampling_frequency(self):
         return self._sampling_frequency
 
