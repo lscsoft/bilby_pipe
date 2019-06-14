@@ -146,11 +146,13 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
     singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
 
     ifos = [sngl["ifo"] for sngl in singleinspiraltable]
-    channels = [sngl["channel"] for sngl in singleinspiraltable]
-    ifo_channel = zip(ifos, channels)
-    channel_dict = {}
-    for ifo, channel in ifo_channel:
-        channel_dict[ifo] = channel
+
+    # Default channels set from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
+    DEFAULT_CHANNEL_DICT = {
+        "H1: GDS-CALIB_STRAIN_CLEAN",
+        "L1: GDS-CALIB_STRAIN_CLEAN",
+        "V1: Hrec_hoft_16384Hz",
+    }
 
     prior = determine_prior_file_from_parameters(chirp_mass)
 
@@ -163,8 +165,8 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         sampling_frequency=maximum_frequency_lookups[prior] * 4,
         reference_frequency=20,
         trigger_time=trigger_time,
-        detectors="[{}]".format(",".join(channel_dict.keys())),
-        channel_dict=channel_dict,
+        detectors=ifos,
+        channel_dict=DEFAULT_CHANNEL_DICT,
         deltaT=0.2,
         prior_file=prior,
         duration=duration_lookups[prior],
