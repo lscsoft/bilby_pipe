@@ -36,9 +36,10 @@ RUN wget https://github.com/sylabs/singularity/releases/download/2.5.2/singulari
 && make install
 
 # Install conda-installable programs
-RUN conda install -y matplotlib numpy scipy pandas
+RUN conda install -y matplotlib numpy scipy pandas astropy
 
-RUN conda install -c conda-forge ligo-gracedb gwpy lalsuite ligo.skymap pesummary
+RUN conda install -c conda-forge ligo-gracedb gwpy lalsuite ligo.skymap bilby
+RUN pip install pesummary # Tempory fix to get 0.17 installation
 
 # Install requirements
 RUN pip install --upgrade pip \
@@ -46,11 +47,8 @@ RUN pip install --upgrade pip \
 && pip install future \
 pycondor>=0.5 \
 configargparse \
-spython \
-jinja2 \
 flake8 \
 urllib3 \
-deepdish \
 coverage \
 pytest-cov \
 coverage-badge
