@@ -1,3 +1,4 @@
+import glob
 import unittest
 import os
 import shutil
@@ -137,16 +138,15 @@ class TestGraceDB(unittest.TestCase):
         self.assertEqual(args.outdir, None)
         self.assertEqual(args.gracedb_url, "https://gracedb.ligo.org/api/")
 
-    # Testing failing due to pesummary
-    # def test_main(self):
-    #     gracedb_uid = "G298936"
-    #     example_json_data = "examples/{}.json".format(gracedb_uid)
-    #     parser = gracedb.create_parser()
-    #     args = parser.parse_args(["--json", example_json_data])
-    #     gracedb.main(args)
-    #     files = glob.glob(self.example_gracedb_uid_outdir + "/submit/*")
-    #     # Check this creates jobs
-    #     self.assertEqual(len(files), 9)
+    def test_main(self):
+        gracedb_uid = "G298936"
+        example_json_data = "examples/{}.json".format(gracedb_uid)
+        parser = gracedb.create_parser()
+        args = parser.parse_args(["--json", example_json_data])
+        gracedb.main(args)
+        files = glob.glob(self.example_gracedb_uid_outdir + "/submit/*")
+        # Check this creates jobs
+        self.assertEqual(len(files), 9)
 
 
 if __name__ == "__main__":

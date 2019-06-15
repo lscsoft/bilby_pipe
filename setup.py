@@ -51,9 +51,7 @@ def write_version_file(version):
         raise
     else:
         git_version = "{}: ({}) {}".format(
-            version,
-            "UNCLEAN" if git_diff else "CLEAN",
-            git_log.rstrip(),
+            version, "UNCLEAN" if git_diff else "CLEAN", git_log.rstrip()
         )
         print("parsed git version info as: {!r}".format(git_version))
 
@@ -92,12 +90,14 @@ setup(
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "bilby>=0.4.1",
+        "bilby>=0.5.1",
         "scipy>=1.2.0",
         "gwpy",
         "matplotlib",
         "numpy",
         "tqdm",
+        "dynesty>=0.9.7",
+        "pesummary",
     ],
     entry_points={
         "console_scripts": [
