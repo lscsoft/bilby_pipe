@@ -17,9 +17,7 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda install -y astropy
-    - conda install -c conda-forge bilby black
-    - pip install pesummary --upgrade
+    - conda install -c conda-forge black
     - python setup.py install
 
     # Run black check
@@ -42,9 +40,6 @@ python-3.6:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python36
   script:
-    - conda install -y astropy
-    - conda install -c conda-forge bilby black
-    - pip install pesummary --upgrade
     - python setup.py install
 
     # run tests
@@ -54,9 +49,6 @@ python-3.5:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python35
   script:
-    - conda install -y astropy
-    - conda install -c conda-forge bilby black
-    - pip install pesummary --upgrade
     - python setup.py install
 
     # run tests
@@ -66,9 +58,6 @@ documentation:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda install -y astropy
-    - conda install -c conda-forge bilby black
-    - pip install pesummary --upgrade
     - python setup.py install
 
     # Make the documentation
