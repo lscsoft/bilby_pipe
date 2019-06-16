@@ -17,7 +17,6 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda install -c conda-forge black
     - python setup.py install
 
     # Run black check
