@@ -7,8 +7,8 @@ import bilby
 import bilby_pipe
 from .utils import (
     check_directory_exists_and_if_not_mkdir,
-    duration_lookups,
-    maximum_frequency_lookups,
+    DURATION_LOOKUPS,
+    MAXIMUM_FREQUENCY_LOOKUPS,
     write_config_file,
     run_command_line,
 )
@@ -75,7 +75,7 @@ def get_date_string():
 
 def get_default_config_dict(args, review_name):
     if args.duration is None:
-        args.duration = duration_lookups[args.prior]
+        args.duration = DURATION_LOOKUPS[args.prior]
 
     base_label = "{}_{}".format(review_name, args.prior)
     if args.roq:
@@ -93,8 +93,8 @@ def get_default_config_dict(args, review_name):
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
         create_plots=None,
-        sampling_frequency=4 * maximum_frequency_lookups[args.prior],
-        maximum_frequency=maximum_frequency_lookups[args.prior],
+        sampling_frequency=4 * MAXIMUM_FREQUENCY_LOOKUPS[args.prior],
+        maximum_frequency=MAXIMUM_FREQUENCY_LOOKUPS[args.prior],
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
