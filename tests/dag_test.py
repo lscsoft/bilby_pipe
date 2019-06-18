@@ -49,6 +49,7 @@ class TestDag(unittest.TestCase):
             create_plots=False,
             likelihood_type=None,
             duration=4,
+            osg=True,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
