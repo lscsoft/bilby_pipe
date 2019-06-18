@@ -52,10 +52,10 @@ def get_results_filenames(args):
 
 
 def check_consistency(results):
-    results._check_consistent_sampler()
-    results._check_consistent_data()
-    results._check_consistent_parameters()
-    results._check_consistent_priors()
+    results.check_consistent_sampler()
+    results.check_consistent_data()
+    results.check_consistent_parameters()
+    results.check_consistent_priors()
 
 
 def read_in_result_list(args, results_filenames):
