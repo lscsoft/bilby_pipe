@@ -115,6 +115,83 @@ def read_from_json(json_file):
     return candidate
 
 
+def calibration_lookup(trigger_time, detector):
+    """ Lookup function for the relevant calibration file
+
+    Assumes that it is running on CIT where the calibration files are stored
+    under /home/cbc/pe/O3/calibrationenvelopes
+
+    Parameters
+    ----------
+    trigger_time: float
+        The trigger time of interest
+    detector: str [H1, L1, V1]
+        Detector string
+
+    Returns
+    -------
+    filepath: str
+        The path to the relevant calibration envelope file. If no calibration
+        file can be determined, None is returned.
+
+    """
+    base = "/home/cbc/pe/O3/calibrationenvelopes"
+    CALENVS_LOOKUP = dict(
+        H1=os.path.join(base, "LIGO_Hanford/H_CalEnvs.txt"),
+        L1=os.path.join(base, "LIGO_Livingston/L_CalEnvs.txt"),
+        V1=os.path.join(base, "Virgo/V_CalEnvs.txt"),
+    )
+
+    if os.path.isdir(base) is False:
+        raise BilbyPipeError("Unable to read from calibration folder {}".format(base))
+
+    calenv = CALENVS_LOOKUP[detector]
+    times = []
+    files = []
+    with open(calenv, "r") as f:
+        for line in f:
+            time, filename = line.rstrip("\n").split(" ")
+            times.append(float(time))
+            files.append(filename)
+
+    if trigger_time < times[0]:
+        raise BilbyPipeError(
+            "Requested trigger time prior to earliest calibration file"
+        )
+
+    for i in range(len(times)):
+        if trigger_time > times[i]:
+            directory = os.path.dirname(calenv)
+            calib_file = "{}/{}".format(directory, files[i])
+            return os.path.abspath(calib_file)
+
+
+def calibration_dict_lookup(trigger_time, detectors):
+    """ Dictionary lookup function for the relevant calibration files
+
+    Parameters
+    ----------
+    trigger_time: float
+        The trigger time of interest
+    detectors: list
+        List of detector string
+
+    Returns
+    -------
+    calibration_model, calibration_dict: str, dict
+        Calibration model string and dictionary of paths to the relevant
+        calibration envelope file.
+    """
+
+    try:
+        calibration_dict = {
+            det: calibration_lookup(trigger_time, det) for det in detectors
+        }
+        return "CubicSpline", calibration_dict
+    except BilbyPipeError:
+        return None, None
+
+
 def create_config_file(candidate, gracedb, outdir, roq=True):
     """ Creates ini file from defaults and candidate contents
 
@@ -148,13 +225,13 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
     ifos = [sngl["ifo"] for sngl in singleinspiraltable]
 
     # Default channels set from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
-    DEFAULT_CHANNEL_DICT = {
-        "H1: GDS-CALIB_STRAIN_CLEAN",
-        "L1: GDS-CALIB_STRAIN_CLEAN",
-        "V1: Hrec_hoft_16384Hz",
-    }
+    DEFAULT_CHANNEL_DICT = dict(
+        H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
+    )
 
     prior = determine_prior_file_from_parameters(chirp_mass)
+
+    calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
 
     config_dict = dict(
         label=gracedb,
@@ -181,6 +258,9 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         phase_marginalization=True,
         n_parallel=4,
         create_summary=True,
+        calibration_model=calibration_model,
+        spline_calibration_envelope_dict=calib_dict,
+        spline_calibration_nodes=5,
     )
 
     if roq and config_dict["duration"] > 4:
@@ -188,7 +268,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         config_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(prior)
 
     filename = "{}/{}.ini".format(outdir, config_dict["label"])
-    write_config_file(config_dict, filename)
+    write_config_file(config_dict, filename, remove_none=True)
 
     return filename
 
