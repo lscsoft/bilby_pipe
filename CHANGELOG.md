@@ -1,8 +1,12 @@
 # All notable changes will be documented in this file
 
-## Unreleased
+## v0.2.1 : 2019-06-05
+Release coinciding with bilby 0.5.2
 
-Changes currently on master, but not under a tag.
+### Added
+-   Automated rescaling
+-   Automated calibration
+-   pesummary as a dependency
 
 ## v0.2.0 : 2019-06-05
 Release coinciding with bilby 0.5.1, planned for initial review
