@@ -39,15 +39,17 @@ def main():
     label = result.label
     result.plot_marginals(priors=True)
     result.plot_calibration_posterior()
-
-    result.plot_corner()
+    logger.info("Generating source mass corner")
     result.plot_corner(
-        ["mass_1", "mass_2", "chirp_mass", "mass_ratio"],
+        ["mass_1_source", "mass_2_source", "chirp_mass_source", "mass_ratio_source"],
         filename="{}/{}_mass_corner.png".format(outdir, label),
     )
+    logger.info("Generating distance sky time corner")
     result.plot_corner(
         ["luminosity_distance", "theta_jn", "ra", "dec", "geocent_time"],
         filename="{}/{}_distance-sky-time_corner.png".format(outdir, label),
     )
+    logger.info("Generating waveform plots")
     result.plot_waveform_posterior(interferometers=data_dump.interferometers)
-    result.plot_skymap(1000)
+    logger.info("Generating skymap")
+    result.plot_skymap(maxpts=2000)
