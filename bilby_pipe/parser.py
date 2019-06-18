@@ -313,6 +313,12 @@ def create_parser(top_level=True):
         default=False,
         help="If true, use HTCondor file transfer mechanism, default is False",
     )
+    submission_parser.add(
+        "--osg",
+        action="store_true",
+        default=False,
+        help="If true, format condor submission for running on OSG, default is False",
+    )
 
     likelihood_parser = parser.add_argument_group(title="Likelihood arguments")
     likelihood_parser.add(
