@@ -726,16 +726,16 @@ class DataGenerationInput(Input):
         )
 
         params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+        params["flow"] *= self.roq_scale_factor
+        params["fhigh"] *= self.roq_scale_factor
+        params["seglen"] /= self.roq_scale_factor
+
         if params["seglen"] != self.duration:
             raise BilbyPipeError(
                 "Segment duration {} does not match ROQ basis seglen={}".format(
                     self.duration, params["seglen"]
                 )
             )
-
-        params["flow"] *= self.roq_scale_factor
-        params["fhigh"] *= self.roq_scale_factor
-        params["seglen"] /= self.roq_scale_factor
 
         freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
         freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
@@ -766,6 +766,8 @@ class DataGenerationInput(Input):
             linear_matrix=basis_matrix_linear,
             quadratic_matrix=basis_matrix_quadratic,
         )
+
+        del basis_matrix_linear, basis_matrix_quadratic
 
         if self.injection_parameters is not None:
             likelihood.parameters.update(self.injection_parameters)

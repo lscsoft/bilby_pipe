@@ -1,8 +1,14 @@
-""" Tools for using gracedb events accessed through bilby_pipe_gracedb """
+""" Tool for running online bilby PE using gracedb events
+
+The functionality of much of these utility assumes the user is running on the
+CIT cluster, e.g. the ROQ and calibration directories are in there usual place
+"""
 import argparse
 import json
 import os
 import shutil
+
+import numpy as np
 
 import bilby
 import bilby_pipe
@@ -10,10 +16,15 @@ from .utils import (
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
     logger,
-    duration_lookups,
-    maximum_frequency_lookups,
+    DEFAULT_DISTANCE_LOOKUPS,
     write_config_file,
     run_command_line,
+)
+
+
+# Default channels set from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
+DEFAULT_CHANNEL_DICT = dict(
+    H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
 )
 
 
@@ -159,8 +170,8 @@ def calibration_lookup(trigger_time, detector):
             "Requested trigger time prior to earliest calibration file"
         )
 
-    for i in range(len(times)):
-        if trigger_time > times[i]:
+    for i, time in enumerate(times):
+        if trigger_time > time:
             directory = os.path.dirname(calenv)
             calib_file = "{}/{}".format(directory, files[i])
             return os.path.abspath(calib_file)
@@ -192,6 +203,64 @@ def calibration_dict_lookup(trigger_time, detectors):
         return None, None
 
 
+def read_candidate(candidate):
+    """ Read a gracedb candidate json dictionary """
+    try:
+        chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
+    except KeyError:
+        raise BilbyPipeError(
+            "Unable to determine chirp mass for {} from GraceDB".format(
+                candidate["graceid"]
+            )
+        )
+    trigger_time = candidate["gpstime"]
+    singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
+
+    ifos = [sngl["ifo"] for sngl in singleinspiraltable]
+    return chirp_mass, trigger_time, ifos
+
+
+def prior_lookup(duration, scale_factor, outdir):
+    """ Lookup the appropriate prior
+
+    Parameters
+    ----------
+    duration: float
+        Inferred duration of the signal
+    scale_factor: float
+    outdir: str
+        Output directory
+
+    Returns
+    -------
+    prior_file, roq_folder: str
+        Path to the prior file to use usually written to the outdir, and the
+        roq folder
+    minimum_frequency, maximum_frequency: int
+        The minimum and maximum frequency to use
+
+    """
+
+    roq_folder = "/home/cbc/ROQ_data/IMRPhenomPv2/{}s".format(duration)
+    if os.path.isdir(roq_folder) is False:
+        logger.warning("Requested ROQ folder does not exist")
+        return "{}s".format(duration), None, 20, 1024
+
+    roq_params = np.genfromtxt(os.path.join(roq_folder, "params.dat"), names=True)
+
+    prior_file = generate_prior_from_template(
+        duration=duration,
+        roq_params=roq_params,
+        scale_factor=scale_factor,
+        outdir=outdir,
+    )
+
+    minimum_frequency = roq_params["flow"] * scale_factor
+    maximum_frequency = roq_params["fhigh"] * scale_factor
+    duration /= scale_factor
+    return prior_file, roq_folder, minimum_frequency, maximum_frequency
+
+
 def create_config_file(candidate, gracedb, outdir, roq=True):
     """ Creates ini file from defaults and candidate contents
 
@@ -213,40 +282,38 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
 
     """
 
-    try:
-        chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
-    except KeyError:
-        raise BilbyPipeError(
-            "Unable to determine chirp mass for {} from GraceDB".format(gracedb)
-        )
-    trigger_time = candidate["gpstime"]
-    singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
+    chirp_mass, trigger_time, ifos = read_candidate(candidate)
 
-    ifos = [sngl["ifo"] for sngl in singleinspiraltable]
-
-    # Default channels set from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
-    DEFAULT_CHANNEL_DICT = dict(
-        H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
+    duration, scale_factor = determine_duration_and_scale_factor_from_parameters(
+        chirp_mass
     )
 
-    prior = determine_prior_file_from_parameters(chirp_mass)
+    distance_marginalization_lookup_table = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "data_files",
+        "{}s_distance_marginalization_lookup.npz".format(duration),
+    )
 
+    prior_file, roq_folder, minimum_frequency, maximum_frequency = prior_lookup(
+        duration, scale_factor, outdir
+    )
     calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
 
     config_dict = dict(
         label=gracedb,
         outdir=outdir,
         accounting="ligo.dev.o3.cbc.pe.lalinference",
-        maximum_frequency=maximum_frequency_lookups[prior],
-        minimum_frequency=20,
-        sampling_frequency=maximum_frequency_lookups[prior] * 4,
+        maximum_frequency=maximum_frequency,
+        minimum_frequency=minimum_frequency,
+        sampling_frequency=16384,
         reference_frequency=20,
         trigger_time=trigger_time,
         detectors=ifos,
         channel_dict=DEFAULT_CHANNEL_DICT,
         deltaT=0.2,
-        prior_file=prior,
-        duration=duration_lookups[prior],
+        prior_file=prior_file,
+        duration=duration,
+        roq_scale_factor=scale_factor,
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 100, check_point_plot=True, n_check_point: 5000}",
         create_plots=True,
@@ -256,6 +323,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         time_marginalization=True,
         distance_marginalization=True,
         phase_marginalization=True,
+        distance_marginalization_lookup_table=distance_marginalization_lookup_table,
         n_parallel=4,
         create_summary=True,
         calibration_model=calibration_model,
@@ -263,9 +331,9 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         spline_calibration_nodes=5,
     )
 
-    if roq and config_dict["duration"] > 4:
+    if roq and config_dict["duration"] > 4 and roq_folder is not None:
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
-        config_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(prior)
+        config_dict["roq-folder"] = roq_folder
 
     filename = "{}/{}.ini".format(outdir, config_dict["label"])
     write_config_file(config_dict, filename, remove_none=True)
@@ -273,8 +341,8 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
     return filename
 
 
-def determine_prior_file_from_parameters(chirp_mass):
-    """ Determine appropriate prior from chirp mass
+def determine_duration_and_scale_factor_from_parameters(chirp_mass):
+    """ Determine appropriate duration and roq scale factor from chirp mass
 
     Parameters
     ----------
@@ -283,31 +351,80 @@ def determine_prior_file_from_parameters(chirp_mass):
 
     Returns
     -------
-    prior: str
-        A string repesentation of the appropriate prior to use
-
+    duration: int
+    roq_scale_factor: float
     """
-
-    if chirp_mass > 40:
-        prior = "high_mass"
+    roq_scale_factor = 1
+    if chirp_mass > 90:
+        duration = 4
+        roq_scale_factor = 4
+    elif chirp_mass > 35:
+        duration = 4
+        roq_scale_factor = 2
     elif chirp_mass > 13.53:
-        prior = "4s"
+        duration = 4
     elif chirp_mass > 8.73:
-        prior = "8s"
+        duration = 8
     elif chirp_mass > 5.66:
-        prior = "16s"
+        duration = 16
     elif chirp_mass > 3.68:
-        prior = "32s"
+        duration = 32
     elif chirp_mass > 2.39:
-        prior = "64s"
+        duration = 64
+    elif chirp_mass > 1.43:
+        duration = 128
+    elif chirp_mass > 1.3:
+        duration = 128
+        roq_scale_factor = 1 / 1.6
     else:
-        prior = "128s"
+        duration = 128
+        roq_scale_factor = 1 / 2
 
-    return prior
+    return duration, round(1 / roq_scale_factor, 1)
+
+
+def generate_prior_from_template(
+    duration, roq_params, scale_factor=1, outdir=".", template=None
+):
+    """ Generate a prior file from a template and write it to file
+
+    Parameters:
+    duration: float
+        The segment duration
+    roq_params: dict
+        Dictionary of the ROQ params.dat file
+    scale_factor: float
+        Rescaling factor
+    outdir: str
+        Path to the outdir (the prior is written to outdir/online.prior)
+    template: str
+        Alternative template file to use, otherwise the
+        data_files/roq.prior.template file is used
+    """
+    distance_bounds = DEFAULT_DISTANCE_LOOKUPS[str(duration) + "s"]
+    mc_min = roq_params["chirpmassmin"] / scale_factor
+    mc_max = roq_params["chirpmassmax"] / scale_factor
+
+    if template is None:
+        template = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "data_files/roq.prior.template"
+        )
+
+    with open(template, "r") as old_prior:
+        prior_string = old_prior.read().format(
+            mc_min=mc_min,
+            mc_max=mc_max,
+            d_min=distance_bounds[0],
+            d_max=distance_bounds[1],
+        )
+    prior_file = os.path.join(outdir, "online.prior")
+    with open(prior_file, "w") as new_prior:
+        new_prior.write(prior_string)
+    return prior_file
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(prog="bilby_pipe gracedb access", usage="")
+    parser = argparse.ArgumentParser(prog="bilby_pipe gracedb access", usage=__doc__)
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
     group1.add_argument("--json", type=str, help="Path to json gracedb file")

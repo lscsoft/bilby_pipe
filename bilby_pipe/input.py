@@ -468,7 +468,7 @@ class Input(object):
 
     @property
     def combined_default_prior_dicts(self):
-        d = bilby.core.prior.__dict__
+        d = bilby.core.prior.__dict__.copy()
         d.update(bilby.gw.prior.__dict__)
         return d
 

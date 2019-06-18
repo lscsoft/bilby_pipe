@@ -6,7 +6,7 @@ from numpy import linspace
 import bilby
 import matplotlib.pyplot as plt
 
-from bilby_pipe.utils import duration_lookups
+from bilby_pipe.utils import DURATION_LOOKUPS
 
 
 def plot_SNRs(ax, label, prior, waveform_generator, n_samples=200):
@@ -37,7 +37,7 @@ if "plot" in sys.argv:
     snr_fig, snr_axes = plt.subplots(nrows=len(filenames), sharex=True, figsize=(5, 9))
 
 for ii, filename in enumerate(filenames):
-    duration = duration_lookups[filename.rstrip(".prior")]
+    duration = DURATION_LOOKUPS[filename.rstrip(".prior")]
     waveform_generator = bilby.gw.WaveformGenerator(
         sampling_frequency=8192,
         duration=duration,

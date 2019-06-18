@@ -87,7 +87,17 @@ class DataDump(object):
         return res
 
 
-duration_lookups = {
+DEFAULT_DISTANCE_LOOKUPS = {
+    "high_mass": (1e2, 5e3),
+    "4s": (1e2, 5e3),
+    "8s": (1e2, 5e3),
+    "16s": (1e2, 4e3),
+    "32s": (1e2, 3e3),
+    "64s": (50, 2e3),
+    "128s": (1, 5e2),
+}
+
+DURATION_LOOKUPS = {
     "high_mass": 4,
     "4s": 4,
     "8s": 8,
@@ -98,7 +108,7 @@ duration_lookups = {
 }
 
 
-maximum_frequency_lookups = {
+MAXIMUM_FREQUENCY_LOOKUPS = {
     "high_mass": 1024,
     "4s": 1024,
     "8s": 2048,
@@ -296,7 +306,7 @@ def write_config_file(config_dict, filename, remove_none=False):
 def test_connection():
     """ A generic test to see if the network is reachable """
     try:
-        urllib.request.urlopen("https://google.com", timeout=0.1)
+        urllib.request.urlopen("https://google.com", timeout=1.0)
     except urllib.error.URLError:
         raise BilbyPipeError(
             "It appears you are not connected to a network and so won't be "
