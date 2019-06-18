@@ -2,23 +2,35 @@
 Installation
 ============
 
-Installing bilby_pipe from conda (recommended)
-----------------------------------------------
+Installing bilby_pipe from release
+----------------------------------
 
-(To be implemented)
+.. tabs::
 
-Installing bilby_pipe from pip
-------------------------------
+   .. tab:: conda
 
-To install the latest :code:`bilby_pipe` release from `PyPi
-<https://pypi.org/project/bilby-pipe/>`_, run
+      To install the latest :code:`bilby_pipe` release from `conda-forge
+      <https://anaconda.org/conda-forge/bilby_pipe>`_, run
 
-.. code-block:: console
+      .. code-block:: console
 
-   $ pip install --upgrade bilby_pipe
+         $ conda install -c conda-forge bilby_pipe
 
-Note, that this released version usually lags the development version. If you
-need to test the latest features, see below for how to obtain this.
+      Note, this is the recommended installation process as it ensures all
+      dependencies are met.
+
+   .. tab:: pypi
+
+      To install the latest :code:`bilby_pipe` release from `PyPi
+      <https://pypi.org/project/bilby-pipe/>`_, run
+
+      .. code-block:: console
+
+         $ pip install --upgrade bilby_pipe
+
+      WARNING: this is not the recommended installation process, some
+      dependencies (see below) are only automatically installed by using the
+      conda installation method.
 
 
 Install bilby_pipe for development
@@ -93,7 +105,7 @@ Python installation
 
       .. code-block:: console
 
-         $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh 
+         $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh
          $ conda activate ligo-py37
 
 
