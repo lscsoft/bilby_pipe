@@ -53,7 +53,6 @@ def get_results_filenames(args):
 
 def check_consistency(results):
     results.check_consistent_sampler()
-    results.check_consistent_data()
     results.check_consistent_parameters()
     results.check_consistent_priors()
 
@@ -97,7 +96,7 @@ def get_basename(args):
 
 def main(args=None):
     if args is None:
-        args = create_parser().parse_known_args()
+        args = create_parser().parse_args()
     results_filenames = get_results_filenames(args)
     results = read_in_result_list(args, results_filenames)
     check_consistency(results)
@@ -111,7 +110,7 @@ def main(args=None):
     logger.info("Create sampling-time histogram")
     stimes = [r.sampling_time for r in results]
     fig, ax = plt.subplots()
-    ax.hist(np.array(stimes) / 3600, bins=50)
+    ax.hist(np.array(stimes) / 3600, bins=20)
     ax.set_xlabel("Sampling time [hr]")
     fig.tight_layout()
     fig.savefig("{}sampling_times.png".format(basename))
@@ -129,7 +128,7 @@ def main(args=None):
         )
 
     network_snr = np.sqrt(np.sum(np.array(snrs) ** 2, axis=0))
-    ax.hist(network_snr, bins=50, label=det)
+    ax.hist(network_snr, bins=20, label=det)
     ax.set_xlabel("Network optimal SNR")
     fig.tight_layout()
     fig.savefig("{}optimal_SNR.png".format(basename))
