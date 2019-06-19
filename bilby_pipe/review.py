@@ -124,6 +124,7 @@ def fiducial_bbh(args):
     """
     config_dict = get_default_config_dict(args, "fiducial_bbh")
     config_dict["create_plots"] = True
+    config_dict["create_summary"] = True
     config_dict["trigger-time"] = 0
     config_dict["gaussian-noise"] = True
     config_dict["injection"] = True

@@ -47,7 +47,6 @@ def x509userproxy(outdir):
     """
     x509userproxy = None
     cert_alias = "X509_USER_PROXY"
-    print(os.environ)
     try:
         cert_path = os.environ[cert_alias]
         new_cert_path = os.path.join(outdir, "." + os.path.basename(cert_path))
@@ -221,7 +220,7 @@ def read_candidate(candidate):
 
 
 def prior_lookup(duration, scale_factor, outdir):
-    """ Lookup the appropriate prior
+    """ Lookup the appropriate prior and apply rescaling factors
 
     Parameters
     ----------
@@ -236,15 +235,15 @@ def prior_lookup(duration, scale_factor, outdir):
     prior_file, roq_folder: str
         Path to the prior file to use usually written to the outdir, and the
         roq folder
-    minimum_frequency, maximum_frequency: int
-        The minimum and maximum frequency to use
+    duration, minimum_frequency, maximum_frequency: int
+        The duration, minimum and maximum frequency to use (rescaled if needed)
 
     """
 
     roq_folder = "/home/cbc/ROQ_data/IMRPhenomPv2/{}s".format(duration)
     if os.path.isdir(roq_folder) is False:
         logger.warning("Requested ROQ folder does not exist")
-        return "{}s".format(duration), None, 20, 1024
+        return "{}s".format(duration), None, duration, 20, 1024
 
     roq_params = np.genfromtxt(os.path.join(roq_folder, "params.dat"), names=True)
 
@@ -258,7 +257,7 @@ def prior_lookup(duration, scale_factor, outdir):
     minimum_frequency = roq_params["flow"] * scale_factor
     maximum_frequency = roq_params["fhigh"] * scale_factor
     duration /= scale_factor
-    return prior_file, roq_folder, minimum_frequency, maximum_frequency
+    return prior_file, roq_folder, duration, minimum_frequency, maximum_frequency
 
 
 def create_config_file(candidate, gracedb, outdir, roq=True):
@@ -294,7 +293,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         "{}s_distance_marginalization_lookup.npz".format(duration),
     )
 
-    prior_file, roq_folder, minimum_frequency, maximum_frequency = prior_lookup(
+    prior_file, roq_folder, duration, minimum_frequency, maximum_frequency = prior_lookup(
         duration, scale_factor, outdir
     )
     calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
