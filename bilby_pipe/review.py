@@ -73,7 +73,7 @@ def get_date_string():
     return time.strftime("%y%m%d_%H%M")
 
 
-def get_default_config_dict(args, review_name):
+def get_default_setup(args, review_name):
     if args.duration is None:
         args.duration = DURATION_LOOKUPS[args.prior]
 
@@ -82,11 +82,15 @@ def get_default_config_dict(args, review_name):
         base_label += "_ROQ"
     label_with_date = "{}_{}".format(base_label, get_date_string())
 
+    rundir = "outdir_{}".format(base_label)
+    check_directory_exists_and_if_not_mkdir(rundir)
+    filename = "{}/review_{}.ini".format(rundir, label_with_date)
+
     base_dict = dict(
         label=label_with_date,
-        outdir="outdir_{}".format(base_label),
         accounting="ligo.dev.o3.cbc.pe.lalinference",
         detectors="[H1, L1]",
+        outdir=rundir,
         deltaT=0.2,
         prior_file=args.prior,
         duration=args.duration,
@@ -106,7 +110,7 @@ def get_default_config_dict(args, review_name):
             args.prior
         )
 
-    return base_dict
+    return base_dict, rundir, filename
 
 
 def fiducial_bbh(args):
@@ -122,7 +126,7 @@ def fiducial_bbh(args):
     filename: str
         A filename of the ini file generated
     """
-    config_dict = get_default_config_dict(args, "fiducial_bbh")
+    config_dict, rundir, filename = get_default_setup(args, "fiducial_bbh")
     config_dict["create_plots"] = True
     config_dict["create_summary"] = True
     config_dict["trigger-time"] = 0
@@ -132,8 +136,7 @@ def fiducial_bbh(args):
     config_dict["generation-seed"] = 1010
     config_dict["n-parallel"] = 4
 
-    injection_filename = "{}/injection_file.json".format(config_dict["outdir"])
-    check_directory_exists_and_if_not_mkdir(config_dict["outdir"])
+    injection_filename = "{}/injection_file.json".format(rundir)
     with open(injection_filename, "w") as file:
         json.dump(
             dict(injections=fiducial_injections[args.prior]),
@@ -142,7 +145,7 @@ def fiducial_bbh(args):
             cls=bilby.core.result.BilbyJsonEncoder,
         )
     config_dict["injection-file"] = injection_filename
-    filename = "review_{}.ini".format(config_dict["label"])
+
     write_config_file(config_dict, filename)
     return filename
 
@@ -167,9 +170,8 @@ def pp_test(args):
         A filename of the ini file generated
     """
 
-    config_dict = get_default_config_dict(args, "pp_test")
+    config_dict, rundir, filename = get_default_setup(args, "pp_test")
 
-    outdir = config_dict["outdir"]
     config_dict["create_plots"] = False
     config_dict["trigger-time"] = 0
     config_dict["injection"] = True
@@ -180,7 +182,7 @@ def pp_test(args):
     ] = "{nlive: 1000, walks: 100, check_point_plot=False, n_check_point=5000}"
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
-        outdir, outdir
+        rundir, rundir
     )
     filename = "review_{}.ini".format(config_dict["label"])
     write_config_file(config_dict, filename)
