@@ -37,19 +37,30 @@ def main():
     data_dump = DataDump.from_pickle(result.meta_data["data_dump"])
     outdir = result.outdir
     label = result.label
+    logger.info("Generating skymap")
+    result.plot_skymap(maxpts=2000)
+    logger.info("Plotting 1d posteriors")
     result.plot_marginals(priors=True)
-    result.plot_calibration_posterior()
-    logger.info("Generating source mass corner")
+    logger.info("Generating intrinsic parameter corner")
     result.plot_corner(
-        ["mass_1_source", "mass_2_source", "chirp_mass_source", "mass_ratio_source"],
-        filename="{}/{}_mass_corner.png".format(outdir, label),
+        [
+            "mass_1_source",
+            "mass_2_source",
+            "chirp_mass_source",
+            "mass_ratio",
+            "chi_eff",
+            "chi_p",
+        ],
+        filename="{}/{}_intrinsic_corner.png".format(outdir, label),
     )
     logger.info("Generating distance sky time corner")
     result.plot_corner(
-        ["luminosity_distance", "theta_jn", "ra", "dec", "geocent_time"],
-        filename="{}/{}_distance-sky-time_corner.png".format(outdir, label),
+        ["luminosity_distance", "redshift", "theta_jn", "ra", "dec", "geocent_time"],
+        filename="{}/{}_extrinsic_corner.png".format(outdir, label),
     )
-    logger.info("Generating waveform plots")
-    result.plot_waveform_posterior(interferometers=data_dump.interferometers)
-    logger.info("Generating skymap")
-    result.plot_skymap(maxpts=2000)
+    logger.info("Generating waveform posterior")
+    result.plot_waveform_posterior(
+        interferometers=data_dump.interferometers, n_samples=500
+    )
+    logger.info("Generating calibration posterior")
+    result.plot_calibration_posterior()
