@@ -38,7 +38,10 @@ def main():
     outdir = result.outdir
     label = result.label
     logger.info("Generating skymap")
-    result.plot_skymap(maxpts=2000)
+    try:
+        result.plot_skymap(maxpts=2000)
+    except Exception as e:
+        logger.info("Unable to generate skymap: error {}".format(e))
     logger.info("Plotting 1d posteriors")
     result.plot_marginals(priors=True)
     logger.info("Generating intrinsic parameter corner")
