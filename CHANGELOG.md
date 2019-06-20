@@ -1,6 +1,21 @@
 # All notable changes will be documented in this file
 
-## v0.2.1 : 2019-06-05
+## v0.2.2 : 2019-06-19
+Release coinciding with bilby 0.5.2. Minor changes fixing bugs in 0.5.2 only
+
+### Changed
+-   Fix issues in ROQ rescaling
+-   Remove print os environ statement
+-   Add summary pages to fiducial runs
+-   Fix minor bugs in the pp tests
+-   Increase default periodic restart time to 12hrs 
+-   Tweak plotting script
+-   Remove double escape from priors
+-   Review ini files not written to outdir
+-   Compatibility issues with bilby 0.5.2
+
+
+## v0.2.1 : 2019-06-18
 Release coinciding with bilby 0.5.2
 
 ### Added
