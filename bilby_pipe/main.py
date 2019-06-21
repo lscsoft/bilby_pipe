@@ -988,6 +988,9 @@ class Dag(object):
             # htcondor >= 8.9.x (probably)
             "+SuccessCheckpointExitBySignal = False",
             "+SuccessCheckpointExitCode = {}".format(code),
+            # ask condor to provide the checkpoint signals
+            "+WantCheckpointSignal = True",
+            "+CheckpointSig = \"SIGTERM\"",
         ]
 
     @staticmethod
