@@ -629,7 +629,8 @@ class Dag(object):
                 input_files_to_transfer.append(distance_marg_cache_file)
             extra_lines.extend(self._condor_file_transfer_lines(
                 input_files_to_transfer,
-                [self.inputs.result_directory],
+                [self._relative_topdir(self.inputs.outdir,
+                                       self.initialdir)],
             ))
 
         if self.inputs.osg:
@@ -878,7 +879,7 @@ class Dag(object):
         if self.inputs.transfer_files or self.inputs.osg:
             extra_lines.extend(self._condor_file_transfer_lines(
                 [str(self.inputs.ini)] + files,
-                [webdir],
+                [self._relative_topdir(self.inputs.outdir, self.initialdir)],
             ))
 
         if self.inputs.osg:
@@ -1003,6 +1004,19 @@ class Dag(object):
             "stream_error = True",
             "stream_output = True",
         ]
+
+    @staticmethod
+    def _relative_topdir(path, reference):
+        """Returns the top-level directory name of a path relative
+        to a reference
+        """
+        try:
+            return str(Path(path).resolve().relative_to(reference))
+        except ValueError as exc:
+            exc.args = (
+                "cannot format {} relative to {}".format(path, reference),
+            )
+            raise
 
     def _osg_submit_options(self, executable, has_ligo_frames=False):
         """Returns the extra submit lines and requirements to enable running
