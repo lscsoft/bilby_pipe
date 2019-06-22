@@ -881,6 +881,8 @@ class Dag(object):
                 [str(self.inputs.ini)] + files,
                 [self._relative_topdir(self.inputs.outdir, self.initialdir)],
             ))
+            # condor transfers all files into a flat structure
+            files = list(map(os.path.basename, files))
 
         if self.inputs.osg:
             _osg_lines, _osg_reqs = self._osg_submit_options(
