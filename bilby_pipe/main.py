@@ -478,18 +478,16 @@ class Dag(object):
         extra_lines = list(self.extra_lines)
         requirements = [self.requirements] if self.requirements else []
 
-        extra_lines.extend(self._log_output_error_submit_lines(
-            self.inputs.data_generation_log_directory,
-            job_name,
-        ))
-        extra_lines.append(
-            "accounting_group = {}".format(self.inputs.accounting)
+        extra_lines.extend(
+            self._log_output_error_submit_lines(
+                self.inputs.data_generation_log_directory, job_name
+            )
         )
+        extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
 
         if universe != "local" and self.inputs.osg:
             _osg_lines, _osg_reqs = self._osg_submit_options(
-                self.generation_executable,
-                has_ligo_frames=True,
+                self.generation_executable, has_ligo_frames=True
             )
             extra_lines.extend(_osg_lines)
             requirements.append(_osg_reqs)
@@ -606,13 +604,10 @@ class Dag(object):
         extra_lines = list(self.extra_lines)
         extra_lines.extend(
             self._log_output_error_submit_lines(
-                self.inputs.data_analysis_log_directory,
-                job_name,
-            ) +
-            self._checkpoint_submit_lines() +
-            [
-                "accounting_group = {}".format(self.inputs.accounting),
-            ]
+                self.inputs.data_analysis_log_directory, job_name
+            )
+            + self._checkpoint_submit_lines()
+            + ["accounting_group = {}".format(self.inputs.accounting)]
         )
 
         if self.inputs.transfer_files or self.inputs.osg:
@@ -627,16 +622,15 @@ class Dag(object):
             distance_marg_cache_file = ".distance_marginalization_lookup.npz"
             if os.path.isfile(distance_marg_cache_file):
                 input_files_to_transfer.append(distance_marg_cache_file)
-            extra_lines.extend(self._condor_file_transfer_lines(
-                input_files_to_transfer,
-                [self._relative_topdir(self.inputs.outdir,
-                                       self.initialdir)],
-            ))
+            extra_lines.extend(
+                self._condor_file_transfer_lines(
+                    input_files_to_transfer,
+                    [self._relative_topdir(self.inputs.outdir, self.initialdir)],
+                )
+            )
 
         if self.inputs.osg:
-            _osg_lines, _osg_reqs = self._osg_submit_options(
-                self.analysis_executable,
-            )
+            _osg_lines, _osg_reqs = self._osg_submit_options(self.analysis_executable)
             extra_lines.extend(_osg_lines)
             requirements.append(_osg_reqs)
 
@@ -696,11 +690,9 @@ class Dag(object):
         requirements = [self.requirements] if self.requirements else []
         extra_lines.extend(
             self._log_output_error_submit_lines(
-                self.inputs.data_analysis_log_directory,
-                job_name,
-            ) + [
-                "accounting_group = {}".format(self.inputs.accounting)
-            ],
+                self.inputs.data_analysis_log_directory, job_name
+            )
+            + ["accounting_group = {}".format(self.inputs.accounting)]
         )
 
         exe = shutil.which(self.inputs.postprocessing_executable)
@@ -758,11 +750,9 @@ class Dag(object):
 
         extra_lines.extend(
             self._log_output_error_submit_lines(
-                self.inputs.data_analysis_log_directory,
-                job_name,
-            ) + [
-                "accounting_group = {}".format(self.inputs.accounting)
-            ],
+                self.inputs.data_analysis_log_directory, job_name
+            )
+            + ["accounting_group = {}".format(self.inputs.accounting)]
         )
 
         exe = shutil.which("bilby_result")
@@ -817,11 +807,9 @@ class Dag(object):
             extra_lines = list(self.extra_lines)
             extra_lines.extend(
                 self._log_output_error_submit_lines(
-                    self.inputs.data_analysis_log_directory,
-                    job_name,
-                ) + [
-                    "accounting_group = {}".format(self.inputs.accounting),
-                ],
+                    self.inputs.data_analysis_log_directory, job_name
+                )
+                + ["accounting_group = {}".format(self.inputs.accounting)]
             )
 
             arguments = ArgumentsString()
@@ -869,25 +857,23 @@ class Dag(object):
 
         extra_lines.extend(
             self._log_output_error_submit_lines(
-                self.inputs.summary_log_directory,
-                job_name,
-            ) + [
-                "accounting_group = {}".format(self.inputs.accounting),
-            ],
+                self.inputs.summary_log_directory, job_name
+            )
+            + ["accounting_group = {}".format(self.inputs.accounting)]
         )
 
         if self.inputs.transfer_files or self.inputs.osg:
-            extra_lines.extend(self._condor_file_transfer_lines(
-                [str(self.inputs.ini)] + files,
-                [self._relative_topdir(self.inputs.outdir, self.initialdir)],
-            ))
+            extra_lines.extend(
+                self._condor_file_transfer_lines(
+                    [str(self.inputs.ini)] + files,
+                    [self._relative_topdir(self.inputs.outdir, self.initialdir)],
+                )
+            )
             # condor transfers all files into a flat structure
             files = list(map(os.path.basename, files))
 
         if self.inputs.osg:
-            _osg_lines, _osg_reqs = self._osg_submit_options(
-                self.summary_executable,
-            )
+            _osg_lines, _osg_reqs = self._osg_submit_options(self.summary_executable)
             extra_lines.extend(_osg_lines)
             requirements.append(_osg_reqs)
 
@@ -977,10 +963,10 @@ class Dag(object):
         """
         logpath = Path(logdir)
         filename = "{}_$(Cluster)_$(Process).{{}}".format(prefix)
-        return ["{} = {}".format(
-            opt,
-            str(logpath / filename.format(opt[:3])),
-        ) for opt in ("log", "output", "error")]
+        return [
+            "{} = {}".format(opt, str(logpath / filename.format(opt[:3])))
+            for opt in ("log", "output", "error")
+        ]
 
     @staticmethod
     def _checkpoint_submit_lines(code=130):
@@ -993,7 +979,7 @@ class Dag(object):
             "+SuccessCheckpointExitCode = {}".format(code),
             # ask condor to provide the checkpoint signals
             "+WantCheckpointSignal = True",
-            "+CheckpointSig = \"SIGTERM\"",
+            '+CheckpointSig = "SIGTERM"',
         ]
 
     @staticmethod
@@ -1015,9 +1001,7 @@ class Dag(object):
         try:
             return str(Path(path).resolve().relative_to(reference))
         except ValueError as exc:
-            exc.args = (
-                "cannot format {} relative to {}".format(path, reference),
-            )
+            exc.args = ("cannot format {} relative to {}".format(path, reference),)
             raise
 
     def _osg_submit_options(self, executable, has_ligo_frames=False):
@@ -1032,12 +1016,8 @@ class Dag(object):
             the extra requirements line to include
         """
         # required for OSG submission
-        lines = [
-            "+OpenScienceGrid = True",
-        ]
-        requirements = [
-            "(IS_GLIDEIN=?=True)",
-        ]
+        lines = ["+OpenScienceGrid = True"]
+        requirements = ["(IS_GLIDEIN=?=True)"]
 
         # if we need GWF data:
         if has_ligo_frames:
@@ -1047,9 +1027,7 @@ class Dag(object):
         if self.inputs.use_singularity:
             requirements.append("(HAS_SINGULARITY=?=True)")
         # otherwise if need the ligo-containers /cvmfs repo:
-        elif executable.startswith(
-            "/cvmfs/ligo-containers.opensciencegrid.org"
-        ):
+        elif executable.startswith("/cvmfs/ligo-containers.opensciencegrid.org"):
             requirements.append("(HAS_CVMFS_LIGO_CONTAINERS=?=True)")
 
         return lines, " && ".join(requirements)
