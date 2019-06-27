@@ -564,7 +564,7 @@ class DataGenerationInput(Input):
         if self.data_format is not None:
             kwargs = dict(format=self.data_format)
             logger.info(
-                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}', dtype={})".format(
+                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}', dtype='{}')".format(
                     self.data_dict[det],
                     channel,
                     start_time,
@@ -623,7 +623,7 @@ class DataGenerationInput(Input):
         """
         logger.debug("Attempt to locate data")
         logger.info(
-            "Calling TimeSeries.get('{}', start={}, end={}, dtype={})".format(
+            "Calling TimeSeries.get('{}', start={}, end={}, dtype='{}')".format(
                 channel, start_time, end_time, dtype
             )
         )
