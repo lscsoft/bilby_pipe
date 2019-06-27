@@ -37,7 +37,7 @@ class DataAnalysisInput(Input):
 
     """
 
-    def __init__(self, args, unknown_args):
+    def __init__(self, args, unknown_args, test=False):
         logger.info("Command line arguments: {}".format(args))
 
         self.meta_data = dict()
@@ -81,6 +81,9 @@ class DataAnalysisInput(Input):
         )
         self.spline_calibration_nodes = args.spline_calibration_nodes
         self.periodic_restart_time = args.periodic_restart_time
+
+        if test is False:
+            self._load_data_dump()
 
     @property
     def cluster(self):
@@ -203,7 +206,10 @@ class DataAnalysisInput(Input):
     def data_dump(self):
         if hasattr(self, "_data_dump"):
             return self._data_dump
+        else:
+            raise BilbyPipeError("Data dump not loaded")
 
+    def _load_data_dump(self):
         filename = DataDump.get_filename(
             self.data_directory, self.data_label, str(self.idx)
         )
@@ -299,10 +305,7 @@ class DataAnalysisInput(Input):
             params["fhigh"] *= self.roq_scale_factor
             params["seglen"] /= self.roq_scale_factor
 
-            weight_file = os.path.join(
-                self.data_directory, self.data_label + "_roq_weights.json"
-            )
-
+            weight_file = self.meta_data["weight_file"]
             logger.info("Loading ROQ weights from {}".format(weight_file))
 
             return bilby.gw.likelihood.ROQGravitationalWaveTransient(

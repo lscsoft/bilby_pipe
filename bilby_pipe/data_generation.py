@@ -768,10 +768,8 @@ class DataGenerationInput(Input):
                 "{}".format(likelihood.log_likelihood_ratio())
             )
 
-        weight_file = os.path.join(
-            self.data_directory, self.label + "_roq_weights.json"
-        )
-
+        weight_file = os.path.join(self.data_directory, self.label + "_roq_weights.npz")
+        self.meta_data["weight_file"] = weight_file
         likelihood.save_weights(weight_file)
 
 
@@ -782,7 +780,7 @@ def create_generation_parser():
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     data = DataGenerationInput(args, unknown_args)
-    data.save_interferometer_list()
     if args.likelihood_type == "ROQGravitationalWaveTransient":
         data.save_roq_weights()
+    data.save_interferometer_list()
     logger.info("Completed data generation")
