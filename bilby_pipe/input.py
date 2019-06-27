@@ -176,6 +176,13 @@ class Input(object):
                 "No source model {} found.".format(self._frequency_domain_source_model)
             )
 
+    def get_default_waveform_arguments(self):
+        return dict(
+            reference_frequency=self.reference_frequency,
+            waveform_approximant=self.waveform_approximant,
+            minimum_frequency=self.minimum_frequency,
+        )
+
     @property
     def bilby_roq_frequency_domain_source_model(self):
         if "binary_neutron_star" in self.frequency_domain_source_model:

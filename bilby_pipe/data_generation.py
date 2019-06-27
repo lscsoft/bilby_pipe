@@ -331,11 +331,7 @@ class DataGenerationInput(Input):
         ]:
             logger.info("{} = {}".format(prop, getattr(self, prop)))
 
-        waveform_arguments = dict(
-            waveform_approximant=self.waveform_approximant,
-            reference_frequency=self.reference_frequency,
-            minimum_frequency=self.minimum_frequency,
-        )
+        waveform_arguments = self.get_default_waveform_arguments()
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration,
@@ -399,11 +395,7 @@ class DataGenerationInput(Input):
             )
             self.injection_parameters = parameters
 
-        waveform_arguments = dict(
-            waveform_approximant=self.waveform_approximant,
-            reference_frequency=self.reference_frequency,
-            minimum_frequency=self.minimum_frequency,
-        )
+        waveform_arguments = self.get_default_waveform_arguments()
 
         waveform_generator = bilby.gw.WaveformGenerator(
             duration=self.duration,
@@ -745,7 +737,7 @@ class DataGenerationInput(Input):
         basis_matrix_linear = np.load(self.roq_folder + "/B_linear.npy").T
         basis_matrix_quadratic = np.load(self.roq_folder + "/B_quadratic.npy").T
 
-        waveform_arguments = dict()
+        waveform_arguments = self.get_default_waveform_arguments()
         waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
         waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 

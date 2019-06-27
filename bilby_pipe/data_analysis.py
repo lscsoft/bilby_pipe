@@ -236,6 +236,8 @@ class DataAnalysisInput(Input):
 
     @property
     def waveform_generator(self):
+        waveform_arguments = self.get_default_waveform_arguments()
+
         if self.likelihood_type == "GravitationalWaveTransient":
             waveform_generator = bilby.gw.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
@@ -243,7 +245,7 @@ class DataAnalysisInput(Input):
                 frequency_domain_source_model=self.bilby_frequency_domain_source_model,
                 parameter_conversion=self.parameter_conversion,
                 start_time=self.interferometers.start_time,
-                waveform_arguments=self.waveform_arguments,
+                waveform_arguments=waveform_arguments,
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
@@ -255,7 +257,6 @@ class DataAnalysisInput(Input):
             freq_nodes_linear *= self.roq_scale_factor
             freq_nodes_quadratic *= self.roq_scale_factor
 
-            waveform_arguments = self.waveform_arguments.copy()
             waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
             waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 
@@ -272,14 +273,6 @@ class DataAnalysisInput(Input):
             raise ValueError("Unknown likelihood function")
 
         return waveform_generator
-
-    @property
-    def waveform_arguments(self):
-        return dict(
-            reference_frequency=self.reference_frequency,
-            waveform_approximant=self.waveform_approximant,
-            minimum_frequency=self.minimum_frequency,
-        )
 
     @property
     def likelihood(self):
