@@ -19,7 +19,7 @@ class TestDataAnalysisInput(unittest.TestCase):
         ]
         self.parser = create_analysis_parser()
         self.inputs = DataAnalysisInput(
-            *parse_args(self.default_args_list, self.parser)
+            *parse_args(self.default_args_list, self.parser), test=True
         )
 
     def tearDown(self):
@@ -32,14 +32,14 @@ class TestDataAnalysisInput(unittest.TestCase):
         args_list = self.default_args_list
         args_list.append("--cluster")
         args_list.append("10")
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(self.inputs.cluster, 10)
 
     def test_process_setting(self):
         args_list = self.default_args_list
         args_list.append("--process")
         args_list.append("10")
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(self.inputs.process, 10)
 
     def test_unset_sampling_seed(self):
@@ -47,17 +47,17 @@ class TestDataAnalysisInput(unittest.TestCase):
 
     def test_set_sampling_seed(self):
         args_list = self.default_args_list + ["--sampling-seed", "1"]
-        inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(inputs.sampling_seed, 1)
 
     def test_set_reference_frequency(self):
         args_list = self.default_args_list + ["--reference-frequency", "10"]
-        inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(inputs.reference_frequency, 10)
 
     def test_set_sampler_ini(self):
         self.inputs = DataAnalysisInput(
-            *parse_args(self.default_args_list, self.parser)
+            *parse_args(self.default_args_list, self.parser), test=True
         )
         self.assertEqual(self.inputs.sampler, "nestle")
 
@@ -65,12 +65,12 @@ class TestDataAnalysisInput(unittest.TestCase):
         args_list = self.default_args_list
         args_list.append("--sampler")
         args_list.append("emcee")
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(self.inputs.sampler, "emcee")
 
     def test_set_sampler_command_line_multiple_fail(self):
         args_list = self.default_args_list
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser))
+        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         with self.assertRaises(BilbyPipeError):
             self.inputs.sampler = ["dynesty", "nestle"]
 
@@ -88,7 +88,7 @@ class TestDataAnalysisInput(unittest.TestCase):
     def test_unset_sampling_kwargs(self):
         args, unknown_args = parse_args(self.default_args_list, self.parser)
         args.sampler_kwargs = None
-        inputs = DataAnalysisInput(args, unknown_args)
+        inputs = DataAnalysisInput(args, unknown_args, test=True)
         self.assertEqual(inputs.sampler_kwargs, None)
 
     def test_set_sampler_kwargs_fail(self):
