@@ -7,7 +7,7 @@ from __future__ import division, print_function
 import matplotlib
 
 matplotlib.use("agg")  # noqa
-import bilby
+from bilby.gw.result import CBCResult
 
 from .utils import DataDump, parse_args, get_command_line_arguments, logger
 from .bilbyargparser import BilbyArgParser
@@ -33,7 +33,7 @@ def main():
 
     logger.info("Generating plots for results file {}".format(args.result))
 
-    result = bilby.gw.result.CBCResult.from_json(args.result)
+    result = CBCResult.from_json(args.result)
     data_dump = DataDump.from_pickle(result.meta_data["data_dump"])
     outdir = result.outdir
     label = result.label
@@ -61,9 +61,9 @@ def main():
         ["luminosity_distance", "redshift", "theta_jn", "ra", "dec", "geocent_time"],
         filename="{}/{}_extrinsic_corner.png".format(outdir, label),
     )
-    logger.info("Generating waveform posterior")
-    result.plot_waveform_posterior(
-        interferometers=data_dump.interferometers, n_samples=500
-    )
     logger.info("Generating calibration posterior")
     result.plot_calibration_posterior()
+    logger.info("Generating waveform posterior")
+    result.plot_waveform_posterior(
+        interferometers=data_dump.interferometers, n_samples=500, format="pdf"
+    )
