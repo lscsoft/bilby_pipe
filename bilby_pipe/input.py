@@ -544,6 +544,14 @@ class Input(object):
                     logger.warning(f"No calibration information for {det}")
         return self._priors
 
+    @staticmethod
+    def scale_roq_params(params, scale_factor):
+        params["flow"] *= scale_factor
+        params["fhigh"] *= scale_factor
+        params["seglen"] /= scale_factor
+        params["chirpmass-min"] /= scale_factor
+        params["chirpmass-max"] /= scale_factor
+
     @property
     def calibration_model(self):
         return getattr(self, "_calibration_model", None)

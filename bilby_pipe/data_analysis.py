@@ -302,9 +302,8 @@ class DataAnalysisInput(Input):
                 )
 
             params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
-            params["flow"] *= self.roq_scale_factor
-            params["fhigh"] *= self.roq_scale_factor
-            params["seglen"] /= self.roq_scale_factor
+            self.scale_roq_params(params, scale_factor=self.roq_scale_factor)
+            self.test_roq_prior_bounds(params)
 
             weight_file = os.path.join(
                 self.data_directory, self.data_label + "_roq_weights.json"
@@ -325,6 +324,36 @@ class DataAnalysisInput(Input):
 
         else:
             raise ValueError("Unknown likelihood function")
+
+    def test_roq_prior_bounds(self, params):
+        if 'chirp_mass' in self.priors:
+            assert (
+                params['chirpmass-min'] <= self.priors['chirp_mass'].minimum and
+                params['chirpmass-max'] <= self.priors['chirp_mass'].maximum
+            ), "Chirp mass bounds exceed ROQ basis range."
+        if 'mass_ratio' in self.priors:
+            assert (
+                    params['q-min'] <= self.priors['mass_ratio'].minimum and
+                    params['q-max'] <= self.priors['mass_ratio'].maximum
+            ), "Mass ratio bounds exceed ROQ basis range."
+        if 'a_1' in self.priors:
+            assert (
+                    params['chiL1-max'] <= self.priors['a_1'].maximum
+            ), "Primary spin magnitude bounds exceed ROQ basis range."
+        if 'a_2' in self.priors:
+            assert (
+                    params['chiL2-max'] <= self.priors['a_2'].maximum
+            ), "Secondary spin magnitude bounds exceed ROQ basis range."
+        if 'chi_1' in self.priors:
+            assert (
+                    params['chiL1-min'] <= self.priors['chi_1'].minimum and
+                    params['chiL1-max'] <= self.priors['chi_1'].maximum
+            ), "Primary spin bounds exceed ROQ basis range."
+        if 'chi_2' in self.priors:
+            assert (
+                    params['chiL2-min'] <= self.priors['chi_2'].minimum and
+                    params['chiL2-max'] <= self.priors['chi_2'].maximum
+            ), "Secondary spin bounds exceed ROQ basis range."
 
     @property
     def parameter_generation(self):

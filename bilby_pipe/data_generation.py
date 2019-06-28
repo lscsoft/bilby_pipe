@@ -726,9 +726,7 @@ class DataGenerationInput(Input):
         )
 
         params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
-        params["flow"] *= self.roq_scale_factor
-        params["fhigh"] *= self.roq_scale_factor
-        params["seglen"] /= self.roq_scale_factor
+        self.scale_roq_params(params, scale_factor=self.roq_scale_factor)
 
         if params["seglen"] != self.duration:
             raise BilbyPipeError(
