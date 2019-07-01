@@ -283,7 +283,7 @@ class Input(object):
             )
         else:
             logger.debug("spline_calibration_envelope_dict")
-            self._spline_calibration_envelope_dict = None
+            self._spline_calibration_envelope_dict = dict()
 
     @property
     def spline_calibration_amplitude_uncertainty_dict(self):
@@ -300,7 +300,7 @@ class Input(object):
             )
         else:
             logger.debug("spline_calibration_amplitude_uncertainty_dict")
-            self._spline_calibration_amplitude_uncertainty_dict = None
+            self._spline_calibration_amplitude_uncertainty_dict = dict()
 
     @property
     def spline_calibration_phase_uncertainty_dict(self):
@@ -317,7 +317,7 @@ class Input(object):
             )
         else:
             logger.debug("spline_calibration_phase_uncertainty_dict")
-            self._spline_calibration_phase_uncertainty_dict = None
+            self._spline_calibration_phase_uncertainty_dict = dict()
 
     @property
     def minimum_frequency(self):
@@ -508,7 +508,15 @@ class Input(object):
             except (AttributeError, TypeError):
                 logger.info("Unable to set geocent time prior")
 
-        if self.calibration_model is not None:
+        if self.calibration_model is not None and os.path.isfile(
+            os.path.join(self.outdir, "calibration.prior")
+        ):
+            calibration_prior = bilby.core.prior.PriorDict(
+                os.path.join(self.outdir, "calibration.prior")
+            )
+            self._priors.update(calibration_prior)
+        elif self.calibration_model is not None:
+            calibration_prior = bilby.core.prior.PriorDict()
             for det in self.detectors:
                 if det in self.spline_calibration_envelope_dict:
                     logger.info(
@@ -516,7 +524,7 @@ class Input(object):
                             det, self.spline_calibration_envelope_dict[det]
                         )
                     )
-                    self._priors.update(
+                    calibration_prior.update(
                         bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
                             self.spline_calibration_envelope_dict[det],
                             minimum_frequency=self.minimum_frequency_dict[det],
@@ -533,7 +541,7 @@ class Input(object):
                         "Creating calibration prior for {} from "
                         "provided constant uncertainty values.".format(det)
                     )
-                    self._priors.update(
+                    calibration_prior.update(
                         bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
                             amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
                                 det
@@ -549,6 +557,8 @@ class Input(object):
                     )
                 else:
                     logger.warning(f"No calibration information for {det}")
+            calibration_prior.to_file(outdir=self.outdir, label="calibration")
+            self._priors.update(calibration_prior)
         return self._priors
 
     @property
