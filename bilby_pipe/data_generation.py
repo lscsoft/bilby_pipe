@@ -582,11 +582,11 @@ class DataGenerationInput(Input):
                 dtype=dtype,
                 **kwargs
             )
-            if data.duration.value != self.duration:
+            if data.duration.value != end_time - start_time:
                 logger.warning(
                     "Unable to read in requested {}s duration of data from {}"
                     " only {}s available".format(
-                        self.duration, self.data_dict[det], data.duration.value
+                        end_time - start_time, self.data_dict[det], data.duration.value
                     )
                 )
                 data = None
