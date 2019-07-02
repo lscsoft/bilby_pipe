@@ -359,6 +359,7 @@ class Dag(object):
         if self.inputs.create_summary:
             self.create_summary_jobs()
         self.build_submit()
+        self.write_bash_script()
 
     @staticmethod
     def _get_executable_path(exe_name):
@@ -937,6 +938,36 @@ class Dag(object):
                     command_line
                 )
             )
+
+    def write_bash_script(self):
+        """
+        Write the dag to a bash script so jobs can be easily run on the command
+        line.
+        """
+        with open(self.bash_file, "w") as ff:
+            for node in self.dag.nodes:
+                ff.write("# {}\n".format(node.name))
+                ff.write(
+                    "# PARENTS {}\n".format(
+                        " ".join([job.name for job in node.parents])
+                    )
+                )
+                ff.write(
+                    "# CHILDREN {}\n".format(
+                        " ".join([job.name for job in node.children])
+                    )
+                )
+                job_str = "{} {}\n\n".format(node.executable, node.args[0].arg)
+                job_str = job_str.replace("$(Cluster)", "0")
+                job_str = job_str.replace("$(Process)", "0")
+                ff.write(job_str)
+
+    @property
+    def bash_file(self):
+        bash_file = self.dag.submit_file.split(".")
+        bash_file[-1] = "sh"
+        bash_file = ".".join(bash_file)
+        return bash_file
 
     @staticmethod
     def _log_output_error_submit_lines(logdir, prefix):
