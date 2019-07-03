@@ -347,6 +347,12 @@ def create_parser(top_level=True):
         help="Boolean. If true, use a time-marginalized likelihood",
     )
     likelihood_parser.add(
+        "--jitter-time",
+        action="store_true",
+        default=True,
+        help="Boolean. If true, and using a time-marginalized likelihood 'time jittering' will be performed",
+    )
+    likelihood_parser.add(
         "--likelihood-type",
         default="GravitationalWaveTransient",
         help="The likelihood. Can be one of"
