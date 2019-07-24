@@ -1,5 +1,14 @@
 # All notable changes will be documented in this file
 
+## Unreleased
+
+### Changed
+-   Removed testing against python3.5: it was found that the
+    python-ldas-tools-framecpp package was no longer compatible with python3.5.
+    As such, this breaks the C.I. testing environment. While basic running is
+    still expected to work with python3.5, it is strongly recommended people
+    update to a modern python installation.
+
 ## v0.2.2 : 2019-06-19
 Release coinciding with bilby 0.5.2. Minor changes fixing bugs in 0.5.2 only
 

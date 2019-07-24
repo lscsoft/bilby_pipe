@@ -46,16 +46,6 @@ python-3.6:
     # run tests
     - pytest
 
-python-3.5:
-  stage: test
-  image: bilbydev/bilby_pipe-test-suite-python35
-  script:
-    - conda update -c conda-forge bilby
-    - python setup.py install
-
-    # run tests
-    - pytest
-
 documentation:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37

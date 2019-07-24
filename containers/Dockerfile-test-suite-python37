@@ -1,24 +1,29 @@
 FROM continuumio/miniconda3
-
 LABEL name="bilby_pipe Base miniconda3" \
 maintainer="Gregory Ashton <gregory.ashton@ligo.org>" \
 date="20190724"
 
-RUN conda create -n env python=3.7
-RUN echo "source activate env" > ~/.bashrc
-ENV PATH /opt/conda/envs/env/bin:$PATH
+RUN conda update -n base -c defaults conda
+
+ENV conda_env python37
+
+RUN conda create -n ${conda_env} python=3.7
+RUN echo "source activate ${conda_env}" > ~/.bashrc
+ENV PATH /opt/conda/envs/${conda_env}/bin:$PATH
+RUN /bin/bash -c "source activate ${conda_env}"
+RUN conda info
 RUN python --version
 
 # Install conda-installable programs
-RUN conda install -y matplotlib numpy scipy pandas astropy flake8
-RUN conda install -c anaconda coverage configargparse future
+RUN conda install -n ${conda_env} -y matplotlib numpy scipy pandas astropy flake8
+RUN conda install -n ${conda_env} -c anaconda coverage configargparse future
 
 # Install LALtools
-RUN conda install -y -c conda-forge python-ldas-tools-framecpp
-RUN conda install -y -c conda-forge python-nds2-client
+RUN conda install -n ${conda_env} -y -c conda-forge python-ldas-tools-framecpp
+RUN conda install -n ${conda_env} -y -c conda-forge python-nds2-client
 
 # Install conda-forge-installable programs
-RUN conda install -c conda-forge black ligo-gracedb gwpy lalsuite ligo.skymap bilby pesummary pytest-cov
+RUN conda install -n ${conda_env} -c conda-forge black ligo-gracedb gwpy lalsuite ligo.skymap bilby pesummary pytest-cov
 
 # Install pip-requirements
 RUN pip install --upgrade pip
