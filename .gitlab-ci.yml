@@ -41,7 +41,7 @@ python-3.6:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python36
   script:
-    - source activate python37
+    - source activate python36
     - pip install --upgrade bilby
     - pip install .
 
