@@ -212,14 +212,6 @@ class TestMainInput(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
         self.assertEqual(inputs.n_injection, None)
 
-    def test_n_injection_and_trigger_time_fail(self):
-        args = self.args
-        args.injection = False
-        args.n_injection
-        args.trigger_time = 10
-        with self.assertRaises(BilbyPipeError):
-            bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-
 
 if __name__ == "__main__":
     unittest.main()

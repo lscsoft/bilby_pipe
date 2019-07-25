@@ -228,7 +228,7 @@ class MainInput(Input):
             raise BilbyPipeError("Unable to handle n_injections!=None and gps_file")
 
         if getattr(self, "trigger_time", None) is not None:
-            raise BilbyPipeError("Unable to handle n_injections!=None and trigger_time")
+            logger.info("Using trigger_time with n_injections != None")
 
     @property
     def trigger_time(self):
