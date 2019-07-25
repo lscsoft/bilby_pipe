@@ -199,21 +199,36 @@ class MainInput(Input):
 
     @n_injection.setter
     def n_injection(self, n_injection):
-        if n_injection is None and self.injection and hasattr(self, "gpstimes"):
-            logger.info("Injecting signals into segments defined by gpstimes")
-            self._n_injection = self.n_level_A_jobs
-            self.level_A_labels = [
-                label + "_injection{}".format(ii)
-                for ii, label in enumerate(self.level_A_labels)
-            ]
-        elif n_injection is not None:
-            logger.info("n_injection={}, setting level A jobs".format(n_injection))
-            self.n_level_A_jobs = n_injection
-            self._n_injection = n_injection
-            self.level_A_labels = ["injection{}".format(x) for x in range(n_injection)]
+        if n_injection is not None:
+            self._setup_n_injections(n_injection)
+        elif self.injection and hasattr(self, "gpstimes"):
+            self._setup_n_injections_from_gpstimes()
         else:
             logger.info("No injections")
             self._n_injection = None
+
+    def _setup_n_injections(self, n_injection):
+        self._check_consistency_of_n_injections()
+        logger.info("n_injection={}, setting level A jobs".format(n_injection))
+        self.n_level_A_jobs = n_injection
+        self._n_injection = n_injection
+        self.level_A_labels = ["injection{}".format(x) for x in range(n_injection)]
+
+    def _setup_n_injections_from_gpstimes(self):
+        logger.info("Injecting signals into segments defined by gpstimes")
+        self._n_injection = self.n_level_A_jobs
+        self.level_A_labels = [
+            label + "_injection{}".format(ii)
+            for ii, label in enumerate(self.level_A_labels)
+        ]
+
+    def _check_consistency_of_n_injections(self):
+        """ If n_injections is given, this checks the consistency with the data setting """
+        if hasattr(self, "gpstimes"):
+            raise BilbyPipeError("Unable to handle n_injections!=None and gps_file")
+
+        if getattr(self, "trigger_time", None) is not None:
+            raise BilbyPipeError("Unable to handle n_injections!=None and trigger_time")
 
     @property
     def trigger_time(self):

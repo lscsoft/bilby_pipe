@@ -83,7 +83,6 @@ class TestDag(unittest.TestCase):
         test_args = self.test_args
         test_args.detectors = "H1 L1"
         test_args.coherence_test = True
-        test_args.n_injection = 1
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
         dag = bilby_pipe.main.Dag(inputs)
@@ -109,7 +108,6 @@ class TestDag(unittest.TestCase):
 
     def test_build_submit(self):
         test_args = self.test_args
-        test_args.n_injection = 1
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
         inputs.submit = True
