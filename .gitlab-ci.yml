@@ -17,9 +17,9 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda activate python37
-    - conda update -c conda-forge bilby
-    - pip setup.py install
+    - source activate python37
+    - pip install --upgrade bilby
+    - pip install .
 
     # Run black check
     - black --check bilby_pipe/ --diff
@@ -41,9 +41,9 @@ python-3.6:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python36
   script:
-    - conda activate python36
-    - conda update -c conda-forge bilby
-    - pip setup.py install
+    - source activate python36
+    - pip install --upgrade bilby
+    - pip install .
 
     # run tests
     - pytest
@@ -52,8 +52,8 @@ documentation:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda activate python37
-    - pip setup.py install
+    - source activate python37
+    - pip install .
 
     # Make the documentation
     - apt-get update
