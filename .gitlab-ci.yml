@@ -17,10 +17,7 @@ python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
-    - conda info
-    - conda init bash
-    - bash
-    - conda activate python37
+    - source activate python37
     - conda update -c conda-forge bilby
     - pip setup.py install
 
