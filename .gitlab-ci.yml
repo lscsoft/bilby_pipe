@@ -19,7 +19,7 @@ python-3.7:
   script:
     - source activate python37
     - pip install --upgrade bilby
-    - pip setup.py install
+    - pip install .
 
     # Run black check
     - black --check bilby_pipe/ --diff
@@ -43,7 +43,7 @@ python-3.6:
   script:
     - source activate python37
     - pip install --upgrade bilby
-    - pip setup.py install
+    - pip install .
 
     # run tests
     - pytest
@@ -53,7 +53,7 @@ documentation:
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip setup.py install
+    - pip install .
 
     # Make the documentation
     - apt-get update
