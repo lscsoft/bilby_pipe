@@ -3,6 +3,11 @@ LABEL name="bilby_pipe Base miniconda3" \
 maintainer="Gregory Ashton <gregory.ashton@ligo.org>" \
 date="20190724"
 
+# Install backend
+RUN apt-get update --fix-missing \
+&& apt-get install -y make libglib2.0-0 libxext6 libsm6 libxrender1 libgl1-mesa-glx \
+dh-autoreconf build-essential libarchive-dev wget curl git libhdf5-serial-dev
+
 RUN conda update -n base -c defaults conda
 
 ENV conda_env python36
