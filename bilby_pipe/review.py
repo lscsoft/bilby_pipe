@@ -95,7 +95,7 @@ def get_default_setup(args, review_name):
         prior_file=args.prior,
         duration=args.duration,
         sampler="dynesty",
-        sampler_kwargs="{nlive: 1000, walks: 100, n_check_point: 5000}",
+        sampler_kwargs="{n_check_point: 10000}",
         create_plots=None,
         sampling_frequency=4 * MAXIMUM_FREQUENCY_LOOKUPS[args.prior],
         maximum_frequency=MAXIMUM_FREQUENCY_LOOKUPS[args.prior],
@@ -177,9 +177,7 @@ def pp_test(args):
     config_dict["injection"] = True
     config_dict["n-injection"] = 100
     config_dict["gaussian-noise"] = True
-    config_dict[
-        "sampler_kwargs"
-    ] = "{nlive: 1000, walks: 100, check_point_plot=False, n_check_point=5000}"
+    config_dict["sampler_kwargs"] = "{check_point_plot=False, n_check_point=10000}"
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         rundir, rundir
