@@ -80,6 +80,8 @@ def get_default_setup(args, review_name):
     base_label = "{}_{}".format(review_name, args.prior)
     if args.roq:
         base_label += "_ROQ"
+    if args.zero_noise:
+        base_label += "_zero-noise"
     label_with_date = "{}_{}".format(base_label, get_date_string())
 
     rundir = "outdir_{}".format(base_label)
@@ -109,6 +111,8 @@ def get_default_setup(args, review_name):
         base_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(
             args.prior
         )
+    if args.zero_noise:
+        base_dict["zero-noise"] = True
 
     return base_dict, rundir, filename
 
@@ -194,6 +198,9 @@ def main():
     parser.add_argument("--bns", action="store_true", help="Fiducial BNS test")
     parser.add_argument("--roq", action="store_true", help="Use ROQ likelihood")
     parser.add_argument("--pp-test", action="store_true", help="PP test test")
+    parser.add_argument(
+        "--zero-noise", action="store_true", help="Run BBH and BNS test with zero noise"
+    )
     parser.add_argument(
         "--prior",
         type=str,
