@@ -7,10 +7,10 @@ import json
 import os
 
 from bilby.core.result import read_in_result, make_pp_plot, ResultList
-import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 import tqdm
+import corner
 
 from .utils import logger
 
@@ -94,6 +94,36 @@ def get_basename(args):
     return basename
 
 
+def make_meta_data_plot(results, basename):
+    logger.info("Create meta data plot")
+
+    stimes = [r.sampling_time / 3600 for r in results]
+    nsamples = [len(r.posterior) / 1000 for r in results]
+
+    snrs = []
+    detectors = list(results[0].meta_data["likelihood"]["interferometers"].keys())
+    for det in detectors:
+        snrs.append(
+            [
+                r.meta_data["likelihood"]["interferometers"][det]["optimal_SNR"]
+                for r in results
+            ]
+        )
+    network_snr = np.sqrt(np.sum(np.array(snrs) ** 2, axis=0))
+
+    fig = corner.corner(
+        np.array([network_snr, stimes, nsamples]).T,
+        bins=20,
+        labels=["optimal SNR", "wall time [hr]", "nsamples [e3]"],
+        plot_density=False,
+        plot_contours=False,
+        data_kwargs=dict(alpha=1),
+        show_titles=True,
+        range=[1, 1, 1],
+    )
+    fig.savefig("{}meta.png".format(basename))
+
+
 def main(args=None):
     if args is None:
         args = create_parser().parse_args()
@@ -106,29 +136,4 @@ def main(args=None):
     keys = results[0].priors.keys()
     logger.info("Parameters = {}".format(keys))
     make_pp_plot(results, filename="{}pp.png".format(basename), keys=keys)
-
-    logger.info("Create sampling-time histogram")
-    stimes = [r.sampling_time for r in results]
-    fig, ax = plt.subplots()
-    ax.hist(np.array(stimes) / 3600, bins=20)
-    ax.set_xlabel("Sampling time [hr]")
-    fig.tight_layout()
-    fig.savefig("{}sampling_times.png".format(basename))
-
-    logger.info("Create optimal SNR plot")
-    fig, ax = plt.subplots()
-    snrs = []
-    detectors = list(results[0].meta_data["likelihood"]["interferometers"].keys())
-    for det in detectors:
-        snrs.append(
-            [
-                r.meta_data["likelihood"]["interferometers"][det]["optimal_SNR"]
-                for r in results
-            ]
-        )
-
-    network_snr = np.sqrt(np.sum(np.array(snrs) ** 2, axis=0))
-    ax.hist(network_snr, bins=20, label=det)
-    ax.set_xlabel("Network optimal SNR")
-    fig.tight_layout()
-    fig.savefig("{}optimal_SNR.png".format(basename))
+    make_meta_data_plot(results, basename)

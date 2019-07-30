@@ -96,6 +96,7 @@ setup(
         "matplotlib",
         "numpy",
         "tqdm",
+        "corner",
         "dynesty>=0.9.7",
         "pesummary",
     ],
