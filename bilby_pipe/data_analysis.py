@@ -169,7 +169,7 @@ class DataAnalysisInput(Input):
                 sampler_kwargs, "sampler-kwargs"
             )
         else:
-            self._sampler_kwargs = None
+            self._sampler_kwargs = dict()
 
     @property
     def interferometers(self):

@@ -89,7 +89,7 @@ class TestDataAnalysisInput(unittest.TestCase):
         args, unknown_args = parse_args(self.default_args_list, self.parser)
         args.sampler_kwargs = None
         inputs = DataAnalysisInput(args, unknown_args, test=True)
-        self.assertEqual(inputs.sampler_kwargs, None)
+        self.assertEqual(inputs.sampler_kwargs, dict())
 
     def test_set_sampler_kwargs_fail(self):
         with self.assertRaises(BilbyPipeError):
