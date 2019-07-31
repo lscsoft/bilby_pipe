@@ -960,6 +960,7 @@ class Dag(object):
         line.
         """
         with open(self.bash_file, "w") as ff:
+            ff.write("#!/usr/bin/env bash\n\n")
             for node in self.dag.nodes:
                 ff.write("# {}\n".format(node.name))
                 ff.write(
@@ -979,9 +980,9 @@ class Dag(object):
 
     @property
     def bash_file(self):
-        bash_file = self.dag.submit_file.split(".")
-        bash_file[-1] = "sh"
-        bash_file = ".".join(bash_file)
+        bash_file = self.dag.submit_file.replace(".submit", ".sh").replace(
+            "dag_", "bash_"
+        )
         return bash_file
 
     @staticmethod
