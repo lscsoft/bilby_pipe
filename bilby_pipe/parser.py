@@ -1,7 +1,27 @@
+import argparse
+
 from bilby_pipe.bilbyargparser import BilbyArgParser
 from . import utils
 
 __version__ = utils.get_version_information()
+
+
+class StoreBoolean(argparse.Action):
+    """ argparse class for robust handling of booleans with configargparse
+
+    When using configargparse, if the argument is setup with
+    action="store_true", but the default is set to True, then there is no way,
+    in the config file to switch the parameter off. To resolve this, this class
+    handles the boolean properly.
+
+    """
+
+    def __call__(self, parser, namespace, value, option_string=None):
+        value = str(value).lower()
+        if value in ["true"]:
+            setattr(namespace, self.dest, True)
+        else:
+            setattr(namespace, self.dest, False)
 
 
 def create_parser(top_level=True):
@@ -345,6 +365,11 @@ def create_parser(top_level=True):
         action="store_true",
         default=False,
         help="Boolean. If true, use a time-marginalized likelihood",
+    )
+    likelihood_parser.add(
+        "--jitter-time",
+        action=StoreBoolean,
+        help="Boolean. If true, and using a time-marginalized likelihood 'time jittering' will be performed",
     )
     likelihood_parser.add(
         "--likelihood-type",

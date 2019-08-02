@@ -60,6 +60,7 @@ class DataAnalysisInput(Input):
         )
         self.phase_marginalization = args.phase_marginalization
         self.time_marginalization = args.time_marginalization
+        self.jitter_time = args.jitter_time
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.sampling_seed = args.sampling_seed
@@ -291,6 +292,7 @@ class DataAnalysisInput(Input):
                 distance_marginalization=self.distance_marginalization,
                 distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
                 time_marginalization=self.time_marginalization,
+                jitter_time=self.jitter_time,
             )
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
