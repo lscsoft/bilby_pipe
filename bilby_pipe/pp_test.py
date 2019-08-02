@@ -133,7 +133,11 @@ def main(args=None):
     basename = get_basename(args)
 
     logger.info("Generating PP plot")
-    keys = results[0].priors.keys()
+    keys = [
+        name
+        for name, p in results[0].priors.items()
+        if isinstance(p, str) or p.is_fixed is False
+    ]
     logger.info("Parameters = {}".format(keys))
     make_pp_plot(results, filename="{}pp.png".format(basename), keys=keys)
     make_meta_data_plot(results, basename)
