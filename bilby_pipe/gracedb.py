@@ -305,7 +305,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         maximum_frequency=maximum_frequency,
         minimum_frequency=minimum_frequency,
         sampling_frequency=16384,
-        reference_frequency=20,
+        reference_frequency=100,
         trigger_time=trigger_time,
         detectors=ifos,
         channel_dict=DEFAULT_CHANNEL_DICT,
@@ -314,7 +314,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         duration=duration,
         roq_scale_factor=scale_factor,
         sampler="dynesty",
-        sampler_kwargs="{nlive: 1000, walks: 100, check_point_plot=True, n_check_point: 5000}",
+        sampler_kwargs="{nlive: 1000, walks: 390, check_point_plot=True, n_check_point: 10000}",
         create_plots=True,
         local_generation=True,
         local_plot=True,
@@ -327,7 +327,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         create_summary=True,
         calibration_model=calibration_model,
         spline_calibration_envelope_dict=calib_dict,
-        spline_calibration_nodes=5,
+        spline_calibration_nodes=10,
     )
 
     if roq and config_dict["duration"] > 4 and roq_folder is not None:
