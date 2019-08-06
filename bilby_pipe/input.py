@@ -7,6 +7,7 @@ from __future__ import division, print_function
 import os
 import glob
 import json
+from importlib import import_module
 
 import numpy as np
 import bilby
@@ -166,11 +167,20 @@ class Input(object):
 
     @property
     def bilby_frequency_domain_source_model(self):
-        """ The bilby function to pass to the waveform_generator """
+        """
+        The bilby function to pass to the waveform_generator
+
+        This can be a function defined in an external package.
+        """
         if self.frequency_domain_source_model in bilby.gw.source.__dict__.keys():
             model = self._frequency_domain_source_model
             logger.info("Using the {} source model".format(model))
             return bilby.gw.source.__dict__[model]
+        elif "." in self.frequency_domain_source_model:
+            split_model = self._frequency_domain_source_model.split(".")
+            module = ".".join(split_model[:-1])
+            func = split_model[-1]
+            return getattr(import_module(module), func)
         else:
             raise BilbyPipeError(
                 "No source model {} found.".format(self._frequency_domain_source_model)
