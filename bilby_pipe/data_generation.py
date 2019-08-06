@@ -333,7 +333,7 @@ class DataGenerationInput(Input):
 
         waveform_arguments = self.get_default_waveform_arguments()
 
-        waveform_generator = bilby.gw.WaveformGenerator(
+        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
             duration=self.duration,
             start_time=self.start_time,
             sampling_frequency=self.sampling_frequency,
@@ -397,7 +397,7 @@ class DataGenerationInput(Input):
 
         waveform_arguments = self.get_default_waveform_arguments()
 
-        waveform_generator = bilby.gw.WaveformGenerator(
+        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
             duration=self.duration,
             sampling_frequency=self.sampling_frequency,
             frequency_domain_source_model=self.bilby_frequency_domain_source_model,

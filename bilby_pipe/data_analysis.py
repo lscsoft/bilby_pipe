@@ -246,7 +246,7 @@ class DataAnalysisInput(Input):
         waveform_arguments = self.get_default_waveform_arguments()
 
         if self.likelihood_type == "GravitationalWaveTransient":
-            waveform_generator = bilby.gw.WaveformGenerator(
+            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
                 frequency_domain_source_model=self.bilby_frequency_domain_source_model,
