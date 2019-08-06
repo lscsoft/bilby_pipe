@@ -139,6 +139,8 @@ def fiducial_bbh(args):
     config_dict["n-injection"] = 1
     config_dict["generation-seed"] = 1010
     config_dict["n-parallel"] = 4
+    if args.prior == "128s":
+        config_dict["sampler_kwargs"] = "{walks=800, n_check_point=10000}"
 
     injection_filename = "{}/injection_file.json".format(rundir)
     with open(injection_filename, "w") as file:
@@ -180,8 +182,14 @@ def pp_test(args):
     config_dict["trigger-time"] = 0
     config_dict["injection"] = True
     config_dict["n-injection"] = 100
+    config_dict["reference_frequency"] = 100
     config_dict["gaussian-noise"] = True
-    config_dict["sampler_kwargs"] = "{check_point_plot=False, n_check_point=10000}"
+    if args.prior == "128s":
+        config_dict[
+            "sampler_kwargs"
+        ] = "{check_point_plot=False, walks=800, n_check_point=10000}"
+    else:
+        config_dict["sampler_kwargs"] = "{check_point_plot=False, n_check_point=10000}"
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         rundir, rundir
