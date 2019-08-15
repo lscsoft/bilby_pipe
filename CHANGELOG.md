@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+## v0.2.3 : 2019-08-15
+
 ### Changed
 -   Removed testing against python3.5: it was found that the
     python-ldas-tools-framecpp package was no longer compatible with python3.5.
     As such, this breaks the C.I. testing environment. While basic running is
     still expected to work with python3.5, it is strongly recommended people
     update to a modern python installation.
+-   Update to the review defaults and online running settings
+-   Fixed bug when sampler_kwargs is None
+-   Allow users to specific external source functions
+-   Fix standard priors to have hign-spin (0.8) upper boundaries
+-   Add time jittering option
+-   Add shell script
 
 ## v0.2.2 : 2019-06-19
 Release coinciding with bilby 0.5.2. Minor changes fixing bugs in 0.5.2 only
