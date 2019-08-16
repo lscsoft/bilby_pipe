@@ -6,7 +6,7 @@ import shutil
 import bilby_pipe
 
 
-class TestDag(unittest.TestCase):
+class TestSlurm(unittest.TestCase):
     def setUp(self):
         self.outdir = "test_outdir"
         self.directory = os.path.abspath(os.path.dirname(__file__))
@@ -45,8 +45,8 @@ class TestDag(unittest.TestCase):
             default_prior="BBHPriorDict",
             postprocessing_executable=None,
             postprocessing_arguments=None,
-            scheduler="condor",
-            scheduler_args=None,
+            scheduler="slurm",
+            scheduler_args="account=myaccount partition=mypartition",
             scheduler_module=None,
             scheduler_env=None,
             data_dict=None,
@@ -58,7 +58,6 @@ class TestDag(unittest.TestCase):
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
         self.inputs.level_A_labels = ["test"]
-
         self.injection_file = os.path.join(self.outdir, "example_injection_file.h5")
         self.create_injection_args = Namespace(
             outdir=self.outdir,
@@ -83,64 +82,14 @@ class TestDag(unittest.TestCase):
         del self.inputs
         shutil.rmtree(self.outdir)
 
-    def test_jobs_creation(self):
+    def test_create_slurm_submit(self):
         test_args = self.test_args
-        test_args.detectors = "H1 L1"
-        test_args.coherence_test = True
-        inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-        inputs.level_A_labels = ["test_label"]
-        dag = bilby_pipe.main.Dag(inputs)
-        JobInput = bilby_pipe.main.JobInput
-        expected_jobs = [
-            JobInput(
-                idx=0,
-                meta_label="test_label",
-                kwargs=dict(detectors=["H1", "L1"], sampler="nestle", run_id="0"),
-            ),
-            JobInput(
-                idx=0,
-                meta_label="test_label",
-                kwargs=dict(detectors=["H1"], sampler="nestle", run_id="0"),
-            ),
-            JobInput(
-                idx=0,
-                meta_label="test_label",
-                kwargs=dict(detectors=["L1"], sampler="nestle", run_id="0"),
-            ),
-        ]
-        self.assertEqual(dag.analysis_jobs_inputs, expected_jobs)
-
-    def test_build_submit(self):
-        test_args = self.test_args
-        inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-        inputs.level_A_labels = ["test_label"]
-        inputs.submit = True
-        bilby_pipe.main.Dag(inputs)
-
-    def test_injection_from_file(self):
-        test_args = self.test_args
-        test_args.injection = True
-        test_args.injection_file = self.injection_file
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
         inputs.level_A_labels = ["test_label"]
         inputs.n_level_A_jobs = 1
         bilby_pipe.main.Dag(inputs)
-
-    # def test_injection_from_default_existing_file(self):
-    #     test_args = self.test_args
-    #     test_args.injection = True
-    #     test_args.label = "example"
-    #     inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-    #     inputs.level_A_labels = ["test_label"]
-    #     data_dir = os.path.join(self.outdir, "data")
-    #     try:
-    #         os.mkdir(data_dir)
-    #     except FileExistsError:
-    #         pass
-    #     shutil.copyfile(
-    #         self.injection_file, os.path.join(data_dir, "example_injection_file.h5")
-    #     )
-    #     bilby_pipe.main.Dag(inputs)
+        filename = os.path.join(self.outdir, "submit/label_master_slurm.sh")
+        self.assertTrue(os.path.exists(filename))
 
 
 if __name__ == "__main__":

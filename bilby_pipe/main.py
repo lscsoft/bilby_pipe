@@ -24,6 +24,7 @@ from .utils import (
     request_memory_generation_lookup,
 )
 from . import create_injections
+from . import slurm
 from .input import Input
 from .parser import create_parser
 
@@ -82,6 +83,11 @@ class MainInput(Input):
         self.n_parallel = args.n_parallel
         self.transfer_files = args.transfer_files
         self.osg = args.osg
+
+        self.scheduler = args.scheduler
+        self.scheduler_args = args.scheduler_args
+        self.scheduler_module = args.scheduler_module
+        self.scheduler_env = args.scheduler_env
 
         self.waveform_approximant = args.waveform_approximant
         self.likelihood_type = args.likelihood_type
@@ -352,6 +358,14 @@ class Dag(object):
         if self.inputs.n_level_A_jobs == 0:
             raise BilbyPipeError("ini file contained no data-generation requirement")
 
+        # set submission script
+        self.build_submit = inputs.scheduler
+        self.scheduler = inputs.scheduler
+        if self.scheduler != "condor":
+            self.scheduler_args = inputs.scheduler_args
+            self.scheduler_module = inputs.scheduler_module
+            self.scheduler_env = inputs.scheduler_env
+
         self.dag_name = "dag_{}".format(inputs.label)
         self.dag = pycondor.Dagman(
             name=self.dag_name, submit=self.inputs.submit_directory
@@ -373,8 +387,27 @@ class Dag(object):
             self.create_plot_jobs()
         if self.inputs.create_summary:
             self.create_summary_jobs()
+
         self.build_submit()
-        self.write_bash_script()
+        if self.inputs.scheduler == "condor":
+            self.write_bash_script()
+
+    @property
+    def build_submit(self):
+
+        return self._build_submit
+
+    @build_submit.setter
+    def build_submit(self, value):
+        scheduler_dict = {
+            "condor": self.build_condor_dag,
+            "slurm": self.build_slurm_submit,
+        }
+
+        if value in scheduler_dict.keys():
+            self._build_submit = scheduler_dict[value]
+        else:
+            raise ValueError("Scheduler: {} not implemented ".format(value))
 
     @staticmethod
     def _get_executable_path(exe_name):
@@ -929,7 +962,7 @@ class Dag(object):
             job.add_parent(parent_job)
         logger.debug("Adding job: {}".format(job_name))
 
-    def build_submit(self):
+    def build_condor_dag(self):
         """ Build the dag, optionally submit them if requested in inputs """
         submitted = False
         if self.inputs.submit:
@@ -953,6 +986,11 @@ class Dag(object):
                     command_line
                 )
             )
+
+    def build_slurm_submit(self):
+        """ Build slurm submission scripts """
+
+        slurm.SubmitSLURM(self)
 
     def write_bash_script(self):
         """
