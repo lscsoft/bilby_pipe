@@ -323,6 +323,30 @@ def create_parser(top_level=True):
         "--singularity-image", type=str, default=None, help="Singularity image to use"
     )
     submission_parser.add(
+        "--scheduler",
+        type=str,
+        default="condor",
+        help="Format submission script for specified scheduler. Currently implemented: SLURM",
+    )
+    submission_parser.add(
+        "--scheduler-args",
+        type=str,
+        default=None,
+        help="Command line arguments to pass to scheduler jobs",
+    )
+    submission_parser.add(
+        "--scheduler-module",
+        type=str,
+        action="append",
+        help="Modules scheduler loads during runtime",
+    )
+    submission_parser.add(
+        "--scheduler-env",
+        type=str,
+        default=None,
+        help="Environment scheduler sources during runtime",
+    )
+    submission_parser.add(
         "--submit",
         action="store_true",
         help="Attempt to submit the job after the build",
