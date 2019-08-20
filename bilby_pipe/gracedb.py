@@ -22,9 +22,16 @@ from .utils import (
 )
 
 
-# Default channels set from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
-DEFAULT_CHANNEL_DICT = dict(
-    H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
+# Default channels from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
+CHANNEL_DICTS = dict(
+    online=dict(
+        H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
+    ),
+    o2replay=dict(
+        H1="GDS-CALIB_STRAIN_O2Replay",
+        L1="GDS-CALIB_STRAIN_O2Replay",
+        V1="Hrec_hoft_16384Hz_O2Replay",
+    ),
 )
 
 
@@ -260,7 +267,7 @@ def prior_lookup(duration, scale_factor, outdir):
     return prior_file, roq_folder, duration, minimum_frequency, maximum_frequency
 
 
-def create_config_file(candidate, gracedb, outdir, roq=True):
+def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
     """ Creates ini file from defaults and candidate contents
 
     Parameters
@@ -271,6 +278,8 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         GraceDB id of event
     outdir: str
         Output directory where the ini file and all output is written
+    channel_dict: dict
+        Dictionary of channel names
     roq: bool
         If True, use the default ROQ settings if required
 
@@ -308,7 +317,7 @@ def create_config_file(candidate, gracedb, outdir, roq=True):
         reference_frequency=100,
         trigger_time=trigger_time,
         detectors=ifos,
-        channel_dict=DEFAULT_CHANNEL_DICT,
+        channel_dict=channel_dict,
         deltaT=0.2,
         prior_file=prior_file,
         duration=duration,
@@ -441,6 +450,14 @@ def create_parser():
         help="GraceDB service url",
         default="https://gracedb.ligo.org/api/",
     )
+    parser.add_argument(
+        "--channel-dict",
+        type=str,
+        default="online",
+        choices=list(CHANNEL_DICTS.keys()),
+        help="Name of channel dictionary to use",
+    )
+
     return parser
 
 
@@ -468,7 +485,8 @@ def main(args=None):
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
-    filename = create_config_file(candidate, gracedb, outdir)
+    channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
+    filename = create_config_file(candidate, gracedb, outdir, channel_dict)
 
     arguments = ["bilby_pipe", filename]
     if args.local:
