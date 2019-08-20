@@ -398,9 +398,12 @@ def create_parser(top_level=True):
     likelihood_parser.add(
         "--likelihood-type",
         default="GravitationalWaveTransient",
-        help="The likelihood. Can be one of"
-        "[GravitationalWaveTransient, ROQGravitationalWaveTransient]"
-        "Need to specify --roq-folder if ROQ likelihood used",
+        help=(
+            "The likelihood. Can be one of [GravitationalWaveTransient, "
+            "ROQGravitationalWaveTransient] or python path to a bilby "
+            "likelihood class available in the users installation. "
+            "Need to specify --roq-folder if ROQ likelihood used"
+        ),
     )
     likelihood_parser.add("--roq-folder", default=None, help="The data for ROQ")
     likelihood_parser.add(
@@ -518,7 +521,8 @@ def create_parser(top_level=True):
             "Name of the frequency domain source model. Can be one of"
             "[lal_binary_black_hole, lal_binary_neutron_star,"
             "lal_eccentric_binary_black_hole_no_spins, sinegaussian, "
-            "supernova, supernova_pca_model]"
+            "supernova, supernova_pca_model] or any python  path to a bilby "
+            " source function the users installation, e.g. examp.source.bbh"
         ),
     )
 
