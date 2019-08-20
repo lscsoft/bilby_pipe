@@ -7,6 +7,7 @@ from __future__ import division, print_function
 import sys
 import signal
 import os
+from importlib import import_module
 
 import numpy as np
 import matplotlib
@@ -245,19 +246,11 @@ class DataAnalysisInput(Input):
     def waveform_generator(self):
         waveform_arguments = self.get_default_waveform_arguments()
 
-        if self.likelihood_type == "GravitationalWaveTransient":
-            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
-                sampling_frequency=self.interferometers.sampling_frequency,
-                duration=self.interferometers.duration,
-                frequency_domain_source_model=self.bilby_frequency_domain_source_model,
-                parameter_conversion=self.parameter_conversion,
-                start_time=self.interferometers.start_time,
-                waveform_arguments=waveform_arguments,
-            )
-
-        elif self.likelihood_type == "ROQGravitationalWaveTransient":
+        if "ROQ" in self.likelihood_type:
             logger.info(
-                "Using the ROQ likelihood with roq-folder={}".format(self.roq_folder)
+                "Using {} likelihood with roq-folder={}".format(
+                    self.likelihood_type, self.roq_folder
+                )
             )
             freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
             freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
@@ -268,39 +261,54 @@ class DataAnalysisInput(Input):
             waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 
             waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+                frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
-                frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
                 start_time=self.interferometers.start_time,
                 parameter_conversion=self.parameter_conversion,
                 waveform_arguments=waveform_arguments,
             )
 
         else:
-            raise ValueError("Unknown likelihood function")
+            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+                frequency_domain_source_model=self.bilby_frequency_domain_source_model,
+                sampling_frequency=self.interferometers.sampling_frequency,
+                duration=self.interferometers.duration,
+                parameter_conversion=self.parameter_conversion,
+                start_time=self.interferometers.start_time,
+                waveform_arguments=waveform_arguments,
+            )
 
         return waveform_generator
 
     @property
     def likelihood(self):
+
+        likelihood_kwargs = dict(
+            interferometers=self.interferometers,
+            waveform_generator=self.waveform_generator,
+            priors=self.priors,
+            phase_marginalization=self.phase_marginalization,
+            distance_marginalization=self.distance_marginalization,
+            distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
+            time_marginalization=self.time_marginalization,
+        )
+
         if self.likelihood_type == "GravitationalWaveTransient":
-            return bilby.gw.likelihood.GravitationalWaveTransient(
-                interferometers=self.interferometers,
-                waveform_generator=self.waveform_generator,
-                priors=self.priors,
-                phase_marginalization=self.phase_marginalization,
-                distance_marginalization=self.distance_marginalization,
-                distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
-                time_marginalization=self.time_marginalization,
-                jitter_time=self.jitter_time,
-            )
+            Likelihood = bilby.gw.likelihood.GravitationalWaveTransient
+            likelihood_kwargs.update(jitter_time=self.jitter_time)
 
         elif self.likelihood_type == "ROQGravitationalWaveTransient":
+            Likelihood = bilby.gw.likelihood.ROQGravitationalWaveTransient
+
             if self.time_marginalization:
                 logger.warning(
                     "Time marginalization not implemented for "
                     "ROQGravitationalWaveTransient: option ignored"
                 )
+
+            likelihood_kwargs.pop("time_marginalization", None)
+            likelihood_kwargs.pop("jitter_time", None)
 
             params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
             params["flow"] *= self.roq_scale_factor
@@ -310,19 +318,23 @@ class DataAnalysisInput(Input):
             weight_file = self.meta_data["weight_file"]
             logger.info("Loading ROQ weights from {}".format(weight_file))
 
-            return bilby.gw.likelihood.ROQGravitationalWaveTransient(
-                interferometers=self.interferometers,
-                waveform_generator=self.waveform_generator,
-                weights=weight_file,
-                priors=self.priors,
-                roq_params=params,
-                phase_marginalization=self.phase_marginalization,
-                distance_marginalization=self.distance_marginalization,
-                distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
-            )
+            likelihood_kwargs.update(weights=weight_file, roq_params=params)
 
+        elif "." in self.likelihood_type:
+            split_path = self.likelihood_type.split(".")
+            module = ".".join(split_path[:-1])
+            likelihood_class = split_path[-1]
+            Likelihood = getattr(import_module(module), likelihood_class)
         else:
-            raise ValueError("Unknown likelihood function")
+            raise ValueError("Unknown Likelihood class {}")
+
+        logger.info(
+            "Initialise likelihood {} with kwargs: \n{}".format(
+                Likelihood, likelihood_kwargs
+            )
+        )
+
+        return Likelihood(**likelihood_kwargs)
 
     @property
     def parameter_generation(self):
