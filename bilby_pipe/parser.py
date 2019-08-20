@@ -297,7 +297,7 @@ def create_parser(top_level=True):
         type=int,
         help=(
             "Time after which the job will be self-evicted with code 130."
-            " After this, condor will restart the job. Default is 10800s."
+            " After this, condor will restart the job. Default is 43200s."
             " This is used to decrease the chance of HTCondor hard evictions"
         ),
     )

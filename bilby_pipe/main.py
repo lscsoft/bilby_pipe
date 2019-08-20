@@ -1073,7 +1073,6 @@ class Dag(object):
             "should_transfer_files = YES",
             "transfer_input_files = {}".format(",".join(inputs)),
             "transfer_output_files = {}".format(",".join(outputs)),
-            "when_to_transfer_output = ON_EXIT_OR_EVICT",
             "stream_error = True",
             "stream_output = True",
         ]
