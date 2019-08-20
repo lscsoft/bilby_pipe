@@ -219,11 +219,12 @@ def read_candidate(candidate):
                 candidate["graceid"]
             )
         )
+    superevent = candidate["superevent"]
     trigger_time = candidate["gpstime"]
     singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
 
     ifos = [sngl["ifo"] for sngl in singleinspiraltable]
-    return chirp_mass, trigger_time, ifos
+    return chirp_mass, superevent, trigger_time, ifos
 
 
 def prior_lookup(duration, scale_factor, outdir):
@@ -290,7 +291,7 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
 
     """
 
-    chirp_mass, trigger_time, ifos = read_candidate(candidate)
+    chirp_mass, superevent, trigger_time, ifos = read_candidate(candidate)
 
     duration, scale_factor = determine_duration_and_scale_factor_from_parameters(
         chirp_mass
@@ -343,8 +344,11 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         config_dict["roq-folder"] = roq_folder
 
-    filename = "{}/{}.ini".format(outdir, config_dict["label"])
-    write_config_file(config_dict, filename, remove_none=True)
+    comment = "# Configuration ini file generated from GraceDB superevent {}".format(
+        superevent
+    )
+    filename = "{}/bilby_config.ini".format(outdir)
+    write_config_file(config_dict, filename, comment, remove_none=True)
 
     return filename
 

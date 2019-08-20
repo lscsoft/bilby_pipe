@@ -279,7 +279,7 @@ def convert_string_to_dict(string, key):
     return dic
 
 
-def write_config_file(config_dict, filename, remove_none=False):
+def write_config_file(config_dict, filename, comment=None, remove_none=False):
     """ Writes ini file
 
     Parameters
@@ -288,6 +288,8 @@ def write_config_file(config_dict, filename, remove_none=False):
         Dictionary of parameters for ini file
     filename: str
         Filename to write the config file to
+    comment: str
+        Additional information on ini file generation
     remove_none: bool
         If true, remove None's from the config_dict before writing otherwise
         a ValueError is raised
@@ -299,6 +301,8 @@ def write_config_file(config_dict, filename, remove_none=False):
     if None in config_dict.values():
         raise ValueError("config-dict is not complete")
     with open(filename, "w+") as file:
+        if comment is not None:
+            print("{}".format(comment), file=file)
         for key, val in config_dict.items():
             print("{}={}".format(key, val), file=file)
 
