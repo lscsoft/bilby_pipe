@@ -113,9 +113,12 @@ class TestGraceDB(unittest.TestCase):
         gracedb_uid = "G298936"
         example_json_data = "examples/{}.json".format(gracedb_uid)
         candidate = gracedb.read_from_json(example_json_data)
+        channel_dict = dict(
+            H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
+        )
         del candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
         with self.assertRaises(BilbyPipeError):
-            gracedb.create_config_file(candidate, gracedb_uid, self.outdir)
+            gracedb.create_config_file(candidate, gracedb_uid, channel_dict, self.outdir)
 
     # def test_determine_prior_file_from_parameters(self):
     #     from bilby_pipe.input import Input
