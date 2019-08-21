@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.2.5 : 2019-08-22
+### Changes
+-   Fixed bug in time-jitter option (default was None, now True)
+
 ## v0.2.4 : 2019-08-22
 ### Added
 -   Support for use on a slurm filesystem

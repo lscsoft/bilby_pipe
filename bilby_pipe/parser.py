@@ -393,6 +393,7 @@ def create_parser(top_level=True):
     likelihood_parser.add(
         "--jitter-time",
         action=StoreBoolean,
+        default=True,
         help="Boolean. If true, and using a time-marginalized likelihood 'time jittering' will be performed",
     )
     likelihood_parser.add(
