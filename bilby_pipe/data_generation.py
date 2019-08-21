@@ -619,9 +619,14 @@ class DataGenerationInput(Input):
                 channel, start_time, end_time, dtype
             )
         )
+        if self.data_format:
+            kwargs = dict(format=self.data_format)
+            logger.info("Extra kwargs passed to get(): {}".format(kwargs))
+        else:
+            kwargs = dict()
         try:
             data = gwpy.timeseries.TimeSeries.get(
-                channel, start_time, end_time, verbose=False, dtype=dtype
+                channel, start_time, end_time, verbose=False, dtype=dtype, **kwargs
             )
             return data
         except RuntimeError as e:
@@ -629,6 +634,12 @@ class DataGenerationInput(Input):
             logger.debug("Error message {}".format(e))
         except ImportError:
             logger.info("Unable to read data as NDS2 is not installed")
+        except TypeError:
+            logger.debug("Problem reading data try again without kwargs")
+            data = gwpy.timeseries.TimeSeries.get(
+                channel, start_time, end_time, verbose=False, dtype=dtype
+            )
+            return data
 
     def _gwpy_fetch_open_data(self, det, start_time, end_time):
         """ Wrapper function to gwpy.timeseries.TimeSeries.fetch_open_data()
