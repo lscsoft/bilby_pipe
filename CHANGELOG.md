@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.2.4 : 2019-08-22
+### Added
+-   Support for use on a slurm filesystem
+-   Limited support for a user-defined likelihood
+
+### Changes
+-   Improvements to the gracedb script (changes to the filenames and channels)
+
 ## v0.2.3 : 2019-08-15
 
 ### Changed
