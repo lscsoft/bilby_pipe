@@ -496,7 +496,7 @@ class DataGenerationInput(Input):
 
         self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
 
-    def _get_data(self, det, channel_type, start_time, end_time):
+    def _get_data(self, det, channel_type, start_time, end_time, resample=True):
         """ Read in data using gwpy
 
         This first uses the `gwpy.timeseries.TimeSeries.get()` method to acces
@@ -523,7 +523,17 @@ class DataGenerationInput(Input):
         if data is None:
             data = self._gwpy_fetch_open_data(det, start_time, end_time)
 
-        data = data.resample(self.sampling_frequency)
+        if resample and data.sample_rate.value == self.sampling_frequency:
+            logger.info("Sample rate matches data no resampling")
+        elif resample:
+            logger.info(
+                "Resampling data to sampling_frequency {}".format(
+                    self.sampling_frequency
+                )
+            )
+            data = data.resample(self.sampling_frequency)
+        else:
+            logger.info("No data resampling requested")
         return data
 
     def _gwpy_read(self, det, channel, start_time, end_time, dtype="float64"):
