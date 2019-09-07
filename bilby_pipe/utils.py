@@ -245,14 +245,14 @@ def get_version_information():
         return ""
 
 
-def convert_string_to_dict(string, key):
+def convert_string_to_dict(string, key=None):
     """ Convert a string repr of a string to a python dictionary
 
     Parameters
     ----------
     string: str
         The strng to convert
-    key: str
+    key: str (None)
         A key, used for debugging
     """
 
@@ -265,7 +265,12 @@ def convert_string_to_dict(string, key):
     try:
         dic = ast.literal_eval(string)
     except ValueError as e:
-        raise BilbyPipeError("Error {}. Unable to parse {}: {}".format(e, key, string))
+        if key is not None:
+            raise BilbyPipeError(
+                "Error {}. Unable to parse {}: {}".format(e, key, string)
+            )
+        else:
+            raise BilbyPipeError("Error {}. Unable to parse {}".format(e, string))
 
     # Convert values to bool/floats/ints where possible
     for key in dic:
