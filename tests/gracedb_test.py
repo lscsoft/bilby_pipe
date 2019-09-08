@@ -134,8 +134,7 @@ class TestGraceDB(unittest.TestCase):
         args = parser.parse_args(["--json", example_json_data])
         self.assertEqual(args.gracedb, None)
         self.assertEqual(args.json, example_json_data)
-        self.assertEqual(args.local, False)
-        self.assertEqual(args.submit, False)
+        self.assertEqual(args.output, "full")
         self.assertEqual(args.outdir, None)
         self.assertEqual(args.gracedb_url, "https://gracedb.ligo.org/api/")
 
