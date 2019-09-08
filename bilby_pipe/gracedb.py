@@ -440,13 +440,23 @@ def create_parser():
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
     group1.add_argument("--json", type=str, help="Path to json gracedb file")
-    group2 = parser.add_mutually_exclusive_group(required=False)
-    group2.add_argument("--local", action="store_true", help="Run the job locally")
-    group2.add_argument("--submit", action="store_true", help="Submit the job")
     parser.add_argument(
         "--outdir",
         type=str,
         help="Output directory where the ini file and all output is written",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        help=(
+            "Flag to create ini, generate directories and/or submit."
+            "Options include:"
+            "ini - to generate the ini file"
+            "full - to generate ini and dag submission files"
+            "full-local - to generate ini and dag submission files and run locally"
+            "full-submit - to generate ini and dag submission files and submit to condor"
+        ),
+        default="full",
     )
     parser.add_argument(
         "--gracedb-url",
@@ -461,7 +471,6 @@ def create_parser():
         choices=list(CHANNEL_DICTS.keys()),
         help="Name of channel dictionary to use",
     )
-
     return parser
 
 
@@ -492,9 +501,18 @@ def main(args=None):
     channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
     filename = create_config_file(candidate, gracedb, outdir, channel_dict)
 
-    arguments = ["bilby_pipe", filename]
-    if args.local:
-        arguments.append("--local")
-    if args.submit:
-        arguments.append("--submit")
-    run_command_line(arguments)
+    if args.output == "ini":
+        logger.info(
+            "Generating ini with default settings. Run using bilby_pipe <ini file>"
+        )
+    else:
+        arguments = ["bilby_pipe", filename]
+        if args.output == "full":
+            logger.info("Generating dag submissions files")
+        if args.output == "full-local":
+            logger.info("Generating dag submission files, running locally")
+            arguments.append("--local")
+        if args.output == "full-submit":
+            logger.info("Generating dag submissions files, submitting to condor")
+            arguments.append("--submit")
+        run_command_line(arguments)
