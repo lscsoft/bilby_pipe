@@ -133,12 +133,21 @@ class TestInput(unittest.TestCase):
         self.assertEqual(inputs.minimum_frequency, 10.1)
         self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10.1, L1=10.1))
 
-    def test_minimum_frequency_dict(self):
+    def test_minimum_frequency_int_dict(self):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = "H1 L1"
         inputs.minimum_frequency = "{H1: 10, L1: 20}"
+        self.assertIsInstance(inputs.minimum_frequency, int)
         self.assertEqual(inputs.minimum_frequency, 10)
         self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10, L1=20))
+
+    def test_minimum_frequency_float_dict(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.minimum_frequency = "{H1: 10.1, L1: 20.1}"
+        self.assertIsInstance(inputs.minimum_frequency, float)
+        self.assertEqual(inputs.minimum_frequency, 10.1)
+        self.assertEqual(inputs.minimum_frequency_dict, dict(H1=10.1, L1=20.1))
 
     def test_maximum_frequency_int(self):
         inputs = bilby_pipe.main.Input()
@@ -161,12 +170,21 @@ class TestInput(unittest.TestCase):
         self.assertEqual(inputs.maximum_frequency, 10.1)
         self.assertEqual(inputs.maximum_frequency_dict, dict(H1=10.1, L1=10.1))
 
-    def test_maximum_frequency_dict(self):
+    def test_maximum_frequency_int_dict(self):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = "H1 L1"
         inputs.maximum_frequency = "{H1: 100, L1: 200}"
+        self.assertIsInstance(inputs.maximum_frequency, int)
         self.assertEqual(inputs.maximum_frequency, 200)
         self.assertEqual(inputs.maximum_frequency_dict, dict(H1=100, L1=200))
+
+    def test_maximum_frequency_float_dict(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = "H1 L1"
+        inputs.maximum_frequency = "{H1: 100.1, L1: 200.1}"
+        self.assertIsInstance(inputs.maximum_frequency, float)
+        self.assertEqual(inputs.maximum_frequency, 200.1)
+        self.assertEqual(inputs.maximum_frequency_dict, dict(H1=100.1, L1=200.1))
 
 
 if __name__ == "__main__":
