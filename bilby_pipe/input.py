@@ -399,7 +399,7 @@ class Input(object):
                 )
                 self._maximum_frequency = np.max(
                     [xx for xx in self._maximum_frequency_dict.values()]
-                )
+                ).item()
 
     @property
     def maximum_frequency_dict(self):
