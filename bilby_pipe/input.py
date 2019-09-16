@@ -356,7 +356,7 @@ class Input(object):
                 )
                 self._minimum_frequency = np.min(
                     [xx for xx in self._minimum_frequency_dict.values()]
-                )
+                ).item()
 
     @property
     def minimum_frequency_dict(self):
