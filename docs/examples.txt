@@ -37,6 +37,8 @@ samples from the prior.
 
 .. literalinclude:: ../examples/bbh_injection.ini
 
+Note you need to set the argument :code:`gaussian-noise = True`
+if you want to run on an injection.
 The prior is specified by a bilby prior file :code:`bbh_reduced.prior`:
 
 .. literalinclude:: ../examples/bbh_reduced.prior
