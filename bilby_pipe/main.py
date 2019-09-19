@@ -22,6 +22,7 @@ from .utils import (
     ArgumentsString,
     get_command_line_arguments,
     request_memory_generation_lookup,
+    tcolors,
 )
 from . import create_injections
 from . import slurm
@@ -114,6 +115,8 @@ class MainInput(Input):
 
         self.postprocessing_executable = args.postprocessing_executable
         self.postprocessing_arguments = args.postprocessing_arguments
+
+        self.check_source_model(args)
 
     @property
     def ini(self):
@@ -281,6 +284,20 @@ class MainInput(Input):
     def request_cpus(self, request_cpus):
         logger.info("request_cpus = {}".format(request_cpus))
         self._request_cpus = request_cpus
+
+    @staticmethod
+    def check_source_model(args):
+        """ Check the source model consistency with the approximant """
+        if "tidal" in args.waveform_approximant.lower():
+            if "neutron_star" not in args.frequency_domain_source_model.lower():
+                logger.warning(
+                    tcolors.WARNING
+                    + "You appear to be using a tidal waveform with the "
+                    + "{} source model. ".format(args.frequency_domain_source_model)
+                    + "You may want to use `frequency-domain-source-model="
+                    + "lal_binary_neutron_star`."
+                    + tcolors.END
+                )
 
 
 class Dag(object):
@@ -1134,4 +1151,8 @@ def main():
     Dag(inputs)
 
     if len(unknown_args) > 1:
-        logger.warning("Unrecognized arguments {}".format(unknown_args))
+        logger.warning(
+            tcolors.WARNING
+            + "Unrecognized arguments {}".format(unknown_args)
+            + tcolors.END
+        )
