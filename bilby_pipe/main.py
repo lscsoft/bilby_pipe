@@ -869,7 +869,7 @@ class Dag(object):
                 name=job_name,
                 executable=shutil.which("bilby_pipe_plot"),
                 submit=self.inputs.submit_directory,
-                request_memory="16 GB",
+                request_memory="64 GB",
                 getenv=self.getenv,
                 universe=universe,
                 initialdir=self.initialdir,
