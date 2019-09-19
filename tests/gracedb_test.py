@@ -116,9 +116,10 @@ class TestGraceDB(unittest.TestCase):
         channel_dict = dict(
             H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
         )
+        webdir = "."
         del candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
         with self.assertRaises(BilbyPipeError):
-            gracedb.create_config_file(candidate, gracedb_uid, channel_dict, self.outdir)
+            gracedb.create_config_file(candidate, gracedb_uid, channel_dict, self.outdir, webdir)
 
     # def test_determine_prior_file_from_parameters(self):
     #     from bilby_pipe.input import Input

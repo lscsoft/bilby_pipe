@@ -268,7 +268,7 @@ def prior_lookup(duration, scale_factor, outdir):
     return prior_file, roq_folder, duration, minimum_frequency, maximum_frequency
 
 
-def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
+def create_config_file(candidate, gracedb, outdir, channel_dict, webdir, roq=True):
     """ Creates ini file from defaults and candidate contents
 
     Parameters
@@ -281,6 +281,8 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
         Output directory where the ini file and all output is written
     channel_dict: dict
         Dictionary of channel names
+    webdir: str
+        Directory to store summary pages
     roq: bool
         If True, use the default ROQ settings if required
 
@@ -325,6 +327,7 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, roq=True):
         roq_scale_factor=scale_factor,
         sampler="dynesty",
         sampler_kwargs="{nlive: 1000, walks: 390, check_point_plot=True, n_check_point: 10000}",
+        webdir=webdir,
         create_plots=True,
         local_generation=True,
         local_plot=True,
@@ -471,6 +474,15 @@ def create_parser():
         choices=list(CHANNEL_DICTS.keys()),
         help="Name of channel dictionary to use",
     )
+    parser.add_argument(
+        "--webdir",
+        type=str,
+        default=None,
+        help=(
+            "Directory to store summary pages. If not given, defaults to "
+            "outdir/results_page"
+        ),
+    )
     return parser
 
 
@@ -498,8 +510,13 @@ def main(args=None):
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
 
+    if args.webdir is not None:
+        webdir = args.webdir
+    else:
+        webdir = os.path.join(outdir, "results_page")
+
     channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
-    filename = create_config_file(candidate, gracedb, outdir, channel_dict)
+    filename = create_config_file(candidate, gracedb, outdir, channel_dict, webdir)
 
     if args.output == "ini":
         logger.info(
