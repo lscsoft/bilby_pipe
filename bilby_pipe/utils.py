@@ -14,6 +14,14 @@ import subprocess
 from pathlib import Path
 
 
+class tcolors:
+    WARNING = "\u001b[31m"
+    KEY = "\033[93m"
+    VALUE = "\033[91m"
+    HIGHLIGHT = "\033[95m"
+    END = "\033[0m"
+
+
 class BilbyPipeError(Exception):
     def __init__(self, message):
         super().__init__(message)
