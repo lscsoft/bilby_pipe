@@ -67,7 +67,7 @@ class MainInput(Input):
 
     def __init__(self, args, unknown_args):
         logger.debug("Creating new Input object")
-        logger.info("Command line arguments: {}".format(args))
+        logger.debug("Command line arguments: {}".format(args))
 
         self.unknown_args = unknown_args
         self.ini = args.ini
@@ -259,7 +259,7 @@ class MainInput(Input):
 
     @request_memory.setter
     def request_memory(self, request_memory):
-        logger.info("request_memory={}GB".format(request_memory))
+        logger.info("Setting analysis request_memory={}GB".format(request_memory))
         self._request_memory = "{} GB".format(request_memory)
 
     @property
@@ -273,7 +273,9 @@ class MainInput(Input):
             request_memory_generation = request_memory_generation_lookup(
                 self.duration, roq=roq
             )
-        logger.info("request_memory_generation={}GB".format(request_memory_generation))
+        logger.info(
+            "Setting request_memory_generation={}GB".format(request_memory_generation)
+        )
         self._request_memory_generation = "{} GB".format(request_memory_generation)
 
     @property
@@ -282,7 +284,7 @@ class MainInput(Input):
 
     @request_cpus.setter
     def request_cpus(self, request_cpus):
-        logger.info("request_cpus = {}".format(request_cpus))
+        logger.info("Setting analysis request_cpus = {}".format(request_cpus))
         self._request_cpus = request_cpus
 
     @staticmethod
@@ -510,10 +512,13 @@ class Dag(object):
         """ Create all the condor jobs and add them to the dag """
 
         if self.inputs.local_generation:
-            logger.info("All data will be grabbed in the local universe")
+            logger.info(
+                "Data generation done locally: please do not use this when "
+                "submitting a large number of jobs"
+            )
             universe = "local"
         else:
-            logger.info(
+            logger.debug(
                 "All data will be grabbed in the {} universe".format(self.universe)
             )
             universe = self.universe
