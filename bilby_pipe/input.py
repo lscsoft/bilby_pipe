@@ -252,7 +252,7 @@ class Input(object):
     def duration(self, duration):
         self._duration = duration
         if duration is not None:
-            logger.info("Setting segment duration {}".format(duration))
+            logger.info("Setting segment duration {}s".format(duration))
 
     @property
     def injection_file(self):
@@ -453,7 +453,7 @@ class Input(object):
         else:
             raise FileNotFoundError("No prior file {} available".format(prior_file))
 
-        logger.info("Prior-file set to {}".format(self._prior_file))
+        logger.info("Setting prior-file to {}".format(self._prior_file))
 
     @property
     def distance_marginalization_lookup_table(self):
