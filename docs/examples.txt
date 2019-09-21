@@ -62,16 +62,16 @@ generates ini files and automates the process of determining the relevant
 prior (the output ini file can subsequently be edited as the user wants).
 
 This command line program automates the retrieval of the trigger time and 
-chirp mass of the event and writes an appropriate ini based on these 
-parameters.
+chirp mass of the event and writes an appropriate ini and prior file based on 
+these parameters.
 
-GraceDB ID vs GraceDB coinc file 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using GraceDB ID vs GraceDB event file 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The user can pass either a GraceDB ID :code:`--gracedb` or a coinc.json file
-:code:`--coinc` of an event to obtain to generate an appropriate ini file 
-(note, the coinc file should contain the same information that is retrieved
-from GraceDB using the event ID).
+The user can pass either a GraceDB ID :code:`--gracedb` or a json file with
+the information of a GraceDB event :code:`--json` of an event to obtain to 
+generate an appropriate ini file (note, the json file should contain the 
+same information that is retrieved from GraceDB using the event ID).
 
 For example, running :code:`bilby_pipe_gracedb` with the following GraceDB ID
 
@@ -79,25 +79,28 @@ For example, running :code:`bilby_pipe_gracedb` with the following GraceDB ID
 
    $ bilby_pipe_gracedb --gracedb G298936
 
-will produce an appropriate ini file for that event and a submission file 
-that can be submitted using :code:`--submit`). This method will also write a 
-json format file that has information of the event from GraceDB.
+will produce an output directory :code:`outdir_G298936` with json file :code:
+`G298936.json` containing information of the event, an ini file 
+:code:`bilby_config.ini` with settings appropriate for that event, a prior 
+file, and a complete configuration file :code:`G298936_complete_config.ini`. 
+By default, this will produce all the subdirectories and submission files 
+required to submit jobs to condor.
 
 If you have a coinc json file for an event with the following format,
 
-.. literalinclude:: ../examples/G298936.json
+.. literalinclude:: ../examples/gracedb_examples/G298936.json
 
 by running :code:`bilby_pipe_gracedb` with the path to the coinc file,
 
 .. code-block:: console
 
-   $ bilby_pipe_gracedb --coinc G298936.json
+   $ bilby_pipe_gracedb --json G298936.json
 
 will also generate an ini file.
 
 Both of the above commands will produce the following ini,
 
-.. literalinclude:: ../examples/G298936.ini
+.. literalinclude:: ../examples/gracedb_examples/bilby_config.ini
 
 given we have generated the ini file based on the same event, G298936.
 
