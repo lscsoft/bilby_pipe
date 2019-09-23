@@ -444,7 +444,11 @@ def generate_prior_from_template(
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(prog="bilby_pipe gracedb access", usage=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        prog="bilby_pipe gracedb access",
+        usage=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
     group1.add_argument("--json", type=str, help="Path to json gracedb file")
