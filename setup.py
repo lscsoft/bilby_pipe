@@ -70,7 +70,7 @@ def get_long_description():
     return long_description
 
 
-VERSION = "0.2.5"
+VERSION = "0.2.6"
 version_file = write_version_file(VERSION)
 long_description = get_long_description()
 
@@ -90,14 +90,14 @@ setup(
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "bilby>=0.5.4",
+        "bilby>=0.5.7",
         "scipy>=1.2.0",
         "gwpy",
         "matplotlib",
         "numpy",
         "tqdm",
         "corner",
-        "dynesty>=0.9.7",
+        "dynesty>=1.0.0",
         "pesummary",
     ],
     entry_points={

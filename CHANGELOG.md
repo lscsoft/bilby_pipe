@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.2.6 : 2019-09-23
+### Added
+-   Testing of min/max frequencies
+-   A warning message for cases when "tidal" waveforms are used without the appropriate frequency domain source model
+
+### Changes
+-   Improvements to the gracedb parsing in preparation for online running
+-   Improvements to the logging output
+
 ## v0.2.5 : 2019-08-22
 ### Changes
 -   Fixed bug in time-jitter option (default was None, now True)
