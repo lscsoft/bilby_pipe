@@ -13,8 +13,7 @@ from .utils import (
     run_command_line,
 )
 
-
-fiducial_injections = {
+fiducial_bbh_injections = {
     "128s": dict(
         chirp_mass=2.1,
         mass_ratio=0.9,
@@ -69,6 +68,29 @@ fiducial_injections = {
 }
 
 
+fiducial_bns_injections = {
+    "128s_tidal": dict(
+        chirp_mass=1.486,
+        mass_ratio=0.9,
+        a_1=0.04,
+        a_2=0.01,
+        tilt_1=1.0264673717225983,
+        tilt_2=2.1701305583885513,
+        phi_12=5.0962562029664955,
+        phi_jl=2.518241237045709,
+        luminosity_distance=100.0,
+        dec=0.2205292600865073,
+        ra=3.952677097361719,
+        theta_jn=0.25,
+        psi=2.6973435044499543,
+        phase=3.686990398567503,
+        geocent_time=-0.01,
+        lambda_1=1500,
+        lambda_2=750,
+    )
+}
+
+
 def get_date_string():
     return time.strftime("%y%m%d_%H%M")
 
@@ -108,9 +130,13 @@ def get_default_setup(args, review_name):
 
     if args.roq:
         base_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
-        base_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(
-            args.prior
-        )
+        if args.roq_folder is None:
+            base_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(
+                args.prior
+            )
+        else:
+            base_dict["roq-folder"] = args.roq_folder
+
     if args.zero_noise:
         base_dict["zero-noise"] = True
 
@@ -145,7 +171,7 @@ def fiducial_bbh(args):
     injection_filename = "{}/injection_file.json".format(rundir)
     with open(injection_filename, "w") as file:
         json.dump(
-            dict(injections=fiducial_injections[args.prior]),
+            dict(injections=fiducial_bbh_injections[args.prior]),
             file,
             indent=2,
             cls=bilby.core.result.BilbyJsonEncoder,
@@ -157,8 +183,44 @@ def fiducial_bbh(args):
 
 
 def fiducial_bns(args):
-    raise Exception("Not implemented yet")
-    filename = None
+    """ Review test: fiducial binary neutron star in Gaussian noise
+
+    Parameters
+    ----------
+    args: Namespace
+        The command line arguments namespace object
+
+    Returns
+    -------
+    filename: str
+        A filename of the ini file generated
+    """
+    config_dict, rundir, filename = get_default_setup(args, "fiducial_bns")
+    config_dict["create_plots"] = True
+    config_dict["create_summary"] = True
+    config_dict["trigger-time"] = 0
+    config_dict["gaussian-noise"] = True
+    config_dict["injection"] = True
+    config_dict["n-injection"] = 1
+    config_dict["generation-seed"] = 1010
+    config_dict["n-parallel"] = 4
+
+    config_dict["frequency_domain_source_model"] = "lal_binary_neutron_star"
+    config_dict["waveform-approximant"] = "IMRPhenomPv2_NRTidal"
+
+    config_dict["sampler_kwargs"] = "{walks=500, n_check_point=10000}"
+
+    injection_filename = "{}/injection_file.json".format(rundir)
+    with open(injection_filename, "w") as file:
+        json.dump(
+            dict(injections=fiducial_bns_injections[args.prior]),
+            file,
+            indent=2,
+            cls=bilby.core.result.BilbyJsonEncoder,
+        )
+    config_dict["injection-file"] = injection_filename
+
+    write_config_file(config_dict, filename)
     return filename
 
 
@@ -184,7 +246,7 @@ def pp_test(args):
     config_dict["n-injection"] = 100
     config_dict["reference_frequency"] = 100
     config_dict["gaussian-noise"] = True
-    if args.prior == "128s":
+    if args.prior in ["128s", "128s_tidal"]:
         config_dict[
             "sampler_kwargs"
         ] = "{check_point_plot=False, walks=800, n_check_point=10000}"
@@ -205,6 +267,9 @@ def main():
     parser.add_argument("--bbh", action="store_true", help="Fiducial BBH test")
     parser.add_argument("--bns", action="store_true", help="Fiducial BNS test")
     parser.add_argument("--roq", action="store_true", help="Use ROQ likelihood")
+    parser.add_argument(
+        "--roq-folder", type=str, help="The ROQ folder to use, defaults to IMRPhenomPv2"
+    )
     parser.add_argument("--pp-test", action="store_true", help="PP test test")
     parser.add_argument(
         "--zero-noise", action="store_true", help="Run BBH and BNS test with zero noise"

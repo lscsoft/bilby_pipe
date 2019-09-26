@@ -103,6 +103,7 @@ DEFAULT_DISTANCE_LOOKUPS = {
     "32s": (1e2, 3e3),
     "64s": (50, 2e3),
     "128s": (1, 5e2),
+    "128s_tidal": (1, 5e2),
 }
 
 DURATION_LOOKUPS = {
@@ -113,6 +114,7 @@ DURATION_LOOKUPS = {
     "32s": 32,
     "64s": 64,
     "128s": 128,
+    "128s_tidal": 128,
 }
 
 
@@ -124,6 +126,7 @@ MAXIMUM_FREQUENCY_LOOKUPS = {
     "32s": 2048,
     "64s": 2048,
     "128s": 4096,
+    "128s_tidal": 2048,
 }
 
 
