@@ -53,7 +53,7 @@ will produce a bilby_pipe :code:`injection_file`. This can be found in the
 :code:`data` directory of the output. It is a simple pandas dataframe stored
 in the json format containing the parameters of the injection(s).
 
-Running on GraceDb events
+Running on GraceDB events
 -------------------------
 
 The :code:`bilby_pipe` code itself does not run directly on GraceDB event IDs.
@@ -118,3 +118,4 @@ main GraceDB page OR the GraceDB-playground page.
 
 If a :code:`--gracedb-url` is not specified the default url is set to 
 :code:`https://gracedb.ligo.org/api/`
+
