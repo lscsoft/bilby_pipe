@@ -170,6 +170,22 @@ MAXIMUM_FREQUENCY_LOOKUPS = {
 }
 
 
+SAMPLER_SETTINGS = {
+    "Default": {
+        "nlive": 1000,
+        "walks": 390,
+        "check_point_plot": True,
+        "n_check_point": 10000,
+    },
+    "FastTest": {
+        "nlive": 100,
+        "walks": 60,
+        "check_point_plot": True,
+        "n_check_point": 1000,
+    },
+}
+
+
 def get_command_line_arguments():
     """ Helper function to return the list of command line arguments """
     return sys.argv[1:]

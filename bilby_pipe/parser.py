@@ -511,8 +511,12 @@ def create_parser(top_level=True):
     )
     sampler_parser.add(
         "--sampler-kwargs",
-        default=None,
-        help="Dictionary of sampler-kwargs to pass in, e.g., {nlive: 1000}",
+        type=str,
+        default="Default",
+        help=(
+            "Dictionary of sampler-kwargs to pass in, e.g., {nlive: 1000} OR "
+            "pass pre-defined set of sampler-kwargs {Default, FastTest}"
+        ),
     )
 
     # Waveform arguments

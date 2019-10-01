@@ -268,7 +268,9 @@ def prior_lookup(duration, scale_factor, outdir):
     return prior_file, roq_folder, duration, minimum_frequency, maximum_frequency
 
 
-def create_config_file(candidate, gracedb, outdir, channel_dict, webdir, roq=True):
+def create_config_file(
+    candidate, gracedb, outdir, channel_dict, sampler_kwargs, webdir, roq=True
+):
     """ Creates ini file from defaults and candidate contents
 
     Parameters
@@ -281,6 +283,8 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, webdir, roq=Tru
         Output directory where the ini file and all output is written
     channel_dict: dict
         Dictionary of channel names
+    sampler_kwargs: str
+        Set of sampler arguments, or option for set of sampler arguments
     webdir: str
         Directory to store summary pages
     roq: bool
@@ -326,7 +330,7 @@ def create_config_file(candidate, gracedb, outdir, channel_dict, webdir, roq=Tru
         duration=duration,
         roq_scale_factor=scale_factor,
         sampler="dynesty",
-        sampler_kwargs="{nlive: 1000, walks: 390, check_point_plot=True, n_check_point: 10000}",
+        sampler_kwargs=sampler_kwargs,
         webdir=webdir,
         create_plots=True,
         local_generation=True,
@@ -451,6 +455,7 @@ def create_parser():
     parser.add_argument(
         "--output",
         type=str,
+        choices=["ini", "full", "full-local", "full-submit"],
         help=(
             "Flag to create ini, generate directories and/or submit."
             "Options include:"
@@ -473,6 +478,15 @@ def create_parser():
         default="online",
         choices=list(CHANNEL_DICTS.keys()),
         help="Name of channel dictionary to use",
+    )
+    parser.add_argument(
+        "--sampler-kwargs",
+        type=str,
+        default="Default",
+        help=(
+            "Dictionary of sampler-kwargs to pass in, e.g., {nlive: 1000} OR "
+            "pass pre-defined set of sampler-kwargs {Default, FastTest}"
+        ),
     )
     parser.add_argument(
         "--webdir",
@@ -515,8 +529,11 @@ def main(args=None):
     else:
         webdir = os.path.join(outdir, "results_page")
 
+    sampler_kwargs = args.sampler_kwargs
     channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
-    filename = create_config_file(candidate, gracedb, outdir, channel_dict, webdir)
+    filename = create_config_file(
+        candidate, gracedb, outdir, channel_dict, sampler_kwargs, webdir
+    )
 
     if args.output == "ini":
         logger.info(

@@ -15,7 +15,14 @@ import matplotlib
 matplotlib.use("agg")  # noqa
 import bilby
 
-from bilby_pipe.utils import DataDump, logger, BilbyPipeError, convert_string_to_dict
+from bilby_pipe.utils import (
+    DataDump,
+    logger,
+    BilbyPipeError,
+    convert_string_to_dict,
+    SAMPLER_SETTINGS,
+)
+
 from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.input import Input
@@ -167,9 +174,14 @@ class DataAnalysisInput(Input):
     @sampler_kwargs.setter
     def sampler_kwargs(self, sampler_kwargs):
         if sampler_kwargs is not None:
-            self._sampler_kwargs = convert_string_to_dict(
-                sampler_kwargs, "sampler-kwargs"
-            )
+            if sampler_kwargs.lower() == "default":
+                self._sampler_kwargs = SAMPLER_SETTINGS["Default"]
+            elif sampler_kwargs.lower() == "fasttest":
+                self._sampler_kwargs = SAMPLER_SETTINGS["FastTest"]
+            else:
+                self._sampler_kwargs = convert_string_to_dict(
+                    sampler_kwargs, "sampler-kwargs"
+                )
         else:
             self._sampler_kwargs = dict()
 
