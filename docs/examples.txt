@@ -113,9 +113,24 @@ main GraceDB page OR the GraceDB-playground page.
 
 .. code-block:: text
 
-   GraceDB url: "https://gracedb.ligo.org/api/"
-   GraceDB-playground url: "https://gracedb-playground.ligo.org/api/"
+   GraceDB url:              "https://gracedb.ligo.org/api/"
+   GraceDB-playground url:   "https://gracedb-playground.ligo.org/api/"
 
 If a :code:`--gracedb-url` is not specified the default url is set to 
 :code:`https://gracedb.ligo.org/api/`
 
+Output methods
+^^^^^^^^^^^^^^
+
+There is a flag :code:`--output` that gives the user four different 
+output options, these include: 
+
+.. code-block:: text
+
+   ini:         to generate the ini
+   full:        to generate ini and dag submission files
+   full-local:  to generate ini and dag submission files and run locally
+   full-submit: to generate ini and dag submission files and submit to condor
+
+If an :code:`--output` is not specified the default option is :code:`full`
+This will generate an output directory with all the submission files.
