@@ -1,4 +1,4 @@
-""" Tool for running online bilby PE using gracedb events
+""" Tool for running online bilby PE using GraceDB events
 
 The functionality of much of these utility assumes the user is running on the
 CIT cluster, e.g. the ROQ and calibration directories are in there usual place
@@ -407,7 +407,8 @@ def generate_prior_from_template(
 ):
     """ Generate a prior file from a template and write it to file
 
-    Parameters:
+    Parameters
+    ----------
     duration: float
         The segment duration
     roq_params: dict

@@ -28,7 +28,7 @@ class BilbyPipeError(Exception):
 
 
 class ArgumentsString(object):
-    """ A convienience object to aid in the creation of argument strings """
+    """ A convenience object to aid in the creation of argument strings """
 
     def __init__(self):
         self.argument_list = []
