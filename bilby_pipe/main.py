@@ -40,7 +40,7 @@ class MainInput(Input):
     parser: BilbyArgParser, optional
         The parser containing the command line / ini file inputs
     args_list: list, optional
-        A list of the arguments to parse. Defauts to `sys.argv[1:]`
+        A list of the arguments to parse. Defaults to `sys.argv[1:]`
 
     Attributes
     ----------

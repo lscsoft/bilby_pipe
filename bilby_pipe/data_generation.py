@@ -114,7 +114,7 @@ class DataGenerationInput(Input):
     def create_data(self, args):
         """ Function to iterarate through data generation method
 
-        Note, the data methods are mutually exclusive and only one can given to
+        Note, the data methods are mutually exclusive and only one can be given to
         the parser.
 
         Parameters
@@ -376,7 +376,7 @@ class DataGenerationInput(Input):
         data: gwpy.timeseries.TimeSeries
             The data into which to inject the signal
         ifo: bilby.gw.detector.Interferometer
-            The interferometer for which the data relates too
+            The interferometer for which the data relates to
 
         Returns
         -------
@@ -499,7 +499,7 @@ class DataGenerationInput(Input):
     def _get_data(self, det, channel_type, start_time, end_time, resample=True):
         """ Read in data using gwpy
 
-        This first uses the `gwpy.timeseries.TimeSeries.get()` method to acces
+        This first uses the `gwpy.timeseries.TimeSeries.get()` method to access
         the data, if this fails, it then attempts to use `fetch_open_data()` as
         a fallback.
 
@@ -553,7 +553,7 @@ class DataGenerationInput(Input):
         Returns
         -------
         data: TimeSeries
-            If succesful, the data, otherwise None is returned
+            If successful, the data, otherwise None is returned
 
         """
 
@@ -620,7 +620,7 @@ class DataGenerationInput(Input):
         Returns
         -------
         data: TimeSeries
-            If succesful, the data, otherwise None is returned
+            If successful, the data, otherwise None is returned
 
         """
         logger.debug("Attempt to locate data")
@@ -664,7 +664,7 @@ class DataGenerationInput(Input):
         Returns
         -------
         data: TimeSeries
-            If succesful, the data, otherwise None is returned
+            If successful, the data, otherwise None is returned
 
         """
 
