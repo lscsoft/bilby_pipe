@@ -1,9 +1,9 @@
 import argparse
 
 from bilby_pipe.bilbyargparser import BilbyArgParser
-from . import utils
+from .utils import noneint, nonestr, nonefloat, get_version_information
 
-__version__ = utils.get_version_information()
+__version__ = get_version_information()
 
 
 class StoreBoolean(argparse.Action):
@@ -59,15 +59,15 @@ def create_parser(top_level=True):
     calibration_parser = parser.add_argument_group("Calibration arguments")
     calibration_parser.add(
         "--calibration-model",
-        type=str,
+        type=nonestr,
         default=None,
-        choices=["CubicSpline"],
+        choices=["CubicSpline", None],
         help="Choice of calibration model, if None, no calibration is used",
     )
 
     calibration_parser.add(
         "--spline-calibration-envelope-dict",
-        type=str,
+        type=nonestr,
         default=None,
         help=("Dictionary pointing to the spline calibration envelope files"),
     )
@@ -81,7 +81,7 @@ def create_parser(top_level=True):
 
     calibration_parser.add(
         "--spline-calibration-amplitude-uncertainty-dict",
-        type=str,
+        type=nonestr,
         default=None,
         help=(
             "Dictionary of the amplitude uncertainties for the constant "
@@ -91,7 +91,7 @@ def create_parser(top_level=True):
 
     calibration_parser.add(
         "--spline-calibration-phase-uncertainty-dict",
-        type=str,
+        type=nonestr,
         default=None,
         help=(
             "Dictionary of the phase uncertainties for the constant "
@@ -101,19 +101,28 @@ def create_parser(top_level=True):
 
     if top_level is False:
         parser.add("--idx", type=int, help="The level A job index", default=0)
-        parser.add("--cluster", type=str, help="The condor cluster ID", default=None)
-        parser.add("--process", type=str, help="The condor process ID", default=None)
-        parser.add("--data-label", default=None, help="Label used for the data dump")
+        parser.add(
+            "--cluster", type=nonestr, help="The condor cluster ID", default=None
+        )
+        parser.add(
+            "--process", type=nonestr, help="The condor process ID", default=None
+        )
+        parser.add(
+            "--data-label",
+            type=nonestr,
+            default=None,
+            help="Label used for the data dump",
+        )
 
     data_gen_pars = parser.add_argument_group("Data generation arguments")
     data_gen_pars.add(
         "--gps-file",
-        type=str,
+        type=nonestr,
         help="File containing segment GPS start times",
         default=None,
     )
     data_gen_pars.add(
-        "--trigger-time", default=None, type=float, help="The trigger time"
+        "--trigger-time", default=None, type=nonefloat, help="The trigger time"
     )
     data_gen_pars.add(
         "--gaussian-noise",
@@ -123,13 +132,13 @@ def create_parser(top_level=True):
     data_gen_pars.add(
         "--data-dict",
         default=None,
-        type=str,
+        type=nonestr,
         help="Dictionary of paths to gwf, or hdf5 data files",
     )
     data_gen_pars.add(
         "--data-format",
         default=None,
-        type=str,
+        type=nonestr,
         help=(
             "If given, the data format to pass to "
             " `gwpy.timeseries.TimeSeries.read(), see "
@@ -173,11 +182,11 @@ def create_parser(top_level=True):
     det_parser.add(
         "--generation-seed",
         default=None,
-        type=int,
+        type=noneint,
         help="Random seed used during data generation",
     )
     det_parser.add(
-        "--psd-dict", type=str, default=None, help="Dictionary of PSD files to use"
+        "--psd-dict", type=nonestr, default=None, help="Dictionary of PSD files to use"
     )
     det_parser.add(
         "--psd-fractional-overlap",
@@ -208,7 +217,7 @@ def create_parser(top_level=True):
     det_parser.add(
         "--psd-start-time",
         default=None,
-        type=float,
+        type=nonefloat,
         help=(
             "Start time of data (relative to the segment start) used to "
             " generate the PSD. Defaults to psd-duration before the"
@@ -218,7 +227,7 @@ def create_parser(top_level=True):
     det_parser.add(
         "--maximum-frequency",
         default=None,
-        type=str,
+        type=nonestr,
         help=(
             "The maximum frequency, given either as a float for all detectors "
             "or as a dictionary (see minimum-frequency)"
@@ -253,13 +262,13 @@ def create_parser(top_level=True):
     )
     injection_parser.add(
         "--injection-file",
-        type=str,
+        type=nonestr,
         default=None,
         help="Injection file: overrides `n-injection`.",
     )
     injection_parser.add_arg(
         "--n-injection",
-        type=int,
+        type=noneint,
         help="Number of injections to generate by sampling from the prior",
     )
 
@@ -309,7 +318,7 @@ def create_parser(top_level=True):
     )
     submission_parser.add(
         "--request-memory-generation",
-        type=float,
+        type=nonefloat,
         default=None,
         help="Memory allocation request (GB) for data generation step",
     )
@@ -320,7 +329,10 @@ def create_parser(top_level=True):
         help="CPU allocation request (required multi-processing jobs)",
     )
     submission_parser.add(
-        "--singularity-image", type=str, default=None, help="Singularity image to use"
+        "--singularity-image",
+        type=nonestr,
+        default=None,
+        help="Singularity image to use",
     )
     submission_parser.add(
         "--scheduler",
@@ -330,7 +342,7 @@ def create_parser(top_level=True):
     )
     submission_parser.add(
         "--scheduler-args",
-        type=str,
+        type=nonestr,
         default=None,
         help="Command line arguments to pass to scheduler jobs",
     )
@@ -342,7 +354,7 @@ def create_parser(top_level=True):
     )
     submission_parser.add(
         "--scheduler-env",
-        type=str,
+        type=nonestr,
         default=None,
         help="Environment scheduler sources during runtime",
     )
@@ -374,7 +386,7 @@ def create_parser(top_level=True):
     likelihood_parser.add(
         "--distance-marginalization-lookup-table",
         default=None,
-        type=str,
+        type=nonestr,
         help="Path to the distance-marginalization lookup table",
     )
 
@@ -427,7 +439,7 @@ def create_parser(top_level=True):
     output_parser.add("--email", type=str, help="Email for notifications")
     output_parser.add(
         "--existing-dir",
-        type=str,
+        type=nonestr,
         default=None,
         help=(
             "If given, add results to an directory with an an existing"
@@ -436,7 +448,7 @@ def create_parser(top_level=True):
     )
     output_parser.add(
         "--webdir",
-        type=str,
+        type=nonestr,
         default=None,
         help=(
             "Directory to store summary pages. If not given, defaults to "
@@ -461,12 +473,12 @@ def create_parser(top_level=True):
             " search over the coalesence time"
         ),
     )
-    prior_parser.add("--prior-file", default=None, help="The prior file")
+    prior_parser.add("--prior-file", type=nonestr, default=None, help="The prior file")
 
     postprocessing_parser = parser.add_argument_group(title="Post processing arguments")
     postprocessing_parser.add(
         "--postprocessing-executable",
-        type=str,
+        type=nonestr,
         default=None,
         help=(
             "An executable name for postprocessing. A single postprocessing "
@@ -475,7 +487,7 @@ def create_parser(top_level=True):
     )
     postprocessing_parser.add(
         "--postprocessing-arguments",
-        type=str,
+        type=nonestr,
         nargs="*",
         default=None,
         help="Arguments to pass to the postprocessing executable",
@@ -489,7 +501,7 @@ def create_parser(top_level=True):
         help="Sampler to use, or a list of samplers to use",
     )
     sampler_parser.add(
-        "--sampling-seed", default=None, type=int, help="Random sampling seed"
+        "--sampling-seed", default=None, type=noneint, help="Random sampling seed"
     )
     sampler_parser.add(
         "--n-parallel",
