@@ -95,6 +95,46 @@ class DataDump(object):
         return res
 
 
+class NoneWrapper(object):
+    """
+    Wrapper around other types so that "None" always evaluates to None.
+
+    This is needed to properly read None from ini files.
+
+    Example
+    -------
+    >>> nonestr = NoneWrapper(str)
+    >>> nonestr("None")
+    None
+    >>> nonestr(None)
+    None
+    >>> nonestr("foo")
+    "foo"
+
+    >>> noneint = NoneWrapper(int)
+    >>> noneint("None")
+    None
+    >>> noneint(None)
+    None
+    >>> noneint(0)
+    0
+    """
+
+    def __init__(self, type):
+        self.type = type
+
+    def __call__(self, val):
+        if val == "None" or val is None:
+            return None
+        else:
+            return self.type(val)
+
+
+nonestr = NoneWrapper(str)
+noneint = NoneWrapper(int)
+nonefloat = NoneWrapper(float)
+
+
 DEFAULT_DISTANCE_LOOKUPS = {
     "high_mass": (1e2, 5e3),
     "4s": (1e2, 5e3),
