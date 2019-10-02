@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.2.7 : 2019-10-02
+Minor release following small fixes
+
 ## v0.2.6 : 2019-09-23
 ### Added
 -   Testing of min/max frequencies
