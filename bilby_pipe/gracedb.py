@@ -444,33 +444,40 @@ def generate_prior_from_template(
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(prog="bilby_pipe gracedb access", usage=__doc__)
+    parser = argparse.ArgumentParser(
+        prog="bilby_pipe gracedb access",
+        usage=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
     group1.add_argument("--json", type=str, help="Path to json gracedb file")
     parser.add_argument(
         "--outdir",
         type=str,
-        help="Output directory where the ini file and all output is written",
+        help="Output directory where the ini file and all output is written.",
     )
     parser.add_argument(
         "--output",
         type=str,
         choices=["ini", "full", "full-local", "full-submit"],
         help=(
-            "Flag to create ini, generate directories and/or submit."
-            "Options include:"
-            "ini - to generate the ini file"
-            "full - to generate ini and dag submission files"
-            "full-local - to generate ini and dag submission files and run locally"
-            "full-submit - to generate ini and dag submission files and submit to condor"
+            "Flag to create ini, generate directories and/or submit. \n"
+            " ini         : generates ini file \n"
+            " full        : generates ini and dag submission files (default) \n"
+            " full-local  : generates ini and dag submission files and run locally \n"
+            " full-submit : generates ini and dag submission files and submits to condor \n"
         ),
         default="full",
     )
     parser.add_argument(
         "--gracedb-url",
         type=str,
-        help="GraceDB service url",
+        help=(
+            "GraceDB service url. \n"
+            " Main page  : https://gracedb.ligo.org/api/ (default) \n"
+            " Playground : https://gracedb-playground.ligo.org/api/ \n"
+        ),
         default="https://gracedb.ligo.org/api/",
     )
     parser.add_argument(
@@ -478,7 +485,11 @@ def create_parser():
         type=str,
         default="online",
         choices=list(CHANNEL_DICTS.keys()),
-        help="Name of channel dictionary to use",
+        help=(
+            "Channel dictionary. \n"
+            " online   : use for main GraceDB page events (default)\n"
+            " o2replay : use for playground GraceDB page events"
+        ),
     )
     parser.add_argument(
         "--sampler-kwargs",
@@ -494,8 +505,8 @@ def create_parser():
         type=str,
         default=None,
         help=(
-            "Directory to store summary pages. If not given, defaults to "
-            "outdir/results_page"
+            "Directory to store summary pages. \n"
+            " If not given, defaults to outdir/results_page"
         ),
     )
     return parser
@@ -538,7 +549,8 @@ def main(args=None):
 
     if args.output == "ini":
         logger.info(
-            "Generating ini with default settings. Run using bilby_pipe <ini file>"
+            "Generating ini with default settings. Run using the command: \n"
+            " $ bilby_pipe {}".format(filename)
         )
     else:
         arguments = ["bilby_pipe", filename]

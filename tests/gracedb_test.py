@@ -67,7 +67,7 @@ class TestGraceDB(unittest.TestCase):
     #    gracedb.read_from_gracedb(uid, gracedb_url, self.outdir)
 
     def test_read_from_json(self):
-        example_json_data = "examples/G298936.json"
+        example_json_data = "examples/gracedb_examples/G298936.json"
         out = gracedb.read_from_json(example_json_data)
         self.assertIsInstance(out, dict)
 
@@ -76,7 +76,7 @@ class TestGraceDB(unittest.TestCase):
             gracedb.read_from_json("not-a-file")
 
     # def test_create_config_file(self):
-    #     example_json_data = "examples/{}.json".format(self.example_gracedb_uid)
+    #     example_json_data = "examples/gracedb_examples/{}.json".format(self.example_gracedb_uid)
     #     candidate = gracedb.read_from_json(example_json_data)
     #     # Create ini file
     #     filename = gracedb.create_config_file(
@@ -93,7 +93,7 @@ class TestGraceDB(unittest.TestCase):
 
     # def test_create_config_file_roq(self):
     #     gracedb_uid = "G298936"
-    #     example_json_data = "examples/{}.json".format(gracedb_uid)
+    #     example_json_data = "examples/gracedb_examples/{}.json".format(gracedb_uid)
     #     candidate = gracedb.read_from_json(example_json_data)
     #     candidate["extra_attributes"]["CoincInspiral"]["mchirp"] = 2.1
     #     # Create ini file
@@ -111,7 +111,7 @@ class TestGraceDB(unittest.TestCase):
 
     def test_create_config_file_no_chirp_mass(self):
         gracedb_uid = "G298936"
-        example_json_data = "examples/{}.json".format(gracedb_uid)
+        example_json_data = "examples/gracedb_examples/{}.json".format(gracedb_uid)
         candidate = gracedb.read_from_json(example_json_data)
         channel_dict = dict(
             H1="GDS-CALIB_STRAIN_CLEAN", L1="GDS-CALIB_STRAIN_CLEAN", V1="Hrec_hoft_16384Hz"
@@ -131,7 +131,7 @@ class TestGraceDB(unittest.TestCase):
     #         self.assertTrue(prior in Input.get_default_prior_files())
 
     def test_parse_args(self):
-        example_json_data = "examples/{}.json".format(self.example_gracedb_uid)
+        example_json_data = "examples/gracedb_examples/{}.json".format(self.example_gracedb_uid)
         parser = gracedb.create_parser()
         args = parser.parse_args(["--json", example_json_data])
         self.assertEqual(args.gracedb, None)
@@ -142,7 +142,7 @@ class TestGraceDB(unittest.TestCase):
 
     def test_main(self):
         gracedb_uid = "G298936"
-        example_json_data = "examples/{}.json".format(gracedb_uid)
+        example_json_data = "examples/gracedb_examples/{}.json".format(gracedb_uid)
         parser = gracedb.create_parser()
         args = parser.parse_args(["--json", example_json_data])
         gracedb.main(args)

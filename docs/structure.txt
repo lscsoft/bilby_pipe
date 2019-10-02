@@ -14,9 +14,9 @@ user with five command line programs:
 4. `bilby_pipe_create_injection_file <create_injections.txt>`_
 5. `bilby_pipe_gracedb <gracedb.txt>`_
 
-For most users, only the first of these will be used in practise. In this
-document, we'll give a brief overview of how these are used internally to
-help developers orient themselves with the project.
+For most users, only the first or fifth of these will be used in practise.
+In this document, we'll give a brief overview of how these are used internally
+to help developers orient themselves with the project.
 
 Python Modules
 --------------
@@ -98,6 +98,13 @@ analysed.
 The "Data Analysis" jobs uses the `bilby_pipe_analysis
 <data_analysis.txt>`_ executable to create all the data which may be
 analysed.
+
+For the case of running on GraceDB events, `bilby_pipe` has an additional step
+to the typical workflow `bilby_pipe_gracedb <gracedb.txt>`_ exceutable. For
+this case the user can calls :code:`bilby_pipe_gracedb` along with either the
+GraceDB ID of the event or a json file containing information on the GraceDB
+event. For examples on using `bilby_pipe_gracedb` please see the section
+`Running on GraceDB events` under `Examples <example.txt>`_. 
 
 See the table of contents below for an overview of the API.
 
