@@ -159,7 +159,6 @@ def fiducial_bbh(args):
     config_dict, rundir, filename = get_default_setup(args, "fiducial_bbh")
     config_dict["create_plots"] = True
     config_dict["create_summary"] = True
-    config_dict["trigger-time"] = 0
     config_dict["gaussian-noise"] = True
     config_dict["injection"] = True
     config_dict["n-injection"] = 1
@@ -205,7 +204,6 @@ def fiducial_bns(args):
     config_dict, rundir, filename = get_default_setup(args, "fiducial_bns")
     config_dict["create_plots"] = True
     config_dict["create_summary"] = True
-    config_dict["trigger-time"] = 0
     config_dict["gaussian-noise"] = True
     config_dict["injection"] = True
     config_dict["n-injection"] = 1
@@ -255,11 +253,10 @@ def pp_test(args):
     config_dict, rundir, filename = get_default_setup(args, "pp_test")
 
     config_dict["create_plots"] = False
-    config_dict["trigger-time"] = 0
     config_dict["injection"] = True
-    config_dict["n-injection"] = 100
-    config_dict["reference_frequency"] = 100
     config_dict["gaussian-noise"] = True
+    config_dict["n-simulation"] = 100
+    config_dict["reference_frequency"] = 100
     if args.prior in ["128s", "128s_tidal"]:
         config_dict[
             "sampler_kwargs"
