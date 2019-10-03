@@ -17,10 +17,12 @@ from bilby.gw.detector import PowerSpectralDensity
 
 from bilby_pipe.utils import (
     logger,
+    log_version_information,
     BilbyPipeError,
     convert_string_to_dict,
     DataDump,
     is_a_power_of_2,
+    get_version_information,
 )
 from bilby_pipe.main import parse_args
 from bilby_pipe.input import Input
@@ -69,6 +71,8 @@ class DataGenerationInput(Input):
             command_line_args=args.__dict__,
             unknown_command_line_args=unknown_args,
             injection_parameters=None,
+            bilby_version=bilby.__version__,
+            bilby_pipe_version=get_version_information(),
         )
         self.injection_parameters = None
 
@@ -800,6 +804,7 @@ def create_generation_parser():
 
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
+    log_version_information()
     data = DataGenerationInput(args, unknown_args)
     if args.likelihood_type == "ROQGravitationalWaveTransient":
         data.save_roq_weights()

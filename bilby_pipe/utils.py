@@ -236,7 +236,7 @@ def check_directory_exists_and_if_not_mkdir(directory):
         logger.debug("Directory {} exists".format(directory))
 
 
-def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False):
+def setup_logger(outdir=None, label=None, log_level="INFO"):
     """ Setup logging output: call at the start of the script to use
 
     Parameters
@@ -247,8 +247,6 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
         ['debug', 'info', 'warning']
         Either a string from the list above, or an integer as specified
         in https://docs.python.org/2/library/logging.html#logging-levels
-    print_version: bool
-        If true, print version information
     """
 
     if "-v" in sys.argv:
@@ -297,9 +295,13 @@ def setup_logger(outdir=None, label=None, log_level="INFO", print_version=False)
     for handler in logger.handlers:
         handler.setLevel(level)
 
-    if print_version:
-        version = get_version_information()
-        logger.info("Running bilby_pipe version: {}".format(version))
+
+def log_version_information():
+    import bilby
+
+    version = get_version_information()
+    logger.info("Running bilby_pipe version: {}".format(version))
+    logger.info("Running bilby: {}".format(bilby.__version__))
 
 
 def get_version_information():
@@ -465,5 +467,5 @@ def convert_detectors_input(string):
     return detectors
 
 
-setup_logger(print_version=True)
+setup_logger()
 logger = logging.getLogger("bilby_pipe")

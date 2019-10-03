@@ -16,9 +16,10 @@ matplotlib.use("agg")  # noqa
 import bilby
 
 from bilby_pipe.utils import (
-    DataDump,
     logger,
+    log_version_information,
     BilbyPipeError,
+    DataDump,
     convert_string_to_dict,
     SAMPLER_SETTINGS,
 )
@@ -394,6 +395,7 @@ def create_analysis_parser():
 
 def main():
     args, unknown_args = parse_args(sys.argv[1:], create_analysis_parser())
+    log_version_information()
     analysis = DataAnalysisInput(args, unknown_args)
     analysis.run_sampler()
     sys.exit(0)

@@ -23,6 +23,7 @@ from .utils import (
     get_command_line_arguments,
     request_memory_generation_lookup,
     tcolors,
+    log_version_information,
 )
 from . import create_injections
 from . import slurm
@@ -1144,6 +1145,7 @@ def main():
     """ Top-level interface for bilby_pipe """
     parser = create_parser(top_level=True)
     args, unknown_args = parse_args(get_command_line_arguments(), parser)
+    log_version_information()
 
     inputs = MainInput(args, unknown_args)
 
