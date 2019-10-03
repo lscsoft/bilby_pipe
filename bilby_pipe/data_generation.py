@@ -135,6 +135,7 @@ class DataGenerationInput(Input):
 
         self.data_set = False
         self.injection_file = args.injection_file
+        self.injection = args.injection
         self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
@@ -142,6 +143,8 @@ class DataGenerationInput(Input):
             self.trigger_time = args.trigger_time
             if args.injection_file is not None:
                 self._set_interferometers_from_injection_in_gaussian_noise()
+            elif args.injection is False:
+                self._set_interferometers_from_gaussian_noise()
             else:
                 raise BilbyPipeError("Unable to set data: no injection file")
         elif self.data_set is False and args.gps_file is not None:
@@ -302,49 +305,8 @@ class DataGenerationInput(Input):
     def trigger_time(self, trigger_time):
         self._trigger_time = trigger_time
 
-    def _parse_gps_file(self):
-        """ Reads in the GPS file selects the required time and set the trigger time
-
-        Note, the gps_file setter method is defined in bilby_pipe.input
-        """
-        gps_start_times = self.read_gps_file()
-        self.start_time = gps_start_times[self.idx]
-        self.trigger_time = self.start_time + self.duration - self.post_trigger_duration
-
-    def _set_interferometers_from_injection_in_gaussian_noise(self):
-        """ Method to generate the interferometers data from an injection in Gaussian noise """
-
-        self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
-        if self.trigger_time is None:
-            self.trigger_time = self.injection_parameters["geocent_time"]
-            logger.info(
-                "Setting trigger_time to {} from injection parameter geocent_time".format(
-                    self.trigger_time
-                )
-            )
-
-        self.start_time = self.trigger_time + self.post_trigger_duration - self.duration
-
-        logger.info("injected waveform with ")
-        for prop in [
-            "minimum_frequency",
-            "maximum_frequency",
-            "trigger_time",
-            "start_time",
-            "duration",
-        ]:
-            logger.info("{} = {}".format(prop, getattr(self, prop)))
-
-        waveform_arguments = self.get_default_waveform_arguments()
-
-        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
-            duration=self.duration,
-            start_time=self.start_time,
-            sampling_frequency=self.sampling_frequency,
-            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
-            parameter_conversion=self.parameter_conversion,
-            waveform_arguments=waveform_arguments,
-        )
+    def _set_interferometers_from_gaussian_noise(self):
+        """ Method to generate the interferometers data from Gaussian noise """
 
         ifos = bilby.gw.detector.InterferometerList(self.detectors)
 
@@ -366,11 +328,37 @@ class DataGenerationInput(Input):
                 start_time=self.start_time,
             )
 
-        ifos.inject_signal(
-            waveform_generator=waveform_generator, parameters=self.injection_parameters
+        self.interferometers = ifos
+
+    def _set_interferometers_from_injection_in_gaussian_noise(self):
+        """ Method to generate the interferometers data from an injection in Gaussian noise """
+
+        self.injection_parameters = self.injection_df.iloc[self.idx].to_dict()
+        logger.info("Injecting waveform with ")
+        for prop in [
+            "minimum_frequency",
+            "maximum_frequency",
+            "trigger_time",
+            "start_time",
+            "duration",
+        ]:
+            logger.info("{} = {}".format(prop, getattr(self, prop)))
+
+        self._set_interferometers_from_gaussian_noise()
+
+        waveform_arguments = self.get_default_waveform_arguments()
+        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+            duration=self.duration,
+            start_time=self.start_time,
+            sampling_frequency=self.sampling_frequency,
+            frequency_domain_source_model=self.bilby_frequency_domain_source_model,
+            parameter_conversion=self.parameter_conversion,
+            waveform_arguments=waveform_arguments,
         )
 
-        self.interferometers = ifos
+        self.interferometers.inject_signal(
+            waveform_generator=waveform_generator, parameters=self.injection_parameters
+        )
 
     def inject_signal_into_time_domain_data(self, data, ifo):
         """ Method to inject a signal into time-domain interferometer data

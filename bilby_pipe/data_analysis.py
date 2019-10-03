@@ -75,7 +75,7 @@ class DataAnalysisInput(Input):
         self.sampling_seed = args.sampling_seed
         self.outdir = args.outdir
         self.label = args.label
-        self.data_label = args.data_label
+        self.data_dump_file = args.data_dump_file
         self.default_prior = args.default_prior
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
@@ -225,9 +225,7 @@ class DataAnalysisInput(Input):
             raise BilbyPipeError("Data dump not loaded")
 
     def _load_data_dump(self):
-        filename = DataDump.get_filename(
-            self.data_directory, self.data_label, str(self.idx)
-        )
+        filename = self.data_dump_file
         self.meta_data["data_dump"] = filename
 
         logger.debug("Data dump not previously loaded")

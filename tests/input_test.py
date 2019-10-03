@@ -19,6 +19,11 @@ class TestInput(unittest.TestCase):
         inputs.idx = 1
         self.assertEqual(inputs.idx, 1)
 
+    def test_split_by_space(self):
+        inputs = bilby_pipe.main.Input()
+        out = inputs._split_string_by_space("H1 L1")
+        self.assertEqual(out, ["H1", "L1"])
+
     def test_known_detectors(self):
         inputs = bilby_pipe.main.Input()
         self.assertEqual(inputs.known_detectors, ["H1", "L1", "V1"])
@@ -185,6 +190,62 @@ class TestInput(unittest.TestCase):
         self.assertIsInstance(inputs.maximum_frequency, float)
         self.assertEqual(inputs.maximum_frequency, 200.1)
         self.assertEqual(inputs.maximum_frequency_dict, dict(H1=100.1, L1=200.1))
+
+    def test_default_webdir(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.outdir = "results"
+        inputs.webdir = None
+        self.assertEqual(inputs.webdir, "results/results_page")
+
+    def test_default_start_time(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.trigger_time = 2
+        inputs.post_trigger_duration = 2
+        inputs.duration = 4
+        self.assertEqual(inputs.start_time, 0)
+
+    def test_set_start_time(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.start_time = 2
+        self.assertEqual(inputs.start_time, 2)
+
+    def test_set_start_time_fail(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.trigger_time = 2
+        inputs.duration = 4
+        inputs.post_trigger_duration = 2
+        with self.assertRaises(BilbyPipeError):
+            inputs.start_time = 2
+
+    def test_default_waveform_arguments(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = ["H1"]
+        inputs.reference_frequency = 20
+        inputs.minimum_frequency = 20
+        inputs.waveform_approximant = "IMRPhenomPv2"
+        wfa = inputs.get_default_waveform_arguments()
+        self.assertEqual(wfa["reference_frequency"], 20)
+        self.assertEqual(wfa["minimum_frequency"], 20)
+        self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
+        self.assertEqual(len(wfa), 3)
+
+    def test_bilby_roq_frequency_domain_source_model(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.frequency_domain_source_model = "lal_binary_black_hole"
+        self.assertEqual(
+            inputs.bilby_roq_frequency_domain_source_model,
+            bilby.gw.source.binary_black_hole_roq,
+        )
+
+        inputs.frequency_domain_source_model = "lal_binary_neutron_star"
+        self.assertEqual(
+            inputs.bilby_roq_frequency_domain_source_model,
+            bilby.gw.source.binary_neutron_star_roq,
+        )
+
+        with self.assertRaises(BilbyPipeError):
+            inputs.frequency_domain_source_model = "unknown"
+            inputs.bilby_roq_frequency_domain_source_model
 
 
 if __name__ == "__main__":

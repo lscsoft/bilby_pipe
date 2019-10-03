@@ -1,119 +1,180 @@
 import os
 import shutil
 import unittest
-import json
 
-import bilby
 import numpy as np
-import pandas as pd
 
 import bilby_pipe
-from bilby_pipe.utils import BilbyPipeError
+from bilby_pipe.input import Input
+from bilby_pipe.utils import BilbyPipeError, parse_args
 
 
 class TestParser(unittest.TestCase):
+    def test_parser_defaults(self):
+        example_prior_file = "tests/example_prior.prior"
+
+        known_args_list = [example_prior_file, "-n", "1"]
+        parser = bilby_pipe.create_injections.create_parser()
+        args, unknown_args = parse_args(known_args_list, parser)
+
+        self.assertEqual(args.prior_file, example_prior_file)
+        self.assertEqual(args.n_injection, 1)
+        self.assertEqual(args.extension, "dat")
+
+    def test_parser_with_prior_file(self):
+        example_prior_file = "tests/example_prior.prior"
+
+        known_args_list = [example_prior_file, "--n-injection", "3", "-s", "1234"]
+        parser = bilby_pipe.create_injections.create_parser()
+        args, unknown_args = parse_args(known_args_list, parser)
+
+        self.assertEqual(args.prior_file, example_prior_file)
+        self.assertEqual(args.n_injection, 3)
+        self.assertEqual(args.generation_seed, 1234)
+
+    def test_parser_with_default_prior_file(self):
+        known_args_list = ["4s", "--n-injection", "3"]
+        parser = bilby_pipe.create_injections.create_parser()
+        args, unknown_args = parse_args(known_args_list, parser)
+
+        self.assertEqual(args.prior_file, "4s")
+        self.assertEqual(args.n_injection, 3)
+
+    def test_parser_with_json(self):
+        example_prior_file = "tests/example_prior.prior"
+
+        known_args_list = [example_prior_file, "--n-injection", "3", "-e", "json"]
+        parser = bilby_pipe.create_injections.create_parser()
+        args, unknown_args = parse_args(known_args_list, parser)
+
+        self.assertEqual(args.extension, "json")
+
+
+class TestCreateInjections(unittest.TestCase):
     def setUp(self):
-        self.directory = os.path.abspath(os.path.dirname(__file__))
         self.outdir = "outdir"
         self.example_prior_file = "tests/example_prior.prior"
-        self.known_args_list = [
-            "tests/test_main_input.ini",
-            "--outdir",
-            self.outdir,
-            "--label",
-            "TEST",
-            "--prior-file",
-            self.example_prior_file,
-            "--n-injection",
-            "3",
-        ]
-        self.parser = bilby_pipe.create_injections.create_parser()
-        self.args = self.parser.parse_args(self.known_args_list)
+        self.filename = "{}/injection.dat".format(self.outdir)
 
     def tearDown(self):
         try:
             shutil.rmtree(self.outdir)
         except FileNotFoundError:
             pass
-        del self.args
 
-    def test_parser(self):
-        self.assertEqual(self.args.label, "TEST")
-        self.assertEqual(self.args.outdir, self.outdir)
-        self.assertEqual(self.args.prior_file, self.example_prior_file)
-        self.assertEqual(self.args.n_injection, 3)
+    def test_create_injection_file(self):
+        filename = "{}/injections.dat".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 3
+        bilby_pipe.create_injections.create_injection_file(
+            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+        )
+        self.assertTrue(os.path.isfile(filename))
+        injections = np.genfromtxt(filename, names=True)
+        self.assertEqual(len(injections), n_injection)
 
-    def test_init(self):
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-        self.assertEqual(inputs.label, "TEST")
-        self.assertEqual(inputs.outdir, os.path.relpath(self.outdir))
-        self.assertEqual(inputs.prior_file, self.example_prior_file)
-        self.assertEqual(inputs.n_injection, 3)
+    def test_create_injection_file_dat_ext(self):
+        filename = "{}/injections".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 3
+        bilby_pipe.create_injections.create_injection_file(
+            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+        )
+        actual_filename = filename + ".dat"
+        self.assertTrue(os.path.isfile(actual_filename))
+        df = Input.read_dat_injection_file(actual_filename)
+        self.assertEqual(len(df), n_injection)
 
-    def test_n_injections_not_set(self):
-        self.args.n_injection = None
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
+    def test_create_injection_file_json_ext(self):
+        filename = "{}/injections".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 3
+        bilby_pipe.create_injections.create_injection_file(
+            filename, prior_file, n_injection, generation_seed=None, extension="json"
+        )
+        actual_filename = filename + ".json"
+        self.assertTrue(os.path.isfile(actual_filename))
+        df = Input.read_json_injection_file(actual_filename)
+        self.assertEqual(len(df), n_injection)
+
+    def test_create_injection_file_json(self):
+        filename = "{}/injections.json".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 3
+        bilby_pipe.create_injections.create_injection_file(
+            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+        )
+        actual_filename = filename
+        self.assertTrue(os.path.isfile(actual_filename))
+        df = Input.read_json_injection_file(actual_filename)
+        self.assertEqual(len(df), n_injection)
+
+    def test_create_injection_file_generation_seed(self):
+        filename = "{}/injections".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 3
+        bilby_pipe.create_injections.create_injection_file(
+            filename + "_A", prior_file, n_injection, generation_seed=123
+        )
+        injectionsA = np.genfromtxt(filename + "_A.dat", names=True)
+
+        bilby_pipe.create_injections.create_injection_file(
+            filename + "_B", prior_file, n_injection, generation_seed=123
+        )
+        injectionsB = np.genfromtxt(filename + "_B.dat", names=True)
+
+        bilby_pipe.create_injections.create_injection_file(
+            filename + "_C", prior_file, n_injection, generation_seed=1234
+        )
+        injectionsC = np.genfromtxt(filename + "_C.dat", names=True)
+
+        self.assertTrue(np.all(injectionsA == injectionsB))
+        self.assertFalse(np.all(injectionsA == injectionsC))
+
+    def test_n_injection_error(self):
         with self.assertRaises(BilbyPipeError):
-            print(inputs.n_injection)
+            n_injection = None
+            bilby_pipe.create_injections.create_injection_file(
+                self.filename, self.example_prior_file, n_injection
+            )
+
+        with self.assertRaises(BilbyPipeError):
+            n_injection = -1
+            bilby_pipe.create_injections.create_injection_file(
+                self.filename, self.example_prior_file, n_injection
+            )
+
+        with self.assertRaises(BilbyPipeError):
+            n_injection = np.inf
+            bilby_pipe.create_injections.create_injection_file(
+                self.filename, self.example_prior_file, n_injection
+            )
 
     def test_unknown_prior_file(self):
-        self.args.prior_file = "not_a_file"
+        prior_file = "not_a_file"
         with self.assertRaises(FileNotFoundError):
-            bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
+            bilby_pipe.create_injections.create_injection_file(
+                self.filename, prior_file, 1
+            )
 
-    def test_unknown_prior(self):
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-        with self.assertRaises(AttributeError):
-            inputs.priors = "lksjdf"
+    def test_none_prior_file(self):
+        prior_file = None
+        with self.assertRaises(BilbyPipeError):
+            bilby_pipe.create_injections.create_injection_file(
+                self.filename, prior_file, 1
+            )
 
-    def test_prior(self):
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(self.args, [])
-        priors = bilby.core.prior.PriorDict(self.example_prior_file)
-        self.assertEqual(priors, inputs.priors)
+    def test_unknown_ext(self):
+        with self.assertRaises(BilbyPipeError):
+            bilby_pipe.create_injections.create_injection_file(
+                "test", self.example_prior_file, 1, extension="other"
+            )
 
-    def test_create_injection_file_gaussian_noise(self):
-        args = self.args
-        args.gaussian_noise = True
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(args, [])
-        filename = os.path.join(self.outdir, "test_injection_file.h5")
-        self.assertFalse(os.path.exists(filename))
-        inputs.create_injection_file(filename)
-        self.assertTrue(os.path.exists(filename))
-
-        with open(filename, "r") as file:
-            data = json.load(file, object_hook=bilby.core.result.decode_bilby_json)
-
-        # prior = bilby.core.prior.PriorDict(self.example_prior_file)
-        # self.assertEqual(sorted(data['prior'].keys()),
-        #                  sorted(prior.keys()))
-
-        df = data["injections"]
-        self.assertEqual(type(df), pd.core.frame.DataFrame)
-        self.assertEqual(len(df), inputs.n_injection)
-
-    def test_create_injection_file_gps_times(self):
-        args = self.known_args_list
-        args.append("--gps-file")
-        args.append("tests/gps_file.txt")
-        args = self.parser.parse_args(args)
-        args.n_injection = 2
-        inputs = bilby_pipe.create_injections.CreateInjectionInput(args, [])
-        filename = os.path.join(self.outdir, "test_injection_file.h5")
-        self.assertFalse(os.path.exists(filename))
-        inputs.create_injection_file(filename)
-        self.assertTrue(os.path.exists(filename))
-
-        with open(filename, "r") as file:
-            data = json.load(file, object_hook=bilby.core.result.decode_bilby_json)
-
-        # prior = bilby.core.prior.PriorDict(self.example_prior_file)
-        # self.assertEqual(sorted(data['prior'].keys()),
-        #                  sorted(prior.keys()))
-
-        df = data["injections"]
-        self.assertEqual(type(df), pd.core.frame.DataFrame)
-        self.assertEqual(len(df), inputs.n_injection)
-        self.assertTrue(np.all(np.abs(inputs.gpstimes - df.geocent_time + 2) < 0.1))
+    def test_unknown_ext_from_filename(self):
+        with self.assertRaises(BilbyPipeError):
+            bilby_pipe.create_injections.create_injection_file(
+                "test.other", self.example_prior_file, 1
+            )
 
 
 if __name__ == "__main__":

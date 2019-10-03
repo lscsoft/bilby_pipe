@@ -9,7 +9,7 @@ from .utils import logger
 class SubmitSLURM(object):
     def __init__(self, dag):
 
-        self.dag = dag.dag
+        self.dag = dag.pycondor_dag
         self.submit_dir = dag.inputs.submit_directory
         self.label = dag.inputs.label
         self.scheduler = dag.scheduler

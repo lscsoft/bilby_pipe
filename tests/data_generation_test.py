@@ -1,13 +1,9 @@
 import unittest
 import shutil
-import os
-from argparse import Namespace
-import json
 
 import bilby
 
 from bilby_pipe.main import parse_args
-from bilby_pipe import create_injections
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
 from bilby_pipe.utils import BilbyPipeError
 
@@ -63,8 +59,7 @@ class TestDataGenerationInput(unittest.TestCase):
         )
 
     def test_psd_length_default(self):
-        self.inputs.duration = 4
-        self.assertEqual(32 * 4, self.inputs.psd_duration)
+        self.assertEqual(32 * self.inputs.duration, self.inputs.psd_duration)
 
     def test_psd_start_time_set(self):
         self.inputs.psd_start_time = 10
@@ -147,32 +142,18 @@ class TestDataGenerationInput(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             self.inputs.detectors = 10
 
-    def test_trigger_time(self):
-        args_list = [
-            "--ini",
-            "tests/test_data_generation.ini",
-            "--outdir",
-            self.outdir,
-            "--trigger-time",
-            "1126259462",
-            "--data-label",
-            "TEST",
-        ]
-        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
-
-    def test_gps_file(self):
-        args_list = [
-            "--ini",
-            "tests/test_data_generation.ini",
-            "--outdir",
-            self.outdir,
-            "--gps-file",
-            self.gps_file,
-            "--idx" "0",
-            "--data-label",
-            "TEST",
-        ]
-        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+    # def test_trigger_time(self):
+    #    args_list = [
+    #        "--ini",
+    #        "tests/test_data_generation.ini",
+    #        "--outdir",
+    #        self.outdir,
+    #        "--trigger-time",
+    #        "1126259462",
+    #        "--data-label",
+    #        "TEST",
+    #    ]
+    #    self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 
     def test_injections_no_file(self):
         args_list = [
@@ -187,62 +168,6 @@ class TestDataGenerationInput(unittest.TestCase):
         ]
         with self.assertRaises(FileNotFoundError):
             self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
-
-    def test_injections(self):
-        inj_args = Namespace(
-            prior_file="tests/example_prior.prior",
-            n_injection=3,
-            outdir=self.outdir,
-            label="label",
-            generation_seed=None,
-            default_prior="BBHPriorDict",
-            trigger_time=0,
-            deltaT=0.2,
-            gps_file=None,
-            duration=4,
-            post_trigger_duration=2,
-        )
-        inj_inputs = create_injections.CreateInjectionInput(inj_args, [])
-        injection_file_name = os.path.join(self.outdir, "injection_file.h5")
-        inj_inputs.create_injection_file(injection_file_name)
-
-        args_list = [
-            "--ini",
-            "tests/test_data_generation.ini",
-            "--outdir",
-            self.outdir,
-            "--injection-file",
-            injection_file_name,
-            "--data-label",
-            "Test",
-            "--gaussian-noise",
-        ]
-        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
-
-        # Check the injections match by idx
-        with open(injection_file_name, "r") as file:
-            injection_file_dict = json.load(
-                file, object_hook=bilby.core.result.decode_bilby_json
-            )
-        self.assertEqual(
-            self.inputs.meta_data["injection_parameters"],
-            injection_file_dict["injections"].iloc[self.inputs.idx].to_dict(),
-        )
-
-        self.inputs.save_interferometer_list()
-        self.assertTrue(
-            os.path.isfile(
-                os.path.join(
-                    self.outdir,
-                    "data",
-                    "{}_{}_data_dump.pickle".format(self.inputs.label, self.inputs.idx),
-                )
-            )
-        )
-
-        self.assertEqual(
-            self.inputs.injection_file, os.path.relpath(injection_file_name)
-        )
 
 
 if __name__ == "__main__":

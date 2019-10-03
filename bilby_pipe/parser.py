@@ -117,10 +117,10 @@ def create_parser(top_level=True):
             "--process", type=nonestr, help="The condor process ID", default=None
         )
         parser.add(
-            "--data-label",
+            "--data-dump-file",
             type=nonestr,
             default=None,
-            help="Label used for the data dump",
+            help="Filename for the data dump: only used internall by data_analysis",
         )
 
     data_gen_pars = parser.add_argument_group(
@@ -139,7 +139,13 @@ def create_parser(top_level=True):
     data_gen_pars.add(
         "--gaussian-noise",
         action="store_true",
-        help="If true, use simulated Gaussian noise with aLIGO design sensitivity",
+        help="If true, use simulated Gaussian noise",
+    )
+    data_gen_pars.add(
+        "--n-simulation",
+        type=int,
+        default=0,
+        help="Number of simulated segmenst to use with gaussian-noise",
     )
     data_gen_pars.add(
         "--data-dict",
@@ -212,7 +218,7 @@ def create_parser(top_level=True):
     det_parser.add(
         "--post-trigger-duration",
         type=float,
-        default=2,
+        default=2.0,
         help=("Time (in s) after the trigger_time to the end of the segment"),
     )
     det_parser.add("--sampling-frequency", default=4096, type=float)
@@ -279,15 +285,7 @@ def create_parser(top_level=True):
         help="Create data from an injection file",
     )
     injection_parser.add(
-        "--injection-file",
-        type=nonestr,
-        default=None,
-        help="Injection file: overrides `n-injection`.",
-    )
-    injection_parser.add_arg(
-        "--n-injection",
-        type=noneint,
-        help="Number of injections to generate by sampling from the prior",
+        "--injection-file", type=nonestr, default=None, help="Injection file to use"
     )
 
     submission_parser = parser.add_argument_group(
@@ -524,16 +522,8 @@ def create_parser(top_level=True):
         help="Arguments to pass to the postprocessing executable",
     )
 
-    sampler_parser = parser.add_argument_group(
-        title="Sampler arguments", description="Specify the sampler settings."
-    )
-    sampler_parser.add(
-        "--sampler",
-        nargs="+",
-        type=nonestr,
-        default=None,
-        help="Sampler to use, or a list of samplers to use",
-    )
+    sampler_parser = parser.add_argument_group(title="Sampler arguments")
+    sampler_parser.add("--sampler", type=str, default="dynesty", help="Sampler to use")
     sampler_parser.add(
         "--sampling-seed", default=None, type=noneint, help="Random sampling seed"
     )

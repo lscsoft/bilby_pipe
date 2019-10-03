@@ -3,8 +3,10 @@ import unittest
 import copy
 import shutil
 
+import numpy as np
+
 import bilby_pipe
-from bilby_pipe.main import BilbyPipeError
+from bilby_pipe.utils import BilbyPipeError
 
 
 class TestMainInput(unittest.TestCase):
@@ -26,9 +28,6 @@ class TestMainInput(unittest.TestCase):
         )
 
         self.test_gps_file = "tests/gps_file.txt"
-        self.singularity_image_test = os.path.join(self.outdir, "test.simg")
-        with open(self.singularity_image_test, "w+") as file:
-            file.write("")
 
     def tearDown(self):
         shutil.rmtree(self.outdir)
@@ -44,34 +43,6 @@ class TestMainInput(unittest.TestCase):
     def test_ini_not_a_file(self):
         with self.assertRaises(FileNotFoundError):
             self.inputs.ini = "not_a_file"
-
-    def test_set_singularity_image(self):
-        self.inputs.singularity_image = self.singularity_image_test
-        self.assertEqual(
-            self.inputs.singularity_image, os.path.abspath(self.singularity_image_test)
-        )
-
-    def test_singularity_image_setting_fail(self):
-        with self.assertRaises(BilbyPipeError):
-            self.inputs.singularity_image = 10
-
-        with self.assertRaises(FileNotFoundError):
-            self.inputs.singularity_image = "not_a_file"
-
-    def test_use_singularity(self):
-        self.inputs.use_singularity = True
-        self.assertEqual(self.inputs.use_singularity, True)
-
-        with self.assertRaises(BilbyPipeError):
-            self.inputs.use_singularity = 10
-
-    def test_setting_level_A_jobs(self):
-        self.inputs.n_level_A_jobs = 10
-        self.assertEqual(self.inputs.n_level_A_jobs, 10)
-
-    def test_setting_level_A_labels(self):
-        self.inputs.level_A_labels = ["a", "b"]
-        self.assertEqual(self.inputs.level_A_labels, ["a", "b"])
 
     def test_submit(self):
         self.assertEqual(self.inputs.submit, self.args.submit)
@@ -170,47 +141,58 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(self.inputs.webdir, self.args.webdir)
         self.assertEqual(self.inputs.existing_dir, self.args.existing_dir)
 
-    def test_parse_gps_file(self):
+    def test_n_simulation_setting(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        inputs.n_simulation = 1
+        self.assertEqual(inputs.n_simulation, 1)
+
+    def test_n_simulation_None(self):
+        args = self.args
+        args.injection = True
+        args.n_simulation = None
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        self.assertEqual(inputs.n_simulation, None)
+
+    def test_get_trigger_time_list(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+
+        inputs.trigger_time = 10
+        self.assertEqual(bilby_pipe.main.get_trigger_time_list(inputs), [10])
+
+    def test_get_trigger_time_list_gps_file(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+
         inputs.gps_file = self.test_gps_file
-        inputs._parse_gps_file()
-        self.assertEqual(len(inputs.read_gps_file()), inputs.n_level_A_jobs)
-        self.assertEqual(inputs.level_A_labels, ["1126259462.0", "1126259466.0"])
+        A = bilby_pipe.main.get_trigger_time_list(inputs)
+        start_times = np.genfromtxt(self.test_gps_file)
+        B = start_times + inputs.duration - inputs.post_trigger_duration
+        self.assertTrue(np.all(A == B))
 
-    def test_n_injection_setting(self):
+    def test_get_trigger_time_list_gaussian_noise(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        inputs.n_injection = 1
-        self.assertEqual(inputs.n_injection, 1)
-        self.assertEqual(inputs.n_level_A_jobs, 1)
-        self.assertEqual(inputs.level_A_labels, ["injection0"])
 
-    def test_n_injection_and_gpstime_fail(self):
-        args = self.args
-        args.injection = True
-        args.n_injection = 1
-        args.gps_file = self.test_gps_file
+        inputs.gaussian_noise = True
+        inputs.n_simulation = 3
+        t = 0 + inputs.duration - inputs.post_trigger_duration
+        self.assertTrue(bilby_pipe.main.get_trigger_time_list(inputs), [t] * 3)
+
+    def test_get_trigger_time_list_fail(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+
         with self.assertRaises(BilbyPipeError):
-            bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+            bilby_pipe.main.get_trigger_time_list(inputs)
 
-    def test_n_injection_setting_into_gpstimes(self):
-        args = self.args
-        args.injection = True
-        args.n_injection = None
-        args.gps_file = self.test_gps_file
+    def test_get_detectors_list(self):
+        self.args.detectors = ["H1", "L1", "V1"]
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        self.assertEqual(inputs.n_injection, 2)
-        self.assertEqual(inputs.n_level_A_jobs, 2)
-        self.assertEqual(
-            inputs.level_A_labels,
-            ["1126259462.0_injection0", "1126259466.0_injection1"],
-        )
+        det_list = bilby_pipe.main.get_detectors_list(inputs)
+        self.assertTrue(det_list, [["H1", "L1", "V1"]])
 
-    def test_n_injection_None(self):
-        args = self.args
-        args.injection = True
-        args.n_injection = None
+        self.args.detectors = ["H1", "L1", "V1"]
+        self.args.coherence_test = True
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        self.assertEqual(inputs.n_injection, None)
+        det_list = bilby_pipe.main.get_detectors_list(inputs)
+        self.assertTrue(det_list, [["H1", "L1", "V1"], ["H1"], ["L1"], ["V1"]])
 
 
 if __name__ == "__main__":

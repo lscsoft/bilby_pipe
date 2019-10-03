@@ -37,6 +37,33 @@ python-3.7:
       - htmlcov/
       - coverage_badge.svg
 
+example-ini-file-builds:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  script:
+    - source activate python37
+    - pip install --upgrade bilby
+    - pip install .
+    - cd examples/event
+    - bilby_pipe *ini
+    - cd ../gaussian_noise
+    - bilby_pipe *ini
+    - cd ../injection
+    - bilby_pipe *ini
+    - cd ../gps_times
+    - bilby_pipe *ini
+
+example-ini-file-run:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  script:
+    - source activate python37
+    - pip install --upgrade bilby
+    - pip install .
+    - cd tests/
+    - bilby_pipe test_full.ini --local --bilby-test-mode
+
+
 python-3.6:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python36
@@ -62,7 +89,7 @@ documentation:
     - pip install -r requirements.txt
     - make clean
     - bilby_pipe_write_default_ini default.ini
-    - bilby_pipe_gracedb --json ../examples/gracedb_examples/G298936.json --output ini --outdir .
+    - bilby_pipe_gracedb --json ../examples/gracedb/G298936.json --output ini --outdir .
     - make html
 
   artifacts:
