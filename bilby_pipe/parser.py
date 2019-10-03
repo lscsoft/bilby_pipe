@@ -2,6 +2,8 @@ import argparse
 import sys
 import os
 
+import bilby
+
 from bilby_pipe.bilbyargparser import BilbyArgParser
 from .utils import logger, noneint, nonestr, nonefloat, get_version_information
 
@@ -55,7 +57,9 @@ def create_parser(top_level=True):
     parser.add(
         "--version",
         action="version",
-        version="%(prog)s {version}".format(version=__version__),
+        version="%(prog)s={version}\nbilby_pipe={bilby_version}".format(
+            version=__version__, bilby_version=bilby.__version__
+        ),
     )
 
     calibration_parser = parser.add_argument_group(
