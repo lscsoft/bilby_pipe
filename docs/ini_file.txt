@@ -36,16 +36,25 @@ overwritten, for example
 
 will overwrite the :code:`duration` argument provided in the ini file.
 
-The ini file for GraceDB events can be generated using the command line 
+We can generate an ini file with current documentation and all of the default
+options by running
+
+.. code-block:: text
+
+   $ bilby_pipe_write_default_ini default.ini
+
+.. literalinclude:: default.ini
+
+The ini file for GraceDB events can be generated using the command line
 program :code:`bilby_pipe_gracedb` with the arguments :code:`--gracedb` for
 example, to generate an ini file for the GraceDB event G298936 we use the 
 following command,
 
 .. code-block:: text
 
-   $ bilby_pipe_gracedb --gracedb G298936
+   $ bilby_pipe_gracedb --gracedb G298936 --output ini
 
 This will produce an ini file, bilby_config.ini, which automatically sets an 
 appropriate configuration and is ready for submission.
 
-.. literalinclude:: ../examples/gracedb_examples/bilby_config.ini
+.. literalinclude:: bilby_config.ini

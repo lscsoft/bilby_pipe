@@ -367,6 +367,9 @@ def write_config_file(config_dict, filename, comment=None, remove_none=False):
         a ValueError is raised
 
     """
+    logger.warning(
+        "write_config_file has been deprecated, it will be removed in a future version"
+    )
 
     if remove_none:
         config_dict = {key: val for key, val in config_dict.items() if val is not None}

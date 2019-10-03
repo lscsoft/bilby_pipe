@@ -11,15 +11,16 @@ import shutil
 import numpy as np
 
 import bilby
-import bilby_pipe
+
 from .utils import (
+    test_connection,
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
     logger,
     DEFAULT_DISTANCE_LOOKUPS,
-    write_config_file,
     run_command_line,
 )
+from . import parser
 
 
 # Default channels from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
@@ -95,7 +96,7 @@ def read_from_gracedb(gracedb, gracedb_url, outdir):
 
     """
 
-    bilby_pipe.utils.test_connection()
+    test_connection()
     candidate = bilby.gw.utils.gracedb_to_json(
         gracedb=gracedb,
         outdir=outdir,
@@ -355,7 +356,15 @@ def create_config_file(
         superevent
     )
     filename = "{}/bilby_config.ini".format(outdir)
-    write_config_file(config_dict, filename, comment, remove_none=True)
+    _parser = parser.create_parser()
+    _parser.write_to_file(
+        filename=filename,
+        args=config_dict,
+        overwrite=True,
+        include_description=False,
+        exclude_default=True,
+        comment=comment,
+    )
 
     return filename
 

@@ -110,6 +110,7 @@ setup(
             "bilby_pipe_review=bilby_pipe.review:main",
             "bilby_pipe_plot=bilby_pipe.plot:main",
             "bilby_pipe_gracedb=bilby_pipe.gracedb:main",
+            "bilby_pipe_write_default_ini=bilby_pipe.parser:main"
         ]
     },
     classifiers=[

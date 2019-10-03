@@ -1,7 +1,9 @@
 import argparse
+import sys
+import os
 
 from bilby_pipe.bilbyargparser import BilbyArgParser
-from .utils import noneint, nonestr, nonefloat, get_version_information
+from .utils import logger, noneint, nonestr, nonefloat, get_version_information
 
 __version__ = get_version_information()
 
@@ -56,7 +58,10 @@ def create_parser(top_level=True):
         version="%(prog)s {version}".format(version=__version__),
     )
 
-    calibration_parser = parser.add_argument_group("Calibration arguments")
+    calibration_parser = parser.add_argument_group(
+        "Calibration arguments",
+        description="Which calibration model and settings to use.",
+    )
     calibration_parser.add(
         "--calibration-model",
         type=nonestr,
@@ -114,7 +119,10 @@ def create_parser(top_level=True):
             help="Label used for the data dump",
         )
 
-    data_gen_pars = parser.add_argument_group("Data generation arguments")
+    data_gen_pars = parser.add_argument_group(
+        "Data generation arguments",
+        description="How to generate the data, e.g., from a list of gps times or simulated Gaussian noise.",
+    )
     data_gen_pars.add(
         "--gps-file",
         type=nonestr,
@@ -155,7 +163,10 @@ def create_parser(top_level=True):
         ),
     )
 
-    det_parser = parser.add_argument_group(title="Detector arguments")
+    det_parser = parser.add_argument_group(
+        title="Detector arguments",
+        description="How to set up the interferometers and power spectral density.",
+    )
     det_parser.add(
         "--coherence-test",
         action="store_true",
@@ -253,7 +264,10 @@ def create_parser(top_level=True):
         help="Roll off duration of tukey window in seconds, default is 0.4s",
     )
 
-    injection_parser = parser.add_argument_group(title="Injection arguments")
+    injection_parser = parser.add_argument_group(
+        title="Injection arguments",
+        description="Whether to include software injections and how to generate them.",
+    )
     injection_parser.add(
         "--injection",
         action="store_true",
@@ -272,7 +286,10 @@ def create_parser(top_level=True):
         help="Number of injections to generate by sampling from the prior",
     )
 
-    submission_parser = parser.add_argument_group(title="Job submission arguments")
+    submission_parser = parser.add_argument_group(
+        title="Job submission arguments",
+        description="How the jobs should be formatted, e.g., which job scheduler to use.",
+    )
     submission_parser.add(
         "--accounting",
         type=str,
@@ -376,7 +393,10 @@ def create_parser(top_level=True):
         help="If true, format condor submission for running on OSG, default is False",
     )
 
-    likelihood_parser = parser.add_argument_group(title="Likelihood arguments")
+    likelihood_parser = parser.add_argument_group(
+        title="Likelihood arguments",
+        description="Options for setting up the likelihood.",
+    )
     likelihood_parser.add(
         "--distance-marginalization",
         action="store_true",
@@ -426,7 +446,9 @@ def create_parser(top_level=True):
         help="Rescaling factor for the ROQ, default is 1 (no rescaling)",
     )
 
-    output_parser = parser.add_argument_group(title="Output arguments")
+    output_parser = parser.add_argument_group(
+        title="Output arguments", description="What kind of output/summary to generate."
+    )
     output_parser.add(
         "--create-plots",
         action="store_true",
@@ -456,7 +478,9 @@ def create_parser(top_level=True):
         ),
     )
 
-    prior_parser = parser.add_argument_group(title="Prior arguments")
+    prior_parser = parser.add_argument_group(
+        title="Prior arguments", description="Specify the prior settings."
+    )
     prior_parser.add(
         "--default-prior",
         default="BBHPriorDict",
@@ -475,7 +499,10 @@ def create_parser(top_level=True):
     )
     prior_parser.add("--prior-file", type=nonestr, default=None, help="The prior file")
 
-    postprocessing_parser = parser.add_argument_group(title="Post processing arguments")
+    postprocessing_parser = parser.add_argument_group(
+        title="Post processing arguments",
+        description="What post-processing to perform.",
+    )
     postprocessing_parser.add(
         "--postprocessing-executable",
         type=nonestr,
@@ -493,11 +520,14 @@ def create_parser(top_level=True):
         help="Arguments to pass to the postprocessing executable",
     )
 
-    sampler_parser = parser.add_argument_group(title="Sampler arguments")
+    sampler_parser = parser.add_argument_group(
+        title="Sampler arguments", description="Specify the sampler settings."
+    )
     sampler_parser.add(
         "--sampler",
         nargs="+",
-        default="dynesty",
+        type=nonestr,
+        default=None,
         help="Sampler to use, or a list of samplers to use",
     )
     sampler_parser.add(
@@ -520,7 +550,9 @@ def create_parser(top_level=True):
     )
 
     # Waveform arguments
-    waveform_parser = parser.add_argument_group(title="Waveform arguments")
+    waveform_parser = parser.add_argument_group(
+        title="Waveform arguments", description="Setting for the waveform generator"
+    )
     waveform_parser.add(
         "--reference-frequency", default=20, type=float, help="The reference frequency"
     )
@@ -544,3 +576,19 @@ def create_parser(top_level=True):
     )
 
     return parser
+
+
+def main():
+    filename = sys.argv[1]
+    if filename in ["-h", "--help"]:
+        logger.info("Write a default config.ini file to the specified filename.")
+        logger.info("Example usage: $ bilby_pipe_write_default_ini config.ini")
+        sys.exit()
+    else:
+        parser = create_parser()
+        logger.info(
+            "Default config file written to {}".format(os.path.abspath(filename))
+        )
+        parser.write_to_file(
+            filename=filename, overwrite=True, include_description=True
+        )

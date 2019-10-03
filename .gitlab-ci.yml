@@ -61,6 +61,8 @@ documentation:
     - cd docs
     - pip install -r requirements.txt
     - make clean
+    - bilby_pipe_write_default_ini default.ini
+    - bilby_pipe_gracedb --json ../examples/gracedb_examples/G298936.json --output ini --outdir .
     - make html
 
   artifacts:
