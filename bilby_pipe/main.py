@@ -41,9 +41,9 @@ class MainInput(Input):
         self.submit = args.submit
         self.create_plots = args.create_plots
         self.singularity_image = args.singularity_image
+        self.create_summary = args.create_summary
         self.outdir = args.outdir
         self.label = args.label
-        self.create_summary = args.create_summary
         self.accounting = args.accounting
         self.sampler = args.sampler
         self.detectors = args.detectors
@@ -383,12 +383,14 @@ class Node(object):
         if add_command_line_args:
             self.arguments.add_command_line_arguments()
 
+    @property
+    def log_directory(self):
+        raise NotImplementedError()
+
     def create_pycondor_job(self):
         job_name = self.job_name
         self.extra_lines.extend(
-            _log_output_error_submit_lines(
-                self.inputs.data_generation_log_directory, job_name
-            )
+            _log_output_error_submit_lines(self.log_directory, job_name)
         )
         self.extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
 
@@ -506,6 +508,10 @@ class GenerationNode(Node):
         return self.inputs.request_memory_generation
 
     @property
+    def log_directory(self):
+        return self.inputs.data_generation_log_directory
+
+    @property
     def universe(self):
         if self.inputs.local_generation:
             logger.debug(
@@ -592,6 +598,10 @@ class AnalysisNode(Node):
         return self.inputs.request_memory
 
     @property
+    def log_directory(self):
+        return self.inputs.data_analysis_log_directory
+
+    @property
     def result_file(self):
         return "{}/{}_result.json".format(self.inputs.result_directory, self.job_name)
 
@@ -625,6 +635,10 @@ class MergeNode(Node):
         return "16 GB"
 
     @property
+    def log_directory(self):
+        return self.inputs.data_analysis_log_directory
+
+    @property
     def merged_runs_label(self):
         return self.inputs.label + "_combined"
 
@@ -654,6 +668,10 @@ class PlotNode(Node):
     @property
     def request_memory(self):
         return "64 GB"
+
+    @property
+    def log_directory(self):
+        return self.inputs.data_analysis_log_directory
 
     @property
     def universe(self):
@@ -704,6 +722,10 @@ class PESummaryNode(Node):
     def request_memory(self):
         return "16 GB"
 
+    @property
+    def log_directory(self):
+        return self.inputs.summary_log_directory
+
 
 class PostProcessAllResultsNode(Node):
     def __init__(self, inputs, merged_node_list, dag):
@@ -725,6 +747,10 @@ class PostProcessAllResultsNode(Node):
     @property
     def request_memory(self):
         return "32 GB"
+
+    @property
+    def log_directory(self):
+        return self.inputs.data_analysis_log_directory
 
 
 def get_trigger_time_list(inputs):
