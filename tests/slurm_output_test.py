@@ -53,29 +53,15 @@ class TestSlurm(unittest.TestCase):
             create_plots=False,
             likelihood_type=None,
             duration=4,
+            post_trigger_duration=2,
+            gaussian_noise=True,
+            n_simulation=1,
             osg=True,
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)
-        self.inputs.level_A_labels = ["test"]
+
         self.injection_file = os.path.join(self.outdir, "example_injection_file.h5")
-        self.create_injection_args = Namespace(
-            outdir=self.outdir,
-            label="label",
-            prior_file="tests/example_prior.prior",
-            n_injection=3,
-            generation_seed=None,
-            default_prior="BBHPriorDict",
-            trigger_time=0,
-            deltaT=0.2,
-            gps_file=None,
-            duration=4,
-            post_trigger_duration=2,
-        )
-        ci_inputs = bilby_pipe.create_injections.CreateInjectionInput(
-            self.create_injection_args, []
-        )
-        ci_inputs.create_injection_file(self.injection_file)
 
     def tearDown(self):
         del self.test_args
@@ -85,9 +71,7 @@ class TestSlurm(unittest.TestCase):
     def test_create_slurm_submit(self):
         test_args = self.test_args
         inputs = bilby_pipe.main.MainInput(test_args, self.test_unknown_args)
-        inputs.level_A_labels = ["test_label"]
-        inputs.n_level_A_jobs = 1
-        bilby_pipe.main.Dag(inputs)
+        bilby_pipe.main.generate_dag(inputs)
         filename = os.path.join(self.outdir, "submit/label_master_slurm.sh")
         self.assertTrue(os.path.exists(filename))
 

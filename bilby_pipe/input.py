@@ -202,7 +202,7 @@ class Input(object):
             logger.info("Using the binary_black_hole_roq source model")
             return bilby.gw.source.binary_black_hole_roq
         else:
-            BilbyPipeError("Unable to determine roq_source from source model")
+            raise BilbyPipeError("Unable to determine roq_source from source model")
 
     @property
     def frequency_domain_source_model(self):
@@ -225,10 +225,9 @@ class Input(object):
 
     @property
     def start_time(self):
-        try:
+        if hasattr(self, "_start_time"):
+            self._verify_start_time(self._start_time)
             return self._start_time
-        except AttributeError:
-            logger.info("No start-time set, fall back to default start time")
         try:
             self._start_time = (
                 self.trigger_time + self.post_trigger_duration - self.duration
@@ -238,8 +237,21 @@ class Input(object):
             logger.warning("Unable to calculate default segment start time")
             return None
 
+    def _verify_start_time(self, start_time):
+        try:
+            inferred_start_time = (
+                self.trigger_time + self.post_trigger_duration - self.duration
+            )
+        except AttributeError:
+            logger.warning("Unable to veryify start-time consistency")
+            return
+
+        if inferred_start_time != start_time:
+            raise BilbyPipeError("Unexpected behaviour enountered with start time")
+
     @start_time.setter
     def start_time(self, start_time):
+        self._verify_start_time(start_time)
         self._start_time = start_time
         if start_time is not None:
             logger.info("Setting segment start time {}".format(start_time))
@@ -265,21 +277,36 @@ class Input(object):
             self._injection_file = None
         elif os.path.isfile(injection_file):
             self._injection_file = os.path.relpath(injection_file)
-            with open(injection_file, "r") as file:
-                injection_dict = json.load(
-                    file, object_hook=bilby.core.result.decode_bilby_json
-                )
-            injection_df = injection_dict["injections"]
-            try:
-                self.injection_df = pd.DataFrame(injection_df)
-            except ValueError:
-                self.injection_df = pd.DataFrame(injection_df, index=[0])
-
-            self.total_number_of_injections = len(injection_df)
+            self.injection_df = self.read_injection_file(injection_file)
+            self.total_number_of_injections = len(self.injection_df)
         else:
             raise FileNotFoundError(
                 "Injection file {} not found".format(injection_file)
             )
+
+    @staticmethod
+    def read_injection_file(injection_file):
+        if "json" in injection_file:
+            return Input.read_json_injection_file(injection_file)
+        elif "dat" in injection_file:
+            return Input.read_dat_injection_file(injection_file)
+
+    @staticmethod
+    def read_json_injection_file(injection_file):
+        with open(injection_file, "r") as file:
+            injection_dict = json.load(
+                file, object_hook=bilby.core.result.decode_bilby_json
+            )
+        injection_df = injection_dict["injections"]
+        try:
+            injection_df = pd.DataFrame(injection_df)
+        except ValueError:
+            injection_df = pd.DataFrame(injection_df, index=[0])
+        return injection_df
+
+    @staticmethod
+    def read_dat_injection_file(injection_file):
+        return pd.read_csv(injection_file, delim_whitespace=True)
 
     @property
     def spline_calibration_envelope_dict(self):

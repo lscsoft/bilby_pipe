@@ -39,6 +39,9 @@ class ArgumentsString(object):
     def add_positional_argument(self, value):
         self.argument_list.append("{}".format(value))
 
+    def add_flag(self, flag):
+        self.argument_list.append("--{}".format(flag))
+
     def add(self, argument, value):
         self.argument_list.append("--{}".format(argument))
         self.argument_list.append("{}".format(value))
@@ -67,12 +70,12 @@ class DataDump(object):
         self.idx = idx
 
     @staticmethod
-    def get_filename(outdir, label, idx):
-        return os.path.join(outdir, "_".join([label, str(idx), "data_dump.pickle"]))
+    def get_filename(outdir, label):
+        return os.path.join(outdir, "_".join([label, "data_dump.pickle"]))
 
     @property
     def filename(self):
-        return self.get_filename(self.outdir, self.label, self.idx)
+        return self.get_filename(self.outdir, self.label)
 
     def to_pickle(self):
         with open(self.filename, "wb+") as file:
