@@ -697,6 +697,28 @@ class PESummaryNode(Node):
         return "16 GB"
 
 
+class PostProcessAllResultsNode(Node):
+    def __init__(self, inputs, merged_node_list, dag):
+        super().__init__(inputs)
+        self.dag = dag
+        self.job_name = "{}_postprocess_all".format(self.inputs.label)
+        self.setup_arguments(
+            add_ini=False, add_unknown_args=False, add_command_line_args=False
+        )
+        self.arguments.argument_list = self.inputs.postprocessing_arguments
+        self.process_node()
+        for node in merged_node_list:
+            self.job.add_parent(node.job)
+
+    @property
+    def executable(self):
+        return self._get_executable_path(self.inputs.postprocessing_executable)
+
+    @property
+    def request_memory(self):
+        return "32 GB"
+
+
 def get_trigger_time_list(inputs):
     """ Returns a list of GPS trigger times for each data segment """
     if inputs.trigger_time is not None:
@@ -774,6 +796,9 @@ def generate_dag(inputs):
             PlotNode(inputs, merged_node, dag=dag)
         if inputs.create_summary:
             PESummaryNode(inputs, merged_node, dag=dag)
+
+    if inputs.postprocessing_arguments is not None:
+        PostProcessAllResultsNode(inputs, merged_node_list, dag)
 
     dag.build()
 
