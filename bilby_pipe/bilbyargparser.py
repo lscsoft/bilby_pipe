@@ -155,7 +155,7 @@ class BilbyArgParser(configargparse.ArgParser):
                         if action.dest in args:
                             value = args[action.dest]
                         elif action.dest.replace("_", "-") in args:
-                            value = args[action.dest]
+                            value = args[action.dest.replace("_", "-")]
                         else:
                             value = action.default
                     else:
