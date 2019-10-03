@@ -74,6 +74,7 @@ class MainInput(Input):
         self.post_trigger_duration = args.post_trigger_duration
 
         self.trigger_time = args.trigger_time
+        self.deltaT = args.deltaT
         self.gps_file = args.gps_file
         self.gaussian_noise = args.gaussian_noise
         self.n_simulation = args.n_simulation
@@ -190,12 +191,19 @@ class MainInput(Input):
         else:
             logger.info("No injection file found, generating one now")
             n_injection = inputs.n_simulation
+            if inputs.trigger_time is None:
+                trigger_time_injections = 0
+            else:
+                trigger_time_injections = inputs.trigger_time
             create_injection_file(
                 filename=default_injection_file_name,
                 prior_file=inputs.prior_file,
                 n_injection=n_injection,
+                trigger_time=trigger_time_injections,
+                deltaT=inputs.deltaT,
                 generation_seed=inputs.generation_seed,
                 extension="dat",
+                default_prior=inputs.default_prior,
             )
             inputs.injection_file = default_injection_file_name
         return inputs

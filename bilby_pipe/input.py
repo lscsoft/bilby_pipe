@@ -516,6 +516,27 @@ class Input(object):
         d.update(bilby.gw.prior.__dict__)
         return d
 
+    def create_geocent_time_prior(self):
+        cond_a = getattr(self, "trigger_time", None) is not None
+        cond_b = getattr(self, "deltaT", None) is not None
+        if cond_a and cond_b:
+            logger.info(
+                "Setting geocent time prior using trigger-time={} and deltaT={}".format(
+                    self.trigger_time, self.deltaT
+                )
+            )
+            geocent_time_prior = bilby.core.prior.Uniform(
+                minimum=self.trigger_time - self.deltaT / 2,
+                maximum=self.trigger_time + self.deltaT / 2,
+                name="geocent_time",
+                latex_label="$t_c$",
+                unit="$s$",
+            )
+        else:
+            raise BilbyPipeError("Unable to set geocent_time prior from trigger_time")
+
+        return geocent_time_prior
+
     @property
     def priors(self):
         if getattr(self, "_priors", None) is not None:
@@ -529,21 +550,9 @@ class Input(object):
             raise ValueError("Unable to set prior: default_prior unavailable")
 
         if self._priors.get("geocent_time", None) is None:
-            try:
-                logger.info(
-                    "Setting geocent time prior using trigger-time={} and deltaT={}".format(
-                        self.trigger_time, self.deltaT
-                    )
-                )
-                self._priors["geocent_time"] = bilby.core.prior.Uniform(
-                    minimum=self.trigger_time - self.deltaT / 2,
-                    maximum=self.trigger_time + self.deltaT / 2,
-                    name="geocent_time",
-                    latex_label="$t_c$",
-                    unit="$s$",
-                )
-            except (AttributeError, TypeError):
-                logger.info("Unable to set geocent time prior")
+            self._priors["geocent_time"] = self.create_geocent_time_prior()
+        else:
+            logger.info("Using geocent_time prior from prior_file")
 
         if self.calibration_model is not None:
             for det in self.detectors:

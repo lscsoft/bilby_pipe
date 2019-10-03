@@ -65,6 +65,27 @@ def create_parser():
         help="The number of injections to generate",
         required=True,
     )
+    parser.add_arg(
+        "-t",
+        "--trigger-time",
+        type=int,
+        default=0,
+        help=(
+            "The trigger time to use for setting a geocent_time prior "
+            "(default=0). Ignored if a geocent_time prior exists in the "
+            "prior_file"
+        ),
+    )
+    parser.add(
+        "--deltaT",
+        type=float,
+        default=0.2,
+        help=(
+            "The symmetric width (in s) around the trigger time to"
+            " search over the coalesence time. Ignored if a geocent_time prior"
+            " exists in the prior_file"
+        ),
+    )
     parser.add(
         "-s",
         "--generation-seed",
@@ -72,14 +93,24 @@ def create_parser():
         type=int,
         help="Random seed used during data generation",
     )
+    parser.add(
+        "--default-prior",
+        default="BBHPriorDict",
+        type=str,
+        help="The name of the prior set to base the prior on. Can be one of"
+        "[PriorDict, BBHPriorDict, BNSPriorDict, CalibrationPriorDict]",
+    )
     return parser
 
 
 class PriorFileInput(Input):
     """ An object to hold inputs to create_injection for consistency"""
 
-    def __init__(self, prior_file):
+    def __init__(self, prior_file, default_prior, trigger_time, deltaT):
         self.prior_file = prior_file
+        self.default_prior = default_prior
+        self.trigger_time = trigger_time
+        self.deltaT = deltaT
 
 
 def get_full_path(filename, extension):
@@ -96,14 +127,26 @@ def get_full_path(filename, extension):
 
 
 def create_injection_file(
-    filename, prior_file, n_injection, generation_seed=None, extension="dat"
+    filename,
+    prior_file,
+    n_injection,
+    trigger_time=None,
+    deltaT=0.2,
+    generation_seed=None,
+    extension="dat",
+    default_prior="BBHPriorDict",
 ):
     path, extension = get_full_path(filename, extension)
     outdir = os.path.dirname(path)
     if outdir != "":
         check_directory_exists_and_if_not_mkdir(outdir)
 
-    prior_file_input = PriorFileInput(prior_file=prior_file)
+    prior_file_input = PriorFileInput(
+        prior_file=prior_file,
+        default_prior=default_prior,
+        trigger_time=trigger_time,
+        deltaT=deltaT,
+    )
     prior_file = prior_file_input.prior_file
 
     if prior_file is None:
@@ -121,7 +164,7 @@ def create_injection_file(
         )
     )
 
-    priors = bilby.core.prior.PriorDict(prior_file)
+    priors = prior_file_input.priors
     injection_values = pd.DataFrame.from_dict(priors.sample(n_injection))
 
     if extension == "json":
@@ -145,6 +188,8 @@ def main():
         filename=args.filename,
         prior_file=args.prior_file,
         n_injection=args.n_injection,
+        trigger_time=args.trigger_time,
+        deltaT=args.deltaT,
         generation_seed=args.generation_seed,
         extension=args.extension,
     )
