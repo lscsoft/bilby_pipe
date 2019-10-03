@@ -9,9 +9,9 @@ from .utils import (
     check_directory_exists_and_if_not_mkdir,
     DURATION_LOOKUPS,
     MAXIMUM_FREQUENCY_LOOKUPS,
-    write_config_file,
     run_command_line,
 )
+from . import parser
 
 fiducial_bbh_injections = {
     "128s": dict(
@@ -178,7 +178,14 @@ def fiducial_bbh(args):
         )
     config_dict["injection-file"] = injection_filename
 
-    write_config_file(config_dict, filename)
+    _parser = parser.create_parser()
+    _parser.write_to_file(
+        filename=filename,
+        args=config_dict,
+        overwrite=True,
+        include_description=False,
+        exclude_default=True,
+    )
     return filename
 
 
@@ -220,7 +227,14 @@ def fiducial_bns(args):
         )
     config_dict["injection-file"] = injection_filename
 
-    write_config_file(config_dict, filename)
+    _parser = parser.create_parser()
+    _parser.write_to_file(
+        filename=filename,
+        args=config_dict,
+        overwrite=True,
+        include_description=False,
+        exclude_default=True,
+    )
     return filename
 
 
@@ -257,7 +271,14 @@ def pp_test(args):
         rundir, rundir
     )
     filename = "review_{}.ini".format(config_dict["label"])
-    write_config_file(config_dict, filename)
+    _parser = parser.create_parser()
+    _parser.write_to_file(
+        filename=filename,
+        args=config_dict,
+        overwrite=True,
+        include_description=False,
+        exclude_default=True,
+    )
     return filename
 
 

@@ -6,6 +6,8 @@ import os
 import sys
 import configargparse
 
+from .utils import get_version_information, logger
+
 
 class BilbyArgParser(configargparse.ArgParser):
     """
@@ -115,3 +117,51 @@ class BilbyArgParser(configargparse.ArgParser):
                 normalized_args.append(arg)
 
         return normalized_args
+
+    def write_to_file(
+        self,
+        filename,
+        args=None,
+        overwrite=False,
+        include_description=False,
+        exclude_default=False,
+        comment=None,
+    ):
+        if os.path.isfile(filename) and not overwrite:
+            logger.warning(
+                "File {} already exists, not writing to file.".format(filename)
+            )
+        with open(filename, "w") as ff:
+            __version__ = get_version_information()
+            if include_description:
+                print(
+                    "## This file was written with bilby_pipe version {}\n".format(
+                        __version__
+                    ),
+                    file=ff,
+                )
+            if isinstance(comment, str):
+                print(comment + "\n", file=ff)
+            for group in self._action_groups[2:]:
+                print("#" * 80, file=ff)
+                print("## {}".format(group.title), file=ff)
+                if include_description:
+                    print("# {}".format(group.description), file=ff)
+                print("#" * 80 + "\n", file=ff)
+                for action in group._group_actions:
+                    if include_description:
+                        print("# {}".format(action.help), file=ff)
+                    if isinstance(args, dict):
+                        if action.dest in args:
+                            value = args[action.dest]
+                        elif action.dest.replace("_", "-") in args:
+                            value = args[action.dest]
+                        else:
+                            value = action.default
+                    else:
+                        value = getattr(args, action.dest, action.default)
+
+                    if exclude_default and value == action.default:
+                        continue
+                    print("{}={}".format(action.dest.replace("_", "-"), value), file=ff)
+                print("", file=ff)
