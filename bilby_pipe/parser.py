@@ -57,7 +57,7 @@ def create_parser(top_level=True):
     parser.add(
         "--version",
         action="version",
-        version="%(prog)s={version}\nbilby_pipe={bilby_version}".format(
+        version="%(prog)s={version}\nbilby={bilby_version}".format(
             version=__version__, bilby_version=bilby.__version__
         ),
     )
