@@ -7,7 +7,6 @@ from __future__ import division, print_function
 import sys
 import signal
 import os
-from importlib import import_module
 
 import numpy as np
 import matplotlib
@@ -57,39 +56,15 @@ class DataAnalysisInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.detectors = args.detectors
-        self.prior_file = args.prior_file
-        self.deltaT = args.deltaT
-        self.reference_frequency = args.reference_frequency
-        self.minimum_frequency = args.minimum_frequency
-        self.maximum_frequency = args.maximum_frequency
-        self.waveform_approximant = args.waveform_approximant
-        self.distance_marginalization = args.distance_marginalization
-        self.distance_marginalization_lookup_table = (
-            args.distance_marginalization_lookup_table
-        )
-        self.phase_marginalization = args.phase_marginalization
-        self.time_marginalization = args.time_marginalization
-        self.jitter_time = args.jitter_time
+
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.sampling_seed = args.sampling_seed
         self.outdir = args.outdir
         self.label = args.label
         self.data_dump_file = args.data_dump_file
-        self.default_prior = args.default_prior
+
         self.frequency_domain_source_model = args.frequency_domain_source_model
-        self.likelihood_type = args.likelihood_type
-        self.roq_folder = args.roq_folder
-        self.roq_scale_factor = args.roq_scale_factor
-        self.calibration_model = args.calibration_model
-        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
-        self.spline_calibration_amplitude_uncertainty_dict = (
-            args.spline_calibration_amplitude_uncertainty_dict
-        )
-        self.spline_calibration_phase_uncertainty_dict = (
-            args.spline_calibration_phase_uncertainty_dict
-        )
-        self.spline_calibration_nodes = args.spline_calibration_nodes
         self.periodic_restart_time = args.periodic_restart_time
 
         if test is False:
@@ -118,14 +93,6 @@ class DataAnalysisInput(Input):
         except (ValueError, TypeError):
             logger.debug("Unable to convert input `process` to type int")
             self._process = process
-
-    @property
-    def reference_frequency(self):
-        return self._reference_frequency
-
-    @reference_frequency.setter
-    def reference_frequency(self, reference_frequency):
-        self._reference_frequency = float(reference_frequency)
 
     @property
     def sampling_seed(self):
@@ -214,10 +181,6 @@ class DataAnalysisInput(Input):
             )
 
     @property
-    def trigger_time(self):
-        return self.data_dump.trigger_time
-
-    @property
     def data_dump(self):
         if hasattr(self, "_data_dump"):
             return self._data_dump
@@ -245,118 +208,6 @@ class DataAnalysisInput(Input):
         return self._data_dump
 
     @property
-    def parameter_conversion(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
-        else:
-            return None
-
-    @property
-    def waveform_generator(self):
-        waveform_arguments = self.get_default_waveform_arguments()
-
-        if "ROQ" in self.likelihood_type:
-            logger.info(
-                "Using {} likelihood with roq-folder={}".format(
-                    self.likelihood_type, self.roq_folder
-                )
-            )
-            freq_nodes_linear = np.load(self.roq_folder + "/fnodes_linear.npy")
-            freq_nodes_quadratic = np.load(self.roq_folder + "/fnodes_quadratic.npy")
-            freq_nodes_linear *= self.roq_scale_factor
-            freq_nodes_quadratic *= self.roq_scale_factor
-
-            waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
-            waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
-
-            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
-                frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
-                sampling_frequency=self.interferometers.sampling_frequency,
-                duration=self.interferometers.duration,
-                start_time=self.interferometers.start_time,
-                parameter_conversion=self.parameter_conversion,
-                waveform_arguments=waveform_arguments,
-            )
-
-        else:
-            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
-                frequency_domain_source_model=self.bilby_frequency_domain_source_model,
-                sampling_frequency=self.interferometers.sampling_frequency,
-                duration=self.interferometers.duration,
-                parameter_conversion=self.parameter_conversion,
-                start_time=self.interferometers.start_time,
-                waveform_arguments=waveform_arguments,
-            )
-
-        return waveform_generator
-
-    @property
-    def likelihood(self):
-
-        likelihood_kwargs = dict(
-            interferometers=self.interferometers,
-            waveform_generator=self.waveform_generator,
-            priors=self.priors,
-            phase_marginalization=self.phase_marginalization,
-            distance_marginalization=self.distance_marginalization,
-            distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
-            time_marginalization=self.time_marginalization,
-        )
-
-        if self.likelihood_type == "GravitationalWaveTransient":
-            Likelihood = bilby.gw.likelihood.GravitationalWaveTransient
-            likelihood_kwargs.update(jitter_time=self.jitter_time)
-
-        elif self.likelihood_type == "ROQGravitationalWaveTransient":
-            Likelihood = bilby.gw.likelihood.ROQGravitationalWaveTransient
-
-            if self.time_marginalization:
-                logger.warning(
-                    "Time marginalization not implemented for "
-                    "ROQGravitationalWaveTransient: option ignored"
-                )
-
-            likelihood_kwargs.pop("time_marginalization", None)
-            likelihood_kwargs.pop("jitter_time", None)
-
-            params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
-            params["flow"] *= self.roq_scale_factor
-            params["fhigh"] *= self.roq_scale_factor
-            params["seglen"] /= self.roq_scale_factor
-
-            weight_file = self.meta_data["weight_file"]
-            logger.info("Loading ROQ weights from {}".format(weight_file))
-
-            likelihood_kwargs.update(weights=weight_file, roq_params=params)
-
-        elif "." in self.likelihood_type:
-            split_path = self.likelihood_type.split(".")
-            module = ".".join(split_path[:-1])
-            likelihood_class = split_path[-1]
-            Likelihood = getattr(import_module(module), likelihood_class)
-        else:
-            raise ValueError("Unknown Likelihood class {}")
-
-        logger.info(
-            "Initialise likelihood {} with kwargs: \n{}".format(
-                Likelihood, likelihood_kwargs
-            )
-        )
-
-        return Likelihood(**likelihood_kwargs)
-
-    @property
-    def parameter_generation(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.generate_all_bns_parameters
-        elif "binary_black_hole" in self._frequency_domain_source_model:
-            return bilby.gw.conversion.generate_all_bbh_parameters
-        else:
-            return None
-
-    @property
     def result_class(self):
         """ The bilby result class to store results in """
         try:
@@ -370,12 +221,36 @@ class DataAnalysisInput(Input):
         result_dir = os.path.join(self.outdir, "result")
         return os.path.relpath(result_dir)
 
+    def get_likelihood_and_priors(self):
+        """ Read in the like and prior from the data dump, down select for detectors """
+        priors = self.data_dump.priors
+        likelihood = self.data_dump.likelihood
+
+        likelihood.interferometers = self.interferometers
+
+        interferometer_names = [ifo.name for ifo in self.interferometers]
+        priors_copy = priors.copy()
+        for prior in priors:
+            if "recalib" in prior:
+                detector = prior.split("_")[1]
+                if detector not in interferometer_names:
+                    logger.debug(
+                        "Removing prior {} from priors: not in detector list".format(
+                            prior
+                        )
+                    )
+                    priors_copy.pop(prior)
+        return likelihood, priors_copy
+
     def run_sampler(self):
         signal.signal(signal.SIGALRM, handler=sighandler)
         signal.alarm(self.periodic_restart_time)
+
+        likelihood, priors = self.get_likelihood_and_priors()
+
         self.result = bilby.run_sampler(
-            likelihood=self.likelihood,
-            priors=self.priors,
+            likelihood=likelihood,
+            priors=priors,
             sampler=self.sampler,
             label=self.label,
             outdir=self.result_directory,

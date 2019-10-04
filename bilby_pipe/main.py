@@ -561,15 +561,8 @@ class AnalysisNode(Node):
 
         if self.inputs.transfer_files or self.inputs.osg:
             data_dump_file = generation_node.data_dump_file
-            input_files_to_transfer = [
-                str(data_dump_file),
-                str(self.inputs.prior_file),
-                str(self.inputs.ini),
-            ]
-            distance_marg_cache_file = ".distance_marginalization_lookup.npz"
-            if os.path.isfile(distance_marg_cache_file):
-                input_files_to_transfer.append(distance_marg_cache_file)
-            self.inputs.extra_lines.extend(
+            input_files_to_transfer = [str(data_dump_file), str(self.inputs.ini)]
+            self.extra_lines.extend(
                 self._condor_file_transfer_lines(
                     input_files_to_transfer,
                     [self._relative_topdir(self.inputs.outdir, self.inputs.initialdir)],

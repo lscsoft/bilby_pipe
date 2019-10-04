@@ -61,11 +61,23 @@ class ArgumentsString(object):
 
 
 class DataDump(object):
-    def __init__(self, label, outdir, trigger_time, interferometers, meta_data, idx):
+    def __init__(
+        self,
+        label,
+        outdir,
+        trigger_time,
+        likelihood,
+        priors,
+        interferometers,
+        meta_data,
+        idx,
+    ):
         self.trigger_time = trigger_time
         self.label = label
         self.outdir = outdir
         self.interferometers = interferometers
+        self.likelihood = likelihood
+        self.priors = priors
         self.meta_data = meta_data
         self.idx = idx
 

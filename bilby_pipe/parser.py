@@ -385,7 +385,7 @@ def create_parser(top_level=True):
     submission_parser.add(
         "--transfer-files",
         action="store_true",
-        default=False,
+        default=True,
         help="If true, use HTCondor file transfer mechanism, default is False",
     )
     submission_parser.add(

@@ -107,6 +107,27 @@ class DataGenerationInput(Input):
         self.roq_folder = args.roq_folder
         self.roq_scale_factor = args.roq_scale_factor
         self.frequency_domain_source_model = args.frequency_domain_source_model
+        self.likelihood_type = args.likelihood_type
+        self.roq_folder = args.roq_folder
+        self.roq_scale_factor = args.roq_scale_factor
+        self.calibration_model = args.calibration_model
+        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+        self.spline_calibration_amplitude_uncertainty_dict = (
+            args.spline_calibration_amplitude_uncertainty_dict
+        )
+        self.spline_calibration_phase_uncertainty_dict = (
+            args.spline_calibration_phase_uncertainty_dict
+        )
+        self.spline_calibration_nodes = args.spline_calibration_nodes
+
+        self.distance_marginalization = args.distance_marginalization
+        self.distance_marginalization_lookup_table = (
+            args.distance_marginalization_lookup_table
+        )
+        self.phase_marginalization = args.phase_marginalization
+        self.time_marginalization = args.time_marginalization
+        self.jitter_time = args.jitter_time
+
         self.waveform_approximant = args.waveform_approximant
         self.reference_frequency = args.reference_frequency
         self.calibration_model = args.calibration_model
@@ -711,8 +732,9 @@ class DataGenerationInput(Input):
         if self.create_plots:
             interferometers.plot_data(outdir=self.data_directory, label=self.label)
 
-    def save_interferometer_list(self):
+    def save_data_dump(self):
         """ Method to dump the saved data to disk for later analysis """
+        likelihood = self.likelihood
         data_dump = DataDump(
             outdir=self.data_directory,
             label=self.label,
@@ -720,6 +742,8 @@ class DataGenerationInput(Input):
             trigger_time=self.trigger_time,
             interferometers=self.interferometers,
             meta_data=self.meta_data,
+            likelihood=likelihood,
+            priors=self.priors,
         )
         data_dump.to_pickle()
 
@@ -796,5 +820,5 @@ def main():
     data = DataGenerationInput(args, unknown_args)
     if args.likelihood_type == "ROQGravitationalWaveTransient":
         data.save_roq_weights()
-    data.save_interferometer_list()
+    data.save_data_dump()
     logger.info("Completed data generation")
