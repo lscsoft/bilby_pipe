@@ -104,7 +104,7 @@ to the typical workflow `bilby_pipe_gracedb <gracedb.txt>`_ exceutable. For
 this case the user can calls :code:`bilby_pipe_gracedb` along with either the
 GraceDB ID of the event or a json file containing information on the GraceDB
 event. For examples on using `bilby_pipe_gracedb` please see the section
-`Running on GraceDB events` under `Examples <example.txt>`_. 
+`Running on GraceDB events` under `Examples <examples.txt>`_. 
 
 See the table of contents below for an overview of the API.
 

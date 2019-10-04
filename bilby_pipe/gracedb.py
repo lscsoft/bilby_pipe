@@ -352,8 +352,9 @@ def create_config_file(
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         config_dict["roq-folder"] = roq_folder
 
-    comment = "# Configuration ini file generated from GraceDB superevent {}".format(
-        superevent
+    comment = (
+        "# Configuration ini file generated from GraceDB "
+        "for event id {} superevent id {}".format(gracedb, superevent)
     )
     filename = "{}/bilby_config.ini".format(outdir)
     _parser = parser.create_parser()
