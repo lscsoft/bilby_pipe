@@ -558,6 +558,7 @@ class AnalysisNode(Node):
             self.job_name = "{}_{}".format(self.base_job_name, parallel_idx)
         else:
             self.job_name = self.base_job_name
+        self.label = self.job_name
 
         if self.inputs.transfer_files or self.inputs.osg:
             data_dump_file = generation_node.data_dump_file
@@ -573,7 +574,7 @@ class AnalysisNode(Node):
 
         for det in detectors:
             self.arguments.add("detectors", det)
-        self.arguments.add("label", self.job_name)
+        self.arguments.add("label", self.label)
         self.arguments.add("data-dump-file", generation_node.data_dump_file)
         self.arguments.add("sampler", sampler)
 
@@ -605,6 +606,7 @@ class MergeNode(Node):
         self.dag = dag
 
         self.job_name = "{}_merge".format(parallel_node_list[0].base_job_name)
+        self.label = "{}_merged".format(parallel_node_list[0].base_job_name)
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
@@ -612,7 +614,7 @@ class MergeNode(Node):
         for pn in parallel_node_list:
             self.arguments.append(pn.result_file)
         self.arguments.add("outdir", self.inputs.result_directory)
-        self.arguments.add("label", self.merged_runs_label)
+        self.arguments.add("label", self.label)
         self.arguments.add_flag("merge")
 
         self.process_node()
@@ -632,14 +634,8 @@ class MergeNode(Node):
         return self.inputs.data_analysis_log_directory
 
     @property
-    def merged_runs_label(self):
-        return self.inputs.label + "_combined"
-
-    @property
     def result_file(self):
-        return "{}/{}_result.json".format(
-            self.inputs.result_directory, self.merged_runs_label
-        )
+        return "{}/{}_result.json".format(self.inputs.result_directory, self.label)
 
 
 class PlotNode(Node):
@@ -683,29 +679,33 @@ class PlotNode(Node):
 
 
 class PESummaryNode(Node):
-    def __init__(self, inputs, merged_node, dag):
+    def __init__(self, inputs, merged_node_list, dag):
         super().__init__(inputs)
         self.dag = dag
-        self.job_name = merged_node.job_name + "_pesummary"
+        self.job_name = "{}_pesummary".format(inputs.label)
 
-        n_results = 1
+        n_results = len(merged_node_list)
+        result_files = [merged_node.result_file for merged_node in merged_node_list]
+        labels = [merged_node.label for merged_node in merged_node_list]
+
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
         self.arguments.add("webdir", self.inputs.webdir)
         self.arguments.add("email", self.inputs.email)
         self.arguments.add("config", " ".join([self.inputs.ini] * n_results))
-        self.arguments.add("samples", "{}".format(merged_node.result_file))
+        self.arguments.add("samples", "{}".format(" ".join(result_files)))
         self.arguments.append(
             "-a {}".format(" ".join([self.inputs.waveform_approximant] * n_results))
         )
-        self.arguments.append("--labels {}".format(merged_node.job_name))
+        self.arguments.append("--labels {}".format(" ".join(labels)))
         existing_dir = self.inputs.existing_dir
         if existing_dir is not None:
             self.arguments.add("existing_webdir", existing_dir)
 
         self.process_node()
-        self.job.add_parent(merged_node.job)
+        for merged_node in merged_node_list:
+            self.job.add_parent(merged_node.job)
 
     @property
     def executable(self):
@@ -821,9 +821,9 @@ def generate_dag(inputs):
     for merged_node in merged_node_list:
         if inputs.create_plots:
             PlotNode(inputs, merged_node, dag=dag)
-        if inputs.create_summary:
-            PESummaryNode(inputs, merged_node, dag=dag)
 
+    if inputs.create_summary:
+        PESummaryNode(inputs, merged_node_list, dag=dag)
     if inputs.postprocessing_arguments is not None:
         PostProcessAllResultsNode(inputs, merged_node_list, dag)
 
