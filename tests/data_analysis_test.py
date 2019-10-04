@@ -50,11 +50,6 @@ class TestDataAnalysisInput(unittest.TestCase):
         inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
         self.assertEqual(inputs.sampling_seed, 1)
 
-    def test_set_reference_frequency(self):
-        args_list = self.default_args_list + ["--reference-frequency", "10"]
-        inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
-        self.assertEqual(inputs.reference_frequency, 10)
-
     def test_set_sampler_ini(self):
         self.inputs = DataAnalysisInput(
             *parse_args(self.default_args_list, self.parser), test=True
