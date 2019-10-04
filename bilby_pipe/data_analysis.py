@@ -223,7 +223,7 @@ class DataAnalysisInput(Input):
 
     def get_likelihood_and_priors(self):
         """ Read in the like and prior from the data dump, down select for detectors """
-        priors = self.data_dump.priors
+        priors = self.data_dump.priors_class(self.data_dump.priors_dict)
         likelihood = self.data_dump.likelihood
 
         likelihood.interferometers = self.interferometers

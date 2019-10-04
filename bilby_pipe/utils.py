@@ -67,7 +67,8 @@ class DataDump(object):
         outdir,
         trigger_time,
         likelihood,
-        priors,
+        priors_dict,
+        priors_class,
         interferometers,
         meta_data,
         idx,
@@ -77,7 +78,8 @@ class DataDump(object):
         self.outdir = outdir
         self.interferometers = interferometers
         self.likelihood = likelihood
-        self.priors = priors
+        self.priors_dict = priors_dict
+        self.priors_class = priors_class
         self.meta_data = meta_data
         self.idx = idx
 

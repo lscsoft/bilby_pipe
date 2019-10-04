@@ -743,7 +743,8 @@ class DataGenerationInput(Input):
             interferometers=self.interferometers,
             meta_data=self.meta_data,
             likelihood=likelihood,
-            priors=self.priors,
+            priors_dict=dict(self.priors),
+            priors_class=self.priors.__class__,
         )
         data_dump.to_pickle()
 
