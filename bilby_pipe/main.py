@@ -83,7 +83,7 @@ class MainInput(Input):
         self.injection_file = args.injection_file
         self.generation_seed = args.generation_seed
         if self.injection:
-            self = self.check_injection(self)
+            self.check_injection()
 
         self.request_memory = args.request_memory
         self.request_memory_generation = args.request_memory_generation
@@ -176,37 +176,35 @@ class MainInput(Input):
                 ]
                 logger.warning(" ".join(msg))
 
-    @staticmethod
-    def check_injection(inputs):
+    def check_injection(self):
         """ If injections are requested, create an injection file """
         default_injection_file_name = "{}/{}_injection_file.dat".format(
-            inputs.data_directory, inputs.label
+            self.data_directory, self.label
         )
-        if inputs.injection_file is not None:
-            logger.info("Using injection file {}".format(inputs.injection_file))
+        if self.injection_file is not None:
+            logger.info("Using injection file {}".format(self.injection_file))
         elif os.path.isfile(default_injection_file_name):
             # This is done to avoid overwriting the injection file
             logger.info("Using injection file {}".format(default_injection_file_name))
-            inputs.injection_file = default_injection_file_name
+            self.injection_file = default_injection_file_name
         else:
             logger.info("No injection file found, generating one now")
-            n_injection = inputs.n_simulation
-            if inputs.trigger_time is None:
+            n_injection = self.n_simulation
+            if self.trigger_time is None:
                 trigger_time_injections = 0
             else:
-                trigger_time_injections = inputs.trigger_time
+                trigger_time_injections = self.trigger_time
             create_injection_file(
                 filename=default_injection_file_name,
-                prior_file=inputs.prior_file,
+                prior_file=self.prior_file,
                 n_injection=n_injection,
                 trigger_time=trigger_time_injections,
-                deltaT=inputs.deltaT,
-                generation_seed=inputs.generation_seed,
+                deltaT=self.deltaT,
+                generation_seed=self.generation_seed,
                 extension="dat",
-                default_prior=inputs.default_prior,
+                default_prior=self.default_prior,
             )
-            inputs.injection_file = default_injection_file_name
-        return inputs
+            self.injection_file = default_injection_file_name
 
 
 class Dag(object):
