@@ -155,24 +155,20 @@ class DataGenerationInput(Input):
         """
 
         self.data_set = False
+        self.trigger_time = args.trigger_time
         self.injection_file = args.injection_file
         self.injection = args.injection
         self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
         if self.gaussian_noise:
-            self.trigger_time = args.trigger_time
             if args.injection_file is not None:
                 self._set_interferometers_from_injection_in_gaussian_noise()
             elif args.injection is False:
                 self._set_interferometers_from_gaussian_noise()
             else:
                 raise BilbyPipeError("Unable to set data: no injection file")
-        elif self.data_set is False and args.gps_file is not None:
-            self.gps_file = args.gps_file
-            self._set_interferometers_from_data()
-        elif self.data_set is False and args.trigger_time is not None:
-            self.trigger_time = args.trigger_time
+        else:
             self._set_interferometers_from_data()
 
         if self.data_set is False:
