@@ -189,7 +189,14 @@ class MainInput(Input):
             self.injection_file = default_injection_file_name
         else:
             logger.info("No injection file found, generating one now")
-            n_injection = self.n_simulation
+            if self.gps_file is not None:
+                if self.n_simulation > 0 and self.n_simulation != len(self.gpstimes):
+                    raise BilbyPipeError(
+                        "gps_file option and n_simulation options not yet impemented"
+                    )
+                n_injection = len(self.gpstimes)
+            else:
+                n_injection = self.n_simulation
             if self.trigger_time is None:
                 trigger_time_injections = 0
             else:
@@ -205,6 +212,11 @@ class MainInput(Input):
                 default_prior=self.default_prior,
             )
             self.injection_file = default_injection_file_name
+
+        # Check the gps_file has the sample length as number of simulation
+        if self.gps_file is not None:
+            if len(self.gpstimes) != len(self.injection_df):
+                raise BilbyPipeError("Injection file length does not match gps_file")
 
 
 class Dag(object):
