@@ -158,10 +158,13 @@ class Input(object):
                 "Input file gps_file={} not understood".format(gps_file)
             )
 
-        if hasattr(self, "_parse_gps_file"):
-            self._parse_gps_file()
-        else:
-            logger.debug("No _parse_gps_file method present")
+        self._parse_gps_file()
+
+    def _parse_gps_file(self):
+        gpstimes = self.read_gps_file()
+        n = len(gpstimes)
+        logger.info("{} start times found in gps_file={}".format(n, self.gps_file))
+        self.gpstimes = gpstimes
 
     def read_gps_file(self):
         gpstimes = np.loadtxt(self.gps_file, ndmin=1)

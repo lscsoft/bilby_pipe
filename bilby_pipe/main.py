@@ -121,11 +121,21 @@ class MainInput(Input):
         if self.gps_file is not None:
             self._parse_gps_file()
 
-    def _parse_gps_file(self):
-        gpstimes = self.read_gps_file()
-        n = len(gpstimes)
-        logger.info("{} start times found in gps_file={}".format(n, self.gps_file))
-        self.gpstimes = gpstimes
+    @property
+    def n_simulation(self):
+        return self._n_simulation
+
+    @n_simulation.setter
+    def n_simulation(self, n_simulation):
+        logger.info("Setting n_simulation={}".format(n_simulation))
+        if isinstance(n_simulation, int) and n_simulation >= 0:
+            self._n_simulation = n_simulation
+        elif n_simulation is None:
+            self._n_simulation = 0
+        else:
+            raise BilbyPipeError(
+                "Input n_simulation={} not understood".format(n_simulation)
+            )
 
     @property
     def request_memory(self):
@@ -207,6 +217,9 @@ class MainInput(Input):
                 n_injection=n_injection,
                 trigger_time=trigger_time_injections,
                 deltaT=self.deltaT,
+                gps_file=self.gps_file,
+                duration=self.duration,
+                post_trigger_duration=self.post_trigger_duration,
                 generation_seed=self.generation_seed,
                 extension="dat",
                 default_prior=self.default_prior,
@@ -217,6 +230,17 @@ class MainInput(Input):
         if self.gps_file is not None:
             if len(self.gpstimes) != len(self.injection_df):
                 raise BilbyPipeError("Injection file length does not match gps_file")
+
+        if self.n_simulation > 0:
+            if self.n_simulation != len(self.injection_df):
+                raise BilbyPipeError(
+                    "n_simulation does not equal the number of injections"
+                )
+        elif self.n_simulation == 0 and self.gps_file is None:
+            self.n_simulation = len(self.injection_df)
+            logger.info(
+                "Setting n_simulation={} to match injections".format(self.n_simulation)
+            )
 
 
 class Dag(object):

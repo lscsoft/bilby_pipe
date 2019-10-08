@@ -285,7 +285,13 @@ def create_parser(top_level=True):
         help="Create data from an injection file",
     )
     injection_parser.add(
-        "--injection-file", type=nonestr, default=None, help="Injection file to use"
+        "--injection-file",
+        type=nonestr,
+        default=None,
+        help=(
+            "Injection file to use. See `bilby_pipe_create_injection_file --help`"
+            " for supported formats"
+        ),
     )
 
     submission_parser = parser.add_argument_group(
