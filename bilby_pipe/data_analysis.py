@@ -48,24 +48,55 @@ class DataAnalysisInput(Input):
     def __init__(self, args, unknown_args, test=False):
         logger.info("Command line arguments: {}".format(args))
 
+        # Generic initialisation
         self.meta_data = dict()
         self.result = None
 
+        # Admin arguments
         self.ini = args.ini
-        self.idx = args.idx
         self.cluster = args.cluster
         self.process = args.process
-        self.detectors = args.detectors
+        self.periodic_restart_time = args.periodic_restart_time
 
+        # Naming arguments
+        self.outdir = args.outdir
+        self.label = args.label
+
+        # Data dump file to run on
+        self.data_dump_file = args.data_dump_file
+
+        # Choices for running
+        self.detectors = args.detectors
         self.sampler = args.sampler
         self.sampler_kwargs = args.sampler_kwargs
         self.sampling_seed = args.sampling_seed
-        self.outdir = args.outdir
-        self.label = args.label
-        self.data_dump_file = args.data_dump_file
 
+        # Frequencies
+        self.sampling_frequency = args.sampling_frequency
+        self.minimum_frequency = args.minimum_frequency
+        self.maximum_frequency = args.maximum_frequency
+        self.reference_frequency = args.reference_frequency
+
+        # Waveform, source model and likelihood
+        self.waveform_approximant = args.waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
-        self.periodic_restart_time = args.periodic_restart_time
+        self.likelihood_type = args.likelihood_type
+
+        # ROQ
+        self.roq_folder = args.roq_folder
+        self.roq_scale_factor = args.roq_scale_factor
+
+        # Calibration
+        self.calibration_model = args.calibration_model
+        self.spline_calibration_nodes = args.spline_calibration_nodes
+        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+
+        # Marginalization
+        self.distance_marginalization = args.distance_marginalization
+        self.distance_marginalization_lookup_table = None
+        self.phase_marginalization = args.phase_marginalization
+        self.time_marginalization = args.time_marginalization
+        self.jitter_time = args.jitter_time
 
         if test is False:
             self._load_data_dump()
@@ -222,25 +253,28 @@ class DataAnalysisInput(Input):
         return os.path.relpath(result_dir)
 
     def get_likelihood_and_priors(self):
-        """ Read in the like and prior from the data dump, down select for detectors """
+        """ Read in the likelihood and prior from the data dump
+
+        This reads in the data dump values and reconstructs the likelihood and
+        priors. Note, care must be taken to use the "search_priors" which differ
+        from the true prior when using marginalization
+
+        Returns
+        -------
+        likelihood, priors
+            The bilby likelihood and priors
+        """
+
         priors = self.data_dump.priors_class(self.data_dump.priors_dict)
-        likelihood = self.data_dump.likelihood
+        self.priors = priors
 
-        likelihood.interferometers = self.interferometers
+        self.likelihood_lookup_table = self.data_dump.likelihood_lookup_table
+        self.likelihood_roq_weights = self.data_dump.likelihood_roq_weights
+        self.likelihood_roq_params = self.data_dump.likelihood_roq_params
 
-        interferometer_names = [ifo.name for ifo in self.interferometers]
-        priors_copy = priors.copy()
-        for prior in priors:
-            if "recalib" in prior:
-                detector = prior.split("_")[1]
-                if detector not in interferometer_names:
-                    logger.debug(
-                        "Removing prior {} from priors: not in detector list".format(
-                            prior
-                        )
-                    )
-                    priors_copy.pop(prior)
-        return likelihood, priors_copy
+        likelihood = self.likelihood
+        priors = self.search_priors
+        return likelihood, priors
 
     def run_sampler(self):
         signal.signal(signal.SIGALRM, handler=sighandler)
