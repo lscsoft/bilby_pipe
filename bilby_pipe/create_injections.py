@@ -1,6 +1,23 @@
 #!/usr/bin/env python
 """
-Module containing the tools for creating injection files
+This a command line tool for the generation of injection files for consumption
+by bilby_pipe. Injection files can be generated in a variety of formats, see
+below, and are generated from a bilby-style prior_file.
+
+Formats
+-------
+dat: A dat file consists of a space-separated list of parameters with a header.
+     For example:
+
+     mass_1 mass_2 luminosity_distance ...
+     30 20 1500 ...
+     25 12 2000 ...
+
+json: A JSON formatted file
+
+If a geocent_time prior is given in the file, this will be used to create the
+time prior. Otherwise, the trigger-time & deltaT or gps-time and deltaT options
+are used (see below).
 """
 from __future__ import division, print_function
 
@@ -42,7 +59,9 @@ def create_parser():
         A parser with all the default options already added
 
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog="bilby_pipe_create_injection_file", description=__doc__
+    )
     parser.add_arg(
         "prior_file",
         type=str,
@@ -62,8 +81,9 @@ def create_parser():
         "-n",
         "--n-injection",
         type=int,
-        help="The number of injections to generate",
-        required=True,
+        default=None,
+        help="The number of injections to generate: not required if --gps-file is also given",
+        required=False,
     )
     parser.add_arg(
         "-t",
@@ -73,7 +93,18 @@ def create_parser():
         help=(
             "The trigger time to use for setting a geocent_time prior "
             "(default=0). Ignored if a geocent_time prior exists in the "
-            "prior_file"
+            "prior_file or --gps-file is given."
+        ),
+    )
+    parser.add_arg(
+        "-g",
+        "--gps-file",
+        type=str,
+        default=None,
+        help=(
+            "A list of gps start times to use for setting a geocent_time prior"
+            ". Note, the trigger time is obtained from "
+            " start_time + duration - post_trigger_duration."
         ),
     )
     parser.add(
@@ -84,6 +115,24 @@ def create_parser():
             "The symmetric width (in s) around the trigger time to"
             " search over the coalesence time. Ignored if a geocent_time prior"
             " exists in the prior_file"
+        ),
+    )
+    parser.add_arg(
+        "--post-trigger-duration",
+        type=float,
+        default=2,
+        help=(
+            "The post trigger duration (default=2s), used only in conjunction "
+            "with --gps-file"
+        ),
+    )
+    parser.add_arg(
+        "--duration",
+        type=float,
+        default=4,
+        help=(
+            "The segment duration (default=4s), used only in conjunction with "
+            "--gps-file"
         ),
     )
     parser.add(
@@ -106,11 +155,23 @@ def create_parser():
 class PriorFileInput(Input):
     """ An object to hold inputs to create_injection for consistency"""
 
-    def __init__(self, prior_file, default_prior, trigger_time, deltaT):
+    def __init__(
+        self,
+        prior_file,
+        default_prior,
+        trigger_time,
+        deltaT,
+        gps_file,
+        duration,
+        post_trigger_duration,
+    ):
         self.prior_file = prior_file
         self.default_prior = default_prior
         self.trigger_time = trigger_time
         self.deltaT = deltaT
+        self.gps_file = gps_file
+        self.duration = duration
+        self.post_trigger_duration = post_trigger_duration
 
 
 def get_full_path(filename, extension):
@@ -132,6 +193,9 @@ def create_injection_file(
     n_injection,
     trigger_time=None,
     deltaT=0.2,
+    gps_file=None,
+    duration=4,
+    post_trigger_duration=2,
     generation_seed=None,
     extension="dat",
     default_prior="BBHPriorDict",
@@ -146,6 +210,9 @@ def create_injection_file(
         default_prior=default_prior,
         trigger_time=trigger_time,
         deltaT=deltaT,
+        gps_file=gps_file,
+        duration=duration,
+        post_trigger_duration=post_trigger_duration,
     )
     prior_file = prior_file_input.prior_file
 
@@ -154,6 +221,12 @@ def create_injection_file(
 
     np.random.seed(generation_seed)
     logger.info("Setting generation seed={}".format(generation_seed))
+
+    if prior_file_input.gps_file is not None:
+        logger.info("Generation injection using gps_file {}".format(gps_file))
+        if n_injection is not None:
+            logger.warning("n-injection given with gps_file, ignoring n-injection")
+        n_injection = len(prior_file_input.gpstimes)
 
     if isinstance(n_injection, int) is False or n_injection < 1:
         raise BilbyPipeCreateInjectionsError("n_injection must be a positive integer")
@@ -165,7 +238,21 @@ def create_injection_file(
     )
 
     priors = prior_file_input.priors
-    injection_values = pd.DataFrame.from_dict(priors.sample(n_injection))
+    if prior_file_input.gps_file is not None:
+        injection_values = []
+        for start_time in prior_file_input.gpstimes:
+            tt = start_time + duration - post_trigger_duration
+            priors["geocent_time"] = bilby.core.prior.Uniform(
+                minimum=tt - prior_file_input.deltaT / 2,
+                maximum=tt + prior_file_input.deltaT / 2,
+                name="geocent_time",
+                latex_label="$t_c$",
+                unit="$s$",
+            )
+            injection_values.append(priors.sample())
+        injection_values = pd.DataFrame(injection_values)
+    else:
+        injection_values = pd.DataFrame.from_dict(priors.sample(n_injection))
 
     if extension == "json":
         injections = dict(injections=injection_values)
@@ -190,6 +277,9 @@ def main():
         n_injection=args.n_injection,
         trigger_time=args.trigger_time,
         deltaT=args.deltaT,
+        gps_file=args.gps_file,
+        duration=args.duration,
+        post_trigger_duration=args.post_trigger_duration,
         generation_seed=args.generation_seed,
         extension=args.extension,
     )

@@ -146,12 +146,15 @@ class TestMainInput(unittest.TestCase):
         inputs.n_simulation = 1
         self.assertEqual(inputs.n_simulation, 1)
 
-    def test_n_simulation_None(self):
-        args = self.args
-        args.injection = True
-        args.n_simulation = None
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        self.assertEqual(inputs.n_simulation, None)
+        inputs.n_simulation = 3
+        self.assertEqual(inputs.n_simulation, 3)
+
+    # def test_n_simulation_None(self):
+    #    args = self.args
+    #    args.injection = True
+    #    args.n_simulation = None
+    #    inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
+    #    self.assertEqual(inputs.n_simulation, 0)
 
     def test_get_trigger_time_list(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
