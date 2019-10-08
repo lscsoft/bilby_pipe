@@ -156,7 +156,7 @@ def create_injection_file(
     logger.info("Setting generation seed={}".format(generation_seed))
 
     if isinstance(n_injection, int) is False or n_injection < 1:
-        raise BilbyPipeCreateInjectionsError("n_injection must bea positive integer")
+        raise BilbyPipeCreateInjectionsError("n_injection must be a positive integer")
 
     logger.info(
         "Generating injection file {} from prior={}, n_injection={}".format(

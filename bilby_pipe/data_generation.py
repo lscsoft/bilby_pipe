@@ -76,40 +76,59 @@ class DataGenerationInput(Input):
         )
         self.injection_parameters = None
 
-        # Read in from args
+        # Admin arguments
         self.ini = args.ini
-        self.create_plots = args.create_plots
         self.cluster = args.cluster
         self.process = args.process
+
+        # Run index arguments
         self.idx = args.idx
+        self.trigger_time = args.trigger_time
+
+        # Naming arguments
+        self.outdir = args.outdir
+        self.label = args.label
+
+        # Prior arguments
         self.prior_file = args.prior_file
         self.deltaT = args.deltaT
         self.default_prior = args.default_prior
+
+        # Data arguments
         self.detectors = args.detectors
         self.channel_dict = args.channel_dict
         self.data_dict = args.data_dict
         self.data_format = args.data_format
+        self.tukey_roll_off = args.tukey_roll_off
+        self.zero_noise = args.zero_noise
+
+        # Data duration arguments
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
-        self.deltaT = args.deltaT
+
+        # Frequencies
         self.sampling_frequency = args.sampling_frequency
+        self.minimum_frequency = args.minimum_frequency
+        self.maximum_frequency = args.maximum_frequency
+        self.reference_frequency = args.reference_frequency
+
+        # Waveform, source model and likelihood
+        self.waveform_approximant = args.waveform_approximant
+        self.frequency_domain_source_model = args.frequency_domain_source_model
+        self.likelihood_type = args.likelihood_type
+
+        # PSD
         self.psd_length = args.psd_length
         self.psd_fractional_overlap = args.psd_fractional_overlap
         self.psd_start_time = args.psd_start_time
         self.psd_method = args.psd_method
         self.psd_dict = args.psd_dict
-        self.zero_noise = args.zero_noise
-        self.tukey_roll_off = args.tukey_roll_off
-        self.minimum_frequency = args.minimum_frequency
-        self.maximum_frequency = args.maximum_frequency
-        self.outdir = args.outdir
-        self.label = args.label
+
+        # ROQ
         self.roq_folder = args.roq_folder
         self.roq_scale_factor = args.roq_scale_factor
-        self.frequency_domain_source_model = args.frequency_domain_source_model
-        self.likelihood_type = args.likelihood_type
-        self.roq_folder = args.roq_folder
-        self.roq_scale_factor = args.roq_scale_factor
+
+        # Calibration
         self.calibration_model = args.calibration_model
         self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
         self.spline_calibration_amplitude_uncertainty_dict = (
@@ -120,6 +139,7 @@ class DataGenerationInput(Input):
         )
         self.spline_calibration_nodes = args.spline_calibration_nodes
 
+        # Marginalization
         self.distance_marginalization = args.distance_marginalization
         self.distance_marginalization_lookup_table = (
             args.distance_marginalization_lookup_table
@@ -128,11 +148,9 @@ class DataGenerationInput(Input):
         self.time_marginalization = args.time_marginalization
         self.jitter_time = args.jitter_time
 
-        self.waveform_approximant = args.waveform_approximant
-        self.reference_frequency = args.reference_frequency
-        self.calibration_model = args.calibration_model
-        self.spline_calibration_nodes = args.spline_calibration_nodes
-        self.spline_calibration_envelope_dict = args.spline_calibration_envelope_dict
+        # Plotting
+        self.create_plots = args.create_plots
+
         if create_data:
             self.create_data(args)
 
@@ -155,7 +173,6 @@ class DataGenerationInput(Input):
         """
 
         self.data_set = False
-        self.trigger_time = args.trigger_time
         self.injection_file = args.injection_file
         self.injection = args.injection
         self.gaussian_noise = args.gaussian_noise
@@ -731,6 +748,12 @@ class DataGenerationInput(Input):
     def save_data_dump(self):
         """ Method to dump the saved data to disk for later analysis """
         likelihood = self.likelihood
+        if self.distance_marginalization:
+            likelihood_lookup_table = dict(
+                np.load(likelihood.cached_lookup_table_filename)
+            )
+        else:
+            likelihood_lookup_table = None
         data_dump = DataDump(
             outdir=self.data_directory,
             label=self.label,
@@ -738,7 +761,9 @@ class DataGenerationInput(Input):
             trigger_time=self.trigger_time,
             interferometers=self.interferometers,
             meta_data=self.meta_data,
-            likelihood=likelihood,
+            likelihood_lookup_table=likelihood_lookup_table,
+            likelihood_roq_weights=getattr(likelihood, "weights", None),
+            likelihood_roq_params=getattr(likelihood, "roq_params", None),
             priors_dict=dict(self.priors),
             priors_class=self.priors.__class__,
         )

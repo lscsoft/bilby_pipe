@@ -66,7 +66,9 @@ class DataDump(object):
         label,
         outdir,
         trigger_time,
-        likelihood,
+        likelihood_lookup_table,
+        likelihood_roq_weights,
+        likelihood_roq_params,
         priors_dict,
         priors_class,
         interferometers,
@@ -77,7 +79,9 @@ class DataDump(object):
         self.label = label
         self.outdir = outdir
         self.interferometers = interferometers
-        self.likelihood = likelihood
+        self.likelihood_lookup_table = likelihood_lookup_table
+        self.likelihood_roq_weights = likelihood_roq_weights
+        self.likelihood_roq_params = likelihood_roq_params
         self.priors_dict = priors_dict
         self.priors_class = priors_class
         self.meta_data = meta_data

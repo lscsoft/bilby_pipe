@@ -607,6 +607,10 @@ class Input(object):
                     logger.warning(f"No calibration information for {det}")
         return self._priors
 
+    @priors.setter
+    def priors(self, priors):
+        self._priors = priors
+
     @property
     def calibration_model(self):
         return getattr(self, "_calibration_model", None)
@@ -626,15 +630,22 @@ class Input(object):
     @property
     def likelihood(self):
 
+        self.search_priors = self.priors.copy()
         likelihood_kwargs = dict(
             interferometers=self.interferometers,
             waveform_generator=self.waveform_generator,
-            priors=self.priors,
+            priors=self.search_priors,
             phase_marginalization=self.phase_marginalization,
             distance_marginalization=self.distance_marginalization,
             distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
             time_marginalization=self.time_marginalization,
         )
+
+        if getattr(self, "likelihood_lookup_table", None) is not None:
+            logger.info("Using internally loaded likelihood_lookup_table")
+            likelihood_kwargs["distance_marginalization_lookup_table"] = getattr(
+                self, "likelihood_lookup_table"
+            )
 
         if self.likelihood_type == "GravitationalWaveTransient":
             Likelihood = bilby.gw.likelihood.GravitationalWaveTransient
@@ -652,15 +663,21 @@ class Input(object):
             likelihood_kwargs.pop("time_marginalization", None)
             likelihood_kwargs.pop("jitter_time", None)
 
-            params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
-            params["flow"] *= self.roq_scale_factor
-            params["fhigh"] *= self.roq_scale_factor
-            params["seglen"] /= self.roq_scale_factor
+            if hasattr(self, "likelihood_roq_params"):
+                params = self.likelihood_roq_params
+            else:
+                params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+                params["flow"] *= self.roq_scale_factor
+                params["fhigh"] *= self.roq_scale_factor
+                params["seglen"] /= self.roq_scale_factor
 
-            weight_file = self.meta_data["weight_file"]
-            logger.info("Loading ROQ weights from {}".format(weight_file))
+            if hasattr(self, "likelihood_roq_weights"):
+                weights = self.likelihood_roq_weights
+            else:
+                weights = self.meta_data["weight_file"]
+                logger.info("Loading ROQ weights from {}".format(weights))
 
-            likelihood_kwargs.update(weights=weight_file, roq_params=params)
+            likelihood_kwargs.update(weights=weights, roq_params=params)
 
         elif "." in self.likelihood_type:
             split_path = self.likelihood_type.split(".")
