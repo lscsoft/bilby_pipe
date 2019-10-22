@@ -118,6 +118,7 @@ class DataGenerationInput(Input):
         self.likelihood_type = args.likelihood_type
 
         # PSD
+        self.psd_maximum_duration = args.psd_maximum_duration
         self.psd_length = args.psd_length
         self.psd_fractional_overlap = args.psd_fractional_overlap
         self.psd_start_time = args.psd_start_time
@@ -235,14 +236,34 @@ class DataGenerationInput(Input):
             self._psd_length = psd_length
             self.psd_duration = psd_length * self.duration
 
+        else:
+            raise BilbyPipeError("Unable to set psd_length={}".format(psd_length))
+
+    @property
+    def psd_duration(self):
+        return self._psd_duration
+
+    @psd_duration.setter
+    def psd_duration(self, psd_duration):
+        MAXIMUM = self.psd_maximum_duration
+        if psd_duration <= MAXIMUM:
+            self._psd_duration = psd_duration
             logger.info(
                 "PSD duration set to {}s, {}x the duration {}s".format(
-                    self.psd_duration, psd_length, self.duration
+                    psd_duration, self.psd_length, self.duration
                 )
             )
         else:
-            raise BilbyPipeError(
-                "Unable to set the psd duration from psd_length={}".format(psd_length)
+            self._psd_duration = MAXIMUM
+            logger.info(
+                "Requested PSD duration {}={}x{} exceeds allowed maximum {}"
+                ". Setting psd_duration = {}".format(
+                    psd_duration,
+                    self.psd_length,
+                    self.duration,
+                    MAXIMUM,
+                    self.psd_duration,
+                )
             )
 
     @property

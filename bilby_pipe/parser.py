@@ -227,7 +227,16 @@ def create_parser(top_level=True):
         "--psd-length",
         default=32,
         type=int,
-        help=("Number of duration-lengths used to generate the PSD, default" " is 32."),
+        help=(
+            "Sets the psd duration (up to the psd-duration-maximum). PSD "
+            "duration calculated by psd-length x duration [s]. Default is 32."
+        ),
+    )
+    det_parser.add(
+        "--psd-maximum-duration",
+        default=1024,
+        type=int,
+        help=("The maximum allowed PSD duration in seconds, default is 1024s."),
     )
     det_parser.add(
         "--psd-method",
