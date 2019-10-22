@@ -58,6 +58,30 @@ class TestDataGenerationInput(unittest.TestCase):
             10 * self.inputs.duration, self.inputs.psd_length * self.inputs.duration
         )
 
+    def test_psd_length(self):
+        self.inputs.duration = 4
+        self.inputs.psd_length = 32
+        self.assertEqual(32, self.inputs.psd_length)
+        self.assertEqual(4, self.inputs.duration)
+        self.assertEqual(
+            self.inputs.psd_length * self.inputs.duration, self.inputs.psd_duration
+        )
+
+    def test_psd_length_over_maximum(self):
+        self.inputs.duration = 128
+        self.inputs.psd_length = 32
+        self.assertEqual(32, self.inputs.psd_length)
+        self.assertEqual(128, self.inputs.duration)
+        self.assertEqual(1024, self.inputs.psd_duration)
+
+    def test_psd_length_over_custom_maximum(self):
+        self.inputs.psd_maximum_duration = 2048
+        self.inputs.duration = 128
+        self.inputs.psd_length = 32
+        self.assertEqual(32, self.inputs.psd_length)
+        self.assertEqual(128, self.inputs.duration)
+        self.assertEqual(2048, self.inputs.psd_duration)
+
     def test_set_reference_frequency(self):
         args_list = self.default_args_list + ["--reference-frequency", "10"]
         inputs = DataGenerationInput(
