@@ -24,6 +24,7 @@ def create_parser():
     """
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add("--result", type=str, required=True, help="The result file")
+    parser.add("--skymap", action="store_true", help="Generate skymap")
     return parser
 
 
@@ -37,11 +38,14 @@ def main():
     data_dump = DataDump.from_pickle(result.meta_data["data_dump"])
     outdir = result.outdir
     label = result.label
-    logger.info("Generating skymap")
-    try:
-        result.plot_skymap(maxpts=2000)
-    except Exception as e:
-        logger.info("Unable to generate skymap: error {}".format(e))
+
+    if args.skymap:
+        logger.info("Generating skymap")
+        try:
+            result.plot_skymap(maxpts=2000)
+        except Exception as e:
+            logger.info("Unable to generate skymap: error {}".format(e))
+
     logger.info("Plotting 1d posteriors")
     result.plot_marginals(priors=True)
     logger.info("Generating intrinsic parameter corner")
