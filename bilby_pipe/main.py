@@ -690,7 +690,7 @@ class PlotNode(Node):
 
     @property
     def request_memory(self):
-        return "64 GB"
+        return "32 GB"
 
     @property
     def log_directory(self):
