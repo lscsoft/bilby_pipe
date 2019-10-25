@@ -1,7 +1,7 @@
 # All notable changes will be documented in this file
 
 
-## v0.2.7 : 2019-10-02
+## v0.3.0 : 2019-10-25
 Major release with overhaul of main interface
 
 ### Added
