@@ -1,6 +1,20 @@
 # All notable changes will be documented in this file
 
-## Unreleased
+
+## v0.2.7 : 2019-10-02
+Major release with overhaul of main interface
+
+### Added
+-   Support for using n-parallel with other tools
+-   Support for running on gps_time with injections
+-   Default to file_transfer=True
+-   Testing running ini files in biby-test-mode
+-   Default and fast-PE sampler-kwarg settings
+
+### Changes
+-   Expanded default prior limits
+-   PSD defaults updated to max at 1024 (user override available)
+-   Data dump process changes
 
 ## v0.2.7 : 2019-10-02
 Minor release following small fixes
