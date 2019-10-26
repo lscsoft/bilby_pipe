@@ -788,9 +788,7 @@ def get_trigger_time_list(inputs):
         start_times = inputs.gpstimes
         trigger_times = start_times + inputs.duration - inputs.post_trigger_duration
     elif inputs.gaussian_noise:
-        trigger_times = [
-            0 + inputs.duration - inputs.post_trigger_duration
-        ] * inputs.n_simulation
+        trigger_times = [0] * inputs.n_simulation
     else:
         raise BilbyPipeError("Unable to determine input trigger times from ini file")
     logger.info("Setting segment trigger-times {}".format(trigger_times))
