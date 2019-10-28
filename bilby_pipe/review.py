@@ -108,7 +108,7 @@ def get_default_setup(args, review_name):
 
     rundir = "outdir_{}".format(base_label)
     check_directory_exists_and_if_not_mkdir(rundir)
-    filename = "{}/review_{}.ini".format(rundir, label_with_date)
+    filename = "review_{}.ini".format(label_with_date)
 
     base_dict = dict(
         label=label_with_date,
@@ -267,7 +267,6 @@ def pp_test(args):
     config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
         rundir, rundir
     )
-    filename = "review_{}.ini".format(config_dict["label"])
     _parser = parser.create_parser()
     _parser.write_to_file(
         filename=filename,
