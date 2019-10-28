@@ -1,5 +1,13 @@
 # All notable changes will be documented in this file
 
+## v0.3.1 : 2019-10-29
+
+### Added
+-   Flag for use of online PE dedicated nodes
+
+### Changes
+-   Fixed trigger time to zero for simulations
+-   Writes review.ini to top level
 
 ## v0.3.0 : 2019-10-25
 Major release with overhaul of main interface
