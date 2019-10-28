@@ -39,6 +39,7 @@ class MainInput(Input):
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
+        self.online_pe = args.online_pe
         self.create_plots = args.create_plots
         self.singularity_image = args.singularity_image
         self.create_summary = args.create_summary
@@ -377,6 +378,7 @@ class Node(object):
         self.inputs = inputs
         self._universe = "vanilla"
         self.request_disk = None
+        self.online_pe = self.inputs.online_pe
         self.getenv = True
         self.notification = False
         self.retry = None
@@ -427,6 +429,10 @@ class Node(object):
             _log_output_error_submit_lines(self.log_directory, job_name)
         )
         self.extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
+
+        if self.online_pe:
+            self.extra_lines.append("+Online_CBC_PE_Daily = True")
+            self.requirements.append("((TARGET.Online_CBC_PE_Daily =?= True))")
 
         if self.universe != "local" and self.inputs.osg:
             _osg_lines, _osg_reqs = self._osg_submit_options(

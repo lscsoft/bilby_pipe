@@ -13,6 +13,7 @@ class TestSlurm(unittest.TestCase):
         self.test_args = Namespace(
             ini="tests/test_dag_ini_file.ini",
             submit=False,
+            online_pe=False,
             outdir=self.outdir,
             label="label",
             accounting="accounting.group",

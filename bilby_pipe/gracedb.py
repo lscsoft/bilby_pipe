@@ -461,7 +461,15 @@ def create_parser():
     )
     group1 = parser.add_mutually_exclusive_group(required=True)
     group1.add_argument("--gracedb", type=str, help="GraceDB event id")
-    group1.add_argument("--json", type=str, help="Path to json gracedb file")
+    group1.add_argument("--json", type=str, help="Path to json GraceDB file")
+    parser.add_argument(
+        "--online-pe",
+        action="store_true",
+        help=(
+            "Flag to use online PE dedicated nodes."
+            " To be used for online PE jobs only."
+        ),
+    )
     parser.add_argument(
         "--outdir",
         type=str,
@@ -572,4 +580,6 @@ def main(args=None):
         if args.output == "full-submit":
             logger.info("Generating dag submissions files, submitting to condor")
             arguments.append("--submit")
+        if args.online_pe:
+            arguments.append("--online-pe")
         run_command_line(arguments)
