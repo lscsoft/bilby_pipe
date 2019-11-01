@@ -1,0 +1,157 @@
+import unittest
+import shutil
+import numpy as np
+import os
+import mock
+import bilby_pipe
+from bilby_pipe.utils import BilbyPipeError
+from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
+
+
+class TestTimeslide(unittest.TestCase):
+    def setUp(self):
+        self.directory = os.path.abspath(os.path.dirname(__file__))
+        self.outdir = "outdir"
+        self.known_args_list = [
+            "tests/test_timeslide.ini",
+            "--submit",
+            "--outdir",
+            self.outdir,
+        ]
+        self.unknown_args_list = ["--argument", "value"]
+        self.all_args_list = self.known_args_list + self.unknown_args_list
+        self.parser = bilby_pipe.main.create_parser()
+        self.args = self.parser.parse_args(self.known_args_list)
+        self.inputs = bilby_pipe.main.MainInput(
+            *self.parser.parse_known_args(self.all_args_list)
+        )
+
+        self.gps_file = "tests/gps_file_for_timeslides.txt"
+        self.timeslide_file = "tests/timeslides.txt"
+
+    def tearDown(self):
+        shutil.rmtree(self.outdir)
+        del self.args
+        del self.inputs
+
+    def test_timeslide_file_parser(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        inputs.gps_file = self.gps_file
+        inputs.timeslide_file = self.timeslide_file
+        self.assertIsInstance(inputs.timeslides_list, dict)
+        self.assertEqual(
+            inputs.timeslides_list.keys(), {d: [] for d in inputs.detectors}.keys()
+        )
+
+    def test_timeslide_file_fake(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+
+        with self.assertRaises(FileNotFoundError):
+            inputs.timeslide_file = "not a file"
+
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        with self.assertRaises(FileNotFoundError):
+            inputs.timeslide_file = "fakepath.txt"
+
+    def test_correct_number_of_columns_in_file(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        self.assertEqual(len(inputs.detectors), 2, "num detectors")
+
+        valid_timeslide_file = os.path.join(self.outdir, "fake_timeslides_file.txt")
+        valid_gps_file = os.path.join(self.outdir, "fake_gps_file.txt")
+        one_column_of_vals = np.zeros(5)
+        two_columns_of_vals = np.ones((5, 2))
+        two_columns_of_vals[:, 1] += 1
+
+        np.savetxt(valid_timeslide_file, two_columns_of_vals, delimiter="\t")
+        np.savetxt(valid_gps_file, one_column_of_vals, delimiter="\t")
+
+        inputs.gps_file = valid_gps_file
+        inputs.timeslide_file = valid_timeslide_file
+
+        correct_list = {
+            "H1": two_columns_of_vals[:, 0],
+            "L1": two_columns_of_vals[:, 1],
+        }
+        for det in inputs.timeslides_list.keys():
+            self.assertEqual(len(inputs.timeslides_list[det]), 5)
+            for idx, i in enumerate(inputs.timeslides_list[det]):
+                self.assertEqual(i, correct_list[det][idx])
+        pass
+
+    def test_incorrect_number_of_columns_in_file(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        self.assertEqual(len(inputs.detectors), 2)
+
+        one_column_of_vals = np.zeros(5)
+        valid_gps_file = os.path.join(self.outdir, "fake_gps_file.txt")
+        np.savetxt(valid_gps_file, one_column_of_vals, delimiter="\t")
+        inputs.gps_file = valid_gps_file
+
+        # invalid number of columns in timeslide file
+        invalid_timeslides_file = os.path.join(self.outdir, "fake_timeslides_file.txt")
+        np.savetxt(invalid_timeslides_file, one_column_of_vals, delimiter="\t")
+        with self.assertRaises(BilbyPipeError):
+            inputs.timeslide_file = invalid_timeslides_file
+
+        # invalid number of rows in timeslide file
+        np.savetxt(invalid_timeslides_file, np.zeros(3), delimiter="\t")
+        with self.assertRaises(BilbyPipeError):
+            inputs.timeslide_file = invalid_timeslides_file
+
+    def test_timeslide_file(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        inputs.gps_file = self.gps_file
+        inputs.timeslide_file = self.timeslide_file
+
+    def test_timeslide_parser(self):
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+        with self.assertRaises(BilbyPipeError):
+            inputs.get_timeslide_dict(0)
+
+        args_list = ["tests/test_timeslide_2.ini"]
+        parser = bilby_pipe.main.create_parser()
+        inputs = bilby_pipe.main.MainInput(*parser.parse_known_args(args_list))
+        timeslide_val = inputs.get_timeslide_dict(0)
+
+        correct_timeslides = {"H1": [-1, 20, -100], "L1": [1, -20, 100]}
+        for det in inputs.timeslides_list.keys():
+            self.assertEqual(len(inputs.timeslides_list[det]), 3)
+            for idx, i in enumerate(inputs.timeslides_list[det]):
+                self.assertEqual(i, correct_timeslides[det][idx])
+
+        self.assertIsNotNone(timeslide_val)
+        self.assertIsInstance(timeslide_val, dict)
+        self.assertDictEqual(timeslide_val, {"H1": -1, "L1": 1})
+
+        with self.assertRaises(BilbyPipeError):
+            inputs.get_timeslide_dict(10000)
+
+    def test_data_get(self):
+        """Test only runs when 'webtest' flag is true
+
+        """
+        args_list = [
+            "--ini",
+            "tests/test_timeslide_2.ini",
+            "--outdir",
+            self.outdir,
+            "--trigger-time",
+            "1126258462",
+            "idx",
+            "0",
+            "--data-label",
+            "TEST",
+        ]
+        parser = create_generation_parser()
+
+        # loading data so we dont have to deal with gwpy's slow fetch_data method
+        from bilby_pipe.utils import DataDump
+
+        d = DataDump.from_pickle("tests/gwpy_data.pickle")
+
+        with mock.patch("gwpy.timeseries.TimeSeries.fetch_open_data") as m:
+            m.return_value = d.interferometers[0].strain_data.to_gwpy_timeseries()
+            self.inputs = DataGenerationInput(
+                *bilby_pipe.main.parse_args(args_list, parser)
+            )

@@ -102,6 +102,11 @@ class DataGenerationInput(Input):
         self.tukey_roll_off = args.tukey_roll_off
         self.zero_noise = args.zero_noise
 
+        if args.timeslide_file is not None:
+            self.gps_file = args.gps_file
+            self.timeslide_file = args.timeslide_file
+            self.timeslide_dict = self.get_timeslide_dict(self.idx)
+
         # Data duration arguments
         self.duration = args.duration
         self.post_trigger_duration = args.post_trigger_duration
@@ -468,6 +473,7 @@ class DataGenerationInput(Input):
             label=label,
         )
         ifo.meta_data = meta_data
+
         return signal_and_data
 
     @property
@@ -559,6 +565,21 @@ class DataGenerationInput(Input):
         start_time, end_time: float
             GPS start and end time of segment
         """
+        timeslide_val = None
+        if hasattr(self, "timeslide_dict"):
+            timeslide_val = self.timeslide_dict[det]
+            start_time = start_time + timeslide_val
+            end_time = end_time + timeslide_val
+            logger.info(
+                "Applying timeshift of {}. Time range {} - {} => {} - {}".format(
+                    timeslide_val,
+                    start_time - timeslide_val,
+                    end_time - timeslide_val,
+                    start_time,
+                    end_time,
+                )
+            )
+
         data = None
 
         channel = "{}:{}".format(det, channel_type)
@@ -581,6 +602,11 @@ class DataGenerationInput(Input):
             data = data.resample(self.sampling_frequency)
         else:
             logger.info("No data resampling requested")
+
+        if timeslide_val:
+            # to match up the time axis for the interferometer network
+            data.shift(-timeslide_val)
+
         return data
 
     def _gwpy_read(self, det, channel, start_time, end_time, dtype="float64"):

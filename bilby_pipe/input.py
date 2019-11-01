@@ -171,6 +171,95 @@ class Input(object):
         return gpstimes
 
     @property
+    def timeslide_file(self):
+        """Timeslide file.
+
+        Timeslide file containing the list of timeslides to apply to each
+        detector's start time.
+        """
+        return self._timeslide_file
+
+    @timeslide_file.setter
+    def timeslide_file(self, timeslide_file):
+        """Set the timeslide_file.
+
+        At setting, will check the file exists, read the contents,
+        save the timeslide value for each of the detectors.
+        """
+        if timeslide_file is None:
+            self._timeslide_file = None
+            return
+        elif os.path.isfile(timeslide_file):
+            self._timeslide_file = os.path.relpath(timeslide_file)
+        else:
+            raise FileNotFoundError(
+                "Input file timeslide_file={} not understood".format(timeslide_file)
+            )
+
+        if hasattr(self, "_timeslide_file"):
+            self._parse_timeslide_file()
+        else:
+            logger.debug("No _parse_timeslide_file method present")
+
+    def read_timeslide_file(self):
+        """Read timeslide file.
+
+        Each row of file is an array, hence ndmin = 2
+        [ [timshift1,...], [], [] ...]
+        """
+        timeslides_list = np.loadtxt(self.timeslide_file, ndmin=2)
+        return timeslides_list
+
+    def _parse_timeslide_file(self):
+        """Parse the timeslide file and check for correctness.
+
+        Sets the attribute "timeslides_list" if timeslide file correctly formatted
+        and passed to Inputs()
+        """
+        timeslides_list = self.read_timeslide_file()
+
+        number_rows, number_columns = timeslides_list.shape
+        if number_columns != len(self.detectors):
+            raise BilbyPipeError(
+                "The timeslide file must have one column for each of the detectors. "
+                "Number Cols: {}, Number Detectors: {}".format(
+                    number_columns, len(self.detectors)
+                )
+            )
+        if number_rows != len(self.gpstimes):
+            raise BilbyPipeError(
+                "The timeslide file must have one row for each gps time. "
+                "Number Rows: {}, Number Gps Times: {}".format(
+                    number_rows, len(self.gpstimes)
+                )
+            )
+        times = np.hsplit(timeslides_list, len(self.detectors))
+        self.timeslides_list = {}
+        for i in range(len(self.detectors)):
+            self.timeslides_list.update({self.detectors[i]: times[i].flatten()})
+        logger.info(
+            "{} timeslides found in timeslide_file={}".format(
+                number_rows, self.timeslide_file
+            )
+        )
+
+    def get_timeslide_dict(self, idx):
+        """Return a specific timeslide value from the timeslide file.
+
+        Given an index, the dict of {detector: timeslide value} is created for
+        the specific index and returned.
+        """
+        if not hasattr(self, "timeslides_list"):
+            raise BilbyPipeError("Timeslide file must be provided.")
+        if idx > len(self.timeslides_list):
+            raise BilbyPipeError("Valid timeslide index must be provided.")
+        timeslide_val = {
+            det: timeslide[idx] for det, timeslide in self.timeslides_list.items()
+        }
+        logger.info("Timeslide value: {}".format(timeslide_val))
+        return timeslide_val
+
+    @property
     def bilby_frequency_domain_source_model(self):
         """
         The bilby function to pass to the waveform_generator
