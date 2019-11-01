@@ -29,6 +29,7 @@ class TestSlurm(unittest.TestCase):
             create_summary=False,
             sampler=["nestle"],
             gps_file=None,
+            timeslide_file=None,
             webdir=".",
             email="test@test.com",
             existing_dir=None,

@@ -134,6 +134,17 @@ def create_parser(top_level=True):
         default=None,
     )
     data_gen_pars.add(
+        "--timeslide-file",
+        type=nonestr,
+        help=(
+            "File containing detector timeslides. "
+            "Requires a GPS time file to also be provided. One column for each "
+            "detector. Order of detectors specified by `--detectors` argument. "
+            "Number of timeslides must correspond to the number of GPS times provided."
+        ),
+        default=None,
+    )
+    data_gen_pars.add(
         "--trigger-time", default=None, type=nonefloat, help="The trigger time"
     )
     data_gen_pars.add(

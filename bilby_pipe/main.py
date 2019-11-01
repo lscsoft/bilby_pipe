@@ -77,6 +77,7 @@ class MainInput(Input):
         self.trigger_time = args.trigger_time
         self.deltaT = args.deltaT
         self.gps_file = args.gps_file
+        self.timeslide_file = args.timeslide_file
         self.gaussian_noise = args.gaussian_noise
         self.n_simulation = args.n_simulation
 
@@ -537,6 +538,8 @@ class GenerationNode(Node):
         self.arguments.add("trigger-time", self.trigger_time)
         if self.inputs.injection_file is not None:
             self.arguments.add("injection-file", self.inputs.injection_file)
+        if self.inputs.timeslide_file is not None:
+            self.arguments.add("timeslide-file", self.inputs.timeslide_file)
         self.process_node()
 
     @property
