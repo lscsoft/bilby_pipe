@@ -295,6 +295,21 @@ class Input(object):
             minimum_frequency=self.minimum_frequency,
         )
 
+    def get_injection_waveform_arguments(self):
+        """Get the dict of the waveform arguments needed for creating injections.
+
+        Defaults the injection-waveform-approximant to waveform-approximant, if
+        no injection-waveform-approximant provided. Note that the default
+        waveform-approximant is `IMRPhenomPv2`.
+        """
+        if self.injection_waveform_approximant is None:
+            self.injection_waveform_approximant = self.waveform_approximant
+        return dict(
+            reference_frequency=self.reference_frequency,
+            waveform_approximant=self.injection_waveform_approximant,
+            minimum_frequency=self.minimum_frequency,
+        )
+
     @property
     def bilby_roq_frequency_domain_source_model(self):
         if "binary_neutron_star" in self.frequency_domain_source_model:

@@ -229,6 +229,30 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
         self.assertEqual(len(wfa), 3)
 
+    def test_injection_waveform_arguments(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.detectors = ["H1"]
+        inputs.reference_frequency = 20
+        inputs.minimum_frequency = 20
+
+        # injection-waveform-approx not provided
+        inputs.waveform_approximant = "IMRPhenomPv2"
+        inputs.injection_waveform_approximant = None
+        wfa = inputs.get_injection_waveform_arguments()
+        self.assertEqual(wfa["reference_frequency"], 20)
+        self.assertEqual(wfa["minimum_frequency"], 20)
+        self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
+        self.assertEqual(len(wfa), 3)
+
+        # injection-waveform-approx provided
+        inputs.waveform_approximant = "IMRPhenomPv2"
+        inputs.injection_waveform_approximant = "SEOBNRv4"
+        wfa = inputs.get_injection_waveform_arguments()
+        self.assertEqual(wfa["reference_frequency"], 20)
+        self.assertEqual(wfa["minimum_frequency"], 20)
+        self.assertEqual(wfa["waveform_approximant"], "SEOBNRv4")
+        self.assertEqual(len(wfa), 3)
+
     def test_bilby_roq_frequency_domain_source_model(self):
         inputs = bilby_pipe.main.Input()
         inputs.frequency_domain_source_model = "lal_binary_black_hole"
