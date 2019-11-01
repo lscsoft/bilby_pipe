@@ -345,15 +345,18 @@ def convert_string_to_dict(string, key=None):
     key: str (None)
         A key, used for debugging
     """
-
     string = strip_quotes(string)
     # Convert equals to colons
     string = string.replace("=", ":")
+    string = string.replace(" ", "")
     # Force double quotes around everything
-    string = re.sub('(\w+)\s?:\s?("?[^,"}]+"?)', '"\g<1>":"\g<2>"', string)  # noqa
+    string = re.sub(r'([A-Za-z][^\[\],:"}]*)', r'"\g<1>"', string)
+    string = string.replace('""', '"')
     # Evaluate as a dictionary of str: str
     try:
         dic = ast.literal_eval(string)
+        if isinstance(dic, str):
+            raise BilbyPipeError("Unable to format {} into a dictionary".format(string))
     except ValueError as e:
         if key is not None:
             raise BilbyPipeError(
@@ -364,12 +367,10 @@ def convert_string_to_dict(string, key=None):
 
     # Convert values to bool/floats/ints where possible
     for key in dic:
-        if dic[key].lower() == "true":
+        if isinstance(dic[key], str) and dic[key].lower() == "true":
             dic[key] = True
-        elif dic[key].lower() == "false":
+        elif isinstance(dic[key], str) and dic[key].lower() == "false":
             dic[key] = False
-        else:
-            dic[key] = string_to_int_float(dic[key])
 
     return dic
 

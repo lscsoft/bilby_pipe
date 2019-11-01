@@ -843,3 +843,18 @@ class Input(object):
             return bilby.gw.conversion.generate_all_bbh_parameters
         else:
             return None
+
+    @property
+    def postprocessing_arguments(self):
+        return self._postprocessing_arguments
+
+    @postprocessing_arguments.setter
+    def postprocessing_arguments(self, postprocessing_arguments):
+        if postprocessing_arguments is None:
+            self._postprocessing_arguments = None
+            return
+        string = postprocessing_arguments[0]
+        if "{" in string and "}" in string:
+            self._postprocessing_arguments = convert_string_to_dict(string)
+            return
+        self._postprocessing_arguments = postprocessing_arguments

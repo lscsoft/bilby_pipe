@@ -741,10 +741,58 @@ class PESummaryNode(Node):
         self.arguments.append(
             "-a {}".format(" ".join([self.inputs.waveform_approximant] * n_results))
         )
-        self.arguments.append("--labels {}".format(" ".join(labels)))
+        self.arguments.append(
+            "--gwdata {}".format(
+                DataDump.get_filename(self.inputs.data_directory, self.inputs.label)
+            )
+        )
         existing_dir = self.inputs.existing_dir
         if existing_dir is not None:
             self.arguments.add("existing_webdir", existing_dir)
+
+        if isinstance(self.inputs.postprocessing_arguments, dict):
+            if "labels" not in self.inputs.postprocessing_arguments.keys():
+                self.arguments.append("--labels {}".format(" ".join(labels)))
+            else:
+                if len(labels) != len(result_files):
+                    raise BilbyPipeError(
+                        "Please provide the same number of labels for postprocessing "
+                        "as result files"
+                    )
+            not_recognised_arguments = {}
+            for key, val in self.inputs.postprocessing_arguments.items():
+                if key == "nsamples_for_skymap":
+                    self.arguments.add("nsamples_for_skymap", val)
+                elif key == "gw":
+                    self.arguments.append("--gw")
+                elif key == "no_ligo_skymap":
+                    self.arguments.append("--no_ligo_skymap")
+                elif key == "burnin":
+                    self.arguments.add("burnin", val)
+                elif key == "kde_plot":
+                    self.arguments.append("--kde_plot")
+                elif key == "gracedb":
+                    self.arguments.add("gracedb", val)
+                elif key == "palette":
+                    self.arguments.add("palette", val)
+                elif key == "include_prior":
+                    self.arguments.append("--include_prior")
+                elif key == "notes":
+                    self.arguments.add("--notes", val)
+                elif key == "publication":
+                    self.arguments.append("--publication")
+                elif key == "labels":
+                    self.arguments.append("--labels {}".format(" ".join(val)))
+                else:
+                    not_recognised_arguments[key] = val
+            if not_recognised_arguments != {}:
+                logger.warn(
+                    "Did not recognise the postprocessing_arguments {}. To find "
+                    "the full list of available arguments, please run "
+                    "summarypages --help".format(not_recognised_arguments)
+                )
+        elif isinstance(self.inputs.postprocessing_arguments, str):
+            self.arguments.append(self.inputs.postprocessing_arguments)
 
         self.process_node()
         for merged_node in merged_node_list:
