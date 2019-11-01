@@ -5,7 +5,8 @@ import bilby
 
 from bilby_pipe.main import parse_args
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
-from bilby_pipe.utils import BilbyPipeError
+from bilby_pipe.utils import BilbyPipeError, DataDump
+import mock
 
 
 class TestDataGenerationInput(unittest.TestCase):
@@ -200,6 +201,25 @@ class TestDataGenerationInput(unittest.TestCase):
         ]
         with self.assertRaises(FileNotFoundError):
             self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+
+    def test_inject_signal_into_time_domain_data(self):
+        ifo = DataDump.from_pickle("tests/gwpy_data.pickle").interferometers[0]
+        timeseries = ifo.strain_data.to_gwpy_timeseries()
+        metadata = ifo.meta_data
+        args_list = ["tests/test_injection.ini", "--outdir", self.outdir]
+        fetch_data_fn = "gwpy.timeseries.TimeSeries.fetch_open_data"
+        inject_signal_fn = "bilby.gw.detector.inject_signal_into_gwpy_timeseries"
+        with mock.patch(fetch_data_fn, return_value=timeseries) as fetch_method:
+            with mock.patch(
+                inject_signal_fn, return_value=(timeseries, metadata)
+            ) as inj_method:
+                DataGenerationInput(*parse_args(args_list, self.parser))
+                self.assertEqual(inj_method.call_count, 2)
+            self.assertTrue(fetch_method.called)
+            fetch_method.assert_any_call("H1", 1126259463.4, 1126259464.4)  # SIGNAL
+            fetch_method.assert_any_call("H1", 1126259431.4, 1126259463.4)  # PSD
+            fetch_method.assert_any_call("L1", 1126259463.4, 1126259464.4)  # SIGNAL
+            fetch_method.assert_any_call("L1", 1126259431.4, 1126259463.4)  # PSD
 
 
 if __name__ == "__main__":

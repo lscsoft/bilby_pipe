@@ -313,6 +313,14 @@ def create_parser(top_level=True):
             " for supported formats"
         ),
     )
+    injection_parser.add(
+        "--injection-waveform-approximant",
+        type=nonestr,
+        default=None,
+        help="The name of the waveform approximant to use to create injections. "
+        "If none is specified, then the `waveform-approximant` will be used"
+        "as the `injection-waveform-approximant`.",
+    )
 
     submission_parser = parser.add_argument_group(
         title="Job submission arguments",
@@ -583,7 +591,7 @@ def create_parser(top_level=True):
         "--waveform-approximant",
         default="IMRPhenomPv2",
         type=str,
-        help="The name of the waveform approximant",
+        help="The name of the waveform approximant to use for PE.",
     )
     waveform_parser.add(
         "--frequency-domain-source-model",

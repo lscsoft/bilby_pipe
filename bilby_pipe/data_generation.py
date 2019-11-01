@@ -119,6 +119,7 @@ class DataGenerationInput(Input):
 
         # Waveform, source model and likelihood
         self.waveform_approximant = args.waveform_approximant
+        self.injection_waveform_approximant = args.injection_waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
 
@@ -406,7 +407,7 @@ class DataGenerationInput(Input):
 
         self._set_interferometers_from_gaussian_noise()
 
-        waveform_arguments = self.get_default_waveform_arguments()
+        waveform_arguments = self.get_injection_waveform_arguments()
         waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
             duration=self.duration,
             start_time=self.start_time,
@@ -447,7 +448,7 @@ class DataGenerationInput(Input):
             )
             self.injection_parameters = parameters
 
-        waveform_arguments = self.get_default_waveform_arguments()
+        waveform_arguments = self.get_injection_waveform_arguments()
 
         waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
             duration=self.duration,
@@ -464,7 +465,12 @@ class DataGenerationInput(Input):
             outdir = None
             label = None
 
-        signal_and_data, meta_data = bilby.gw.detector.inject_signal_into_gwpy_timeseries(
+        logger.info("Injecting with {}".format(self.injection_waveform_approximant))
+
+        (
+            signal_and_data,
+            meta_data,
+        ) = bilby.gw.detector.inject_signal_into_gwpy_timeseries(
             data=data,
             waveform_generator=waveform_generator,
             parameters=parameters,

@@ -310,9 +310,13 @@ def create_config_file(
         "{}s_distance_marginalization_lookup.npz".format(duration),
     )
 
-    prior_file, roq_folder, duration, minimum_frequency, maximum_frequency = prior_lookup(
-        duration, scale_factor, outdir
-    )
+    (
+        prior_file,
+        roq_folder,
+        duration,
+        minimum_frequency,
+        maximum_frequency,
+    ) = prior_lookup(duration, scale_factor, outdir)
     calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
 
     config_dict = dict(
