@@ -350,8 +350,9 @@ def convert_string_to_dict(string, key=None):
     string = string.replace("=", ":")
     string = string.replace(" ", "")
     # Force double quotes around everything
-    string = re.sub(r'([A-Za-z][^\[\],:"}]*)', r'"\g<1>"', string)
+    string = re.sub(r'([A-Za-z/][^\[\],:"}]*)', r'"\g<1>"', string)
     string = string.replace('""', '"')
+
     # Evaluate as a dictionary of str: str
     try:
         dic = ast.literal_eval(string)
@@ -389,7 +390,6 @@ def write_config_file(config_dict, filename, comment=None, remove_none=False):
     remove_none: bool
         If true, remove None's from the config_dict before writing otherwise
         a ValueError is raised
-
     """
     logger.warning(
         "write_config_file has been deprecated, it will be removed in a future version"

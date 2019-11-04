@@ -82,6 +82,28 @@ class TestUtils(unittest.TestCase):
             cstd('{a=False, b : "True", c: true, "d": "False"}', key),
             dict(a=False, b=True, c=True, d=False),
         )
+        self.assertEqual(
+            cstd('{path=/path/to/file.txt, path_with_quotes : "/path/to/file.txt"}'),
+            dict(path="/path/to/file.txt", path_with_quotes="/path/to/file.txt"),
+        )
+        self.assertEqual(
+            cstd('{int=3, int_with_quotes : "1"}'), dict(int=3, int_with_quotes=1)
+        )
+        self.assertEqual(
+            cstd('{float=3.0, float_with_quotes : "1.0"}'),
+            dict(float=3.0, float_with_quotes=1.0),
+        )
+        self.assertEqual(
+            cstd('{float=3.0, labels=[Online, Online]}'),
+            dict(float=3.0, labels=["Online", "Online"]),
+        )
+        self.assertEqual(
+            cstd('{float=3.0, labels=["Online", "Online"]}'),
+            dict(float=3.0, labels=["Online", "Online"]),
+        )
+        self.assertTrue(isinstance(cstd("{float=3.0}")["float"], float))
+        self.assertTrue(isinstance(cstd("{float=3.1}")["float"], float))
+        self.assertTrue(isinstance(cstd("{int=3}")["int"], int))
 
     def test_convert_detectors_input(self):
         self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("H1"))
