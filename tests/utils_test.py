@@ -87,6 +87,10 @@ class TestUtils(unittest.TestCase):
             dict(path="/path/to/file.txt", path_with_quotes="/path/to/file.txt"),
         )
         self.assertEqual(
+            cstd('{path=../path/to/file.txt, path_with_quotes : "../path/to/file.txt"}'),
+            dict(path="../path/to/file.txt", path_with_quotes="../path/to/file.txt"),
+        )
+        self.assertEqual(
             cstd('{int=3, int_with_quotes : "1"}'), dict(int=3, int_with_quotes=1)
         )
         self.assertEqual(
