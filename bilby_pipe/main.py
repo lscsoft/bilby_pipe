@@ -737,7 +737,8 @@ class PESummaryNode(Node):
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
         self.arguments.add("webdir", self.inputs.webdir)
-        self.arguments.add("email", self.inputs.email)
+        if self.inputs.email is not None:
+            self.arguments.add("email", self.inputs.email)
         self.arguments.add("config", " ".join([self.inputs.ini] * n_results))
         self.arguments.add("samples", "{}".format(" ".join(result_files)))
         self.arguments.append(
