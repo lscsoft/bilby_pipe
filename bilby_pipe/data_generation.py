@@ -24,6 +24,7 @@ from bilby_pipe.utils import (
     is_a_power_of_2,
     get_version_information,
 )
+from bilby_pipe.plotting_utils import strain_spectogram_plot
 from bilby_pipe.main import parse_args
 from bilby_pipe.input import Input
 from bilby_pipe.parser import create_parser
@@ -481,6 +482,24 @@ class DataGenerationInput(Input):
         )
         ifo.meta_data = meta_data
 
+        if self.create_plots:
+            # Plots of before and after injection saved
+            plot_kwargs = dict(
+                det=ifo.name,
+                data_directory=self.data_directory,
+                trigger_time=self.trigger_time,
+                duration=self.duration,
+                post_trigger_duration=self.post_trigger_duration,
+                label=self.label,
+            )
+
+            strain_spectogram_plot(
+                data=data, extra_label="before_injection", **plot_kwargs
+            )
+            strain_spectogram_plot(
+                data=signal_and_data, extra_label="with_injection", **plot_kwargs
+            )
+
         return signal_and_data
 
     @property
@@ -552,9 +571,62 @@ class DataGenerationInput(Input):
                 ifo.power_spectral_density = PowerSpectralDensity(
                     frequency_array=psd.frequencies.value, psd_array=psd.value
                 )
+
+                if self.create_plots:
+                    self.__plot_ifo_data(
+                        det,
+                        data=data,
+                        psd=psd_data,
+                        time=[self.start_time, end_time],
+                        psd_time=[actual_psd_start_time, actual_psd_end_time],
+                    )
+
             ifo_list.append(ifo)
 
         self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
+
+    def __plot_ifo_data(self, det, data, time, psd, psd_time):
+        """Method to plot an IFO's data.
+
+        Parameters
+        ----------
+        det: str
+            The detector name corresponding to the key in data-dict
+        data, psd: gwpy.TimeSeries
+            The timeseries strain data of a detector
+        time, psd_time: Int array of len=2
+            [start_time, end_time]
+
+        Returns
+        -------
+        None
+
+        File by the name `<outdir>/data/<det>_<Label>_D{duration}_data.png`
+        is saved
+        """
+        plot_kwargs = dict(
+            det=det,
+            data_directory=self.data_directory,
+            trigger_time=self.trigger_time,
+            duration=self.duration,
+            post_trigger_duration=self.post_trigger_duration,
+            label=self.label,
+        )
+
+        # plot PSD
+        strain_spectogram_plot(
+            data=psd,
+            extra_label="D{}".format(int(psd_time[1] - psd_time[0])),
+            **plot_kwargs,
+        )
+
+        # plot psd+data  and zoom into data segment
+        data_with_psd = psd.append(data)
+        strain_spectogram_plot(
+            data=data_with_psd,
+            extra_label="D{}".format(int(time[1] - time[0])),
+            **plot_kwargs,
+        )
 
     def _get_data(self, det, channel_type, start_time, end_time, resample=True):
         """ Read in data using gwpy
