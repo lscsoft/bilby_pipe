@@ -127,6 +127,17 @@ def create_parser(top_level=True):
         "Data generation arguments",
         description="How to generate the data, e.g., from a list of gps times or simulated Gaussian noise.",
     )
+
+    data_gen_pars.add(
+        "--ignore-gwpy-data-quality-check",
+        type=bool,
+        default=False,
+        help=(
+            "Ignores the check to see if data queried from GWpy (ie not gaussian "
+            "noise) is obtained from time when the IFOs are in science mode."
+        ),
+    )
+
     data_gen_pars.add(
         "--gps-file",
         type=nonestr,

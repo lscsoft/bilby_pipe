@@ -29,6 +29,7 @@ class TestSlurm(unittest.TestCase):
             queue=1,
             create_summary=False,
             sampler=["nestle"],
+            ignore_gwpy_data_quality_check=True,
             gps_file=None,
             timeslide_file=None,
             webdir=".",

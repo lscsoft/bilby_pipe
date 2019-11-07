@@ -127,8 +127,15 @@ class TestTimeslide(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             inputs.get_timeslide_dict(10000)
 
-    def test_data_get(self):
-        """Test only runs when 'webtest' flag is true
+    @mock.patch("gwpy.timeseries.TimeSeries.fetch_open_data")
+    @mock.patch("bilby_pipe.data_generation.DataGenerationInput._is_gwpy_data_good")
+    def test_data_get(self, data_quality_method, fetch_open_data_method):
+        """Test timeslide values being properly set in function call to gwpy.
+
+        Parameters
+        ----------
+        data_quality_method: mock the data_quality_method to return True
+        fetch_open_data_method: mock the fetch_open_data_method
 
         """
         args_list = [
@@ -149,9 +156,26 @@ class TestTimeslide(unittest.TestCase):
         from bilby_pipe.utils import DataDump
 
         d = DataDump.from_pickle("tests/gwpy_data.pickle")
+        timeseries = d.interferometers[0].strain_data.to_gwpy_timeseries()
 
-        with mock.patch("gwpy.timeseries.TimeSeries.fetch_open_data") as m:
-            m.return_value = d.interferometers[0].strain_data.to_gwpy_timeseries()
-            self.inputs = DataGenerationInput(
-                *bilby_pipe.main.parse_args(args_list, parser)
-            )
+        fetch_open_data_method.return_value = timeseries
+        data_quality_method.return_value = True
+        self.inputs = DataGenerationInput(
+            *bilby_pipe.main.parse_args(args_list, parser)
+        )
+        timeslide_dict = self.inputs.timeslide_dict
+        self.assertIsInstance(timeslide_dict, dict)
+
+        t0 = self.inputs.start_time
+        t1 = t0 + self.inputs.duration
+
+        t0_psd = t0 - 128
+        t1_psd = t0
+
+        for det, timeslide_val in timeslide_dict.items():
+            fetch_open_data_method.assert_any_call(
+                det, t0 + timeslide_val, t1 + timeslide_val
+            )  # SIGNAL
+            fetch_open_data_method.assert_any_call(
+                det, t0_psd + timeslide_val, t1_psd + timeslide_val
+            )  # PSD
