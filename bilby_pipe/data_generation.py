@@ -95,6 +95,7 @@ class DataGenerationInput(Input):
         self.default_prior = args.default_prior
 
         # Data arguments
+        self.ignore_gwpy_data_quality_check = args.ignore_gwpy_data_quality_check
         self.detectors = args.detectors
         self.channel_dict = args.channel_dict
         self.data_dict = args.data_dict
@@ -586,10 +587,12 @@ class DataGenerationInput(Input):
                 )
             )
 
+        data_is_good = self._is_gwpy_data_good(start_time, end_time, det)
+        if not data_is_good and not self.ignore_gwpy_data_quality_check:
+            raise BilbyPipeError("Data quality is not good.")
+
         data = None
-
         channel = "{}:{}".format(det, channel_type)
-
         if data is None and self.data_dict is not None:
             data = self._gwpy_read(det, channel, start_time, end_time)
         if data is None:
@@ -614,6 +617,65 @@ class DataGenerationInput(Input):
             data.shift(-timeslide_val)
 
         return data
+
+    @staticmethod
+    def _is_gwpy_data_good(start_time, end_time, det):
+        """Check if start-end time is a period when the IFO has quality data.
+
+        Check passes if the IFO has quality data during the time period provided.
+
+        Note: we are using the DMT-SCIENCE channel to check the quality.
+        https://labcit.ligo.caltech.edu/~jzweizig/talks/LSC-2009-06-03/DMT-DQ_Stat-2009-06-03.pdf
+
+        This method is slow as it queries GWpy.
+
+        Parameters
+        ----------
+        start_time, end_time: float
+            GPS start and end time of required data.
+        det: str
+            The string key that represents the detector ("H1", "L1", etc)
+
+        Returns
+        -------
+
+        None
+
+        True: if data is good (IFO has quality data during entire duration).
+        False: if data is bad (IFO does not have quality data during entire duration).
+
+        """
+        # Create data quality flag
+        channel_num = 1
+        quality_flag = f"{det}:DMT-SCIENCE:{channel_num}"
+        logger.info(
+            "Checking data quality {} {}-{}"
+            "".format(quality_flag, start_time, end_time)
+        )
+        flag = gwpy.segments.DataQualityFlag.query(quality_flag, start_time, end_time)
+
+        # compare active duration from quality flag and total duration
+        total_duration = end_time - start_time
+        active_duration = flag.livetime.gpsSeconds + flag.livetime.gpsNanoSeconds * 1e-9
+        inactive_duration = total_duration - active_duration
+
+        # data is not good if there is any period when the IFO is inactive
+        if inactive_duration > 0:
+            data_is_good = False
+            logger.warning(
+                "Data quality check: FAILED. \n"
+                "{det} does not have quality data for "
+                "{inactive_duration}s out of {total_duration}s".format(
+                    det=det,
+                    inactive_duration=inactive_duration,
+                    total_duration=total_duration,
+                )
+            )
+        else:
+            data_is_good = True
+            logger.info("Data quality check: PASSED.")
+
+        return data_is_good
 
     def _gwpy_read(self, det, channel, start_time, end_time, dtype="float64"):
         """ Wrapper function to gwpy.timeseries.TimeSeries.read()
@@ -669,7 +731,7 @@ class DataGenerationInput(Input):
                 start=start_time,
                 end=end_time,
                 dtype=dtype,
-                **kwargs
+                **kwargs,
             )
             if data.duration.value != end_time - start_time:
                 logger.warning(

@@ -74,6 +74,7 @@ class MainInput(Input):
 
         self.post_trigger_duration = args.post_trigger_duration
 
+        self.ignore_gwpy_data_quality_check = args.ignore_gwpy_data_quality_check
         self.trigger_time = args.trigger_time
         self.deltaT = args.deltaT
         self.gps_file = args.gps_file
