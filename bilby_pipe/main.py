@@ -692,6 +692,7 @@ class PlotNode(Node):
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
         self.arguments.add("result", merged_node.result_file)
+        self.arguments.add("outdir", self.inputs.result_directory)
         self.process_node()
         self.job.add_parent(merged_node.job)
 
