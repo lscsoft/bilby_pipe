@@ -16,6 +16,7 @@ class TestGraceDB(unittest.TestCase):
         self.example_gracedb_uid = "G298936"
         self.example_gracedb_uid_outdir = "outdir_{}".format(self.example_gracedb_uid)
         self.cert_dummy_path = os.path.join(self.directory, "temp/certdir/")
+        self.tearDown()  # make sure that temp files deleted from previous attempts
         os.makedirs(self.cert_dummy_path)
         os.makedirs(self.outdir)
 
