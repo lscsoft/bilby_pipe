@@ -168,7 +168,7 @@ def calibration_lookup(trigger_time, detector):
     files = []
     with open(calenv, "r") as f:
         for line in f:
-            time, filename = line.rstrip("\n").split(" ")
+            time, filename = line.rstrip("\n").rstrip().split(" ")
             times.append(float(time))
             files.append(filename)
 
