@@ -260,7 +260,6 @@ class TestDataGenerationInput(unittest.TestCase):
         # make sure that when the flag is present, no error
         args, unknown = parse_args(args_list, create_generation_parser())
         args.trigger_time = 1126259462.4
-        args.ignore_gwpy_data_quality_check = True
         input = DataGenerationInput(args, unknown)
         self.assertFalse(input._is_gwpy_data_good())
         self.assertTrue(input.ignore_gwpy_data_quality_check)
@@ -313,6 +312,24 @@ class TestDataGenerationInput(unittest.TestCase):
         )
         self.assertTrue(data_is_good)
         self.assertFalse(mock_logs.warning.called)
+
+    @mock.patch("gwpy.segments.DataQualityFlag.query")
+    @mock.patch("bilby_pipe.data_generation.logger")
+    def test_data_quality_exception(self, mock_logs, quality_query):
+        """Test the data quality function's PASS state.
+
+        Parameters
+        ----------
+        mock_logs: the logging module being used inside this function
+
+        """
+        start_time_good, end_time_good = 1241725028.9, 1241725029
+        quality_query.side_effect = Exception("Some exception from GWpy")
+        data_is_good = DataGenerationInput._is_gwpy_data_good(
+            start_time=start_time_good, end_time=end_time_good, det="H1"
+        )
+        self.assertTrue(data_is_good is None)
+        self.assertTrue(mock_logs.warning.called)
 
 
 def load_test_strain_data():

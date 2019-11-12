@@ -131,7 +131,7 @@ def create_parser(top_level=True):
     data_gen_pars.add(
         "--ignore-gwpy-data-quality-check",
         type=bool,
-        default=False,
+        default=True,
         help=(
             "Ignores the check to see if data queried from GWpy (ie not gaussian "
             "noise) is obtained from time when the IFOs are in science mode."
