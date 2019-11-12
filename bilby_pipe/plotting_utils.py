@@ -83,7 +83,7 @@ def strain_spectogram_plot(
     }
     plot, axes = matplotlib.pyplot.subplots(nrows=2, sharex=True, figsize=(8, 6))
     tax, qax = axes  # timeseries axis, q-transform spectogram axis
-    tax.plot(filt_data, color=det_color[det])
+    tax.plot(filt_data, color=det_color[det])  # note: len(filt_data) < len(data)
     tax.set_xlabel("")
     tax.set_xscale("auto-gps")
     tax.set_ylabel("Strain amplitude")

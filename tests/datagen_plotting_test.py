@@ -60,7 +60,7 @@ class TestDataGenerationPlotting(unittest.TestCase):
 
         plot_filenames = [
             "H1_TEST_D4_data.png",
-            "H1_TEST_D128_data.png",
+            "H1_TEST_D32_data.png",
             "H1_TEST_frequency_domain_data.png",
         ]
         plot_dir = os.path.join(self.outdir, "data")

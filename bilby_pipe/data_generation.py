@@ -540,62 +540,61 @@ class DataGenerationInput(Input):
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
             if self.psd_dict is not None and det in self.psd_dict:
+                psd_data = None
                 self._set_psd_from_file(ifo)
             else:
                 logger.info("Setting PSD for {} from data".format(det))
-                # psd_start_time is given relative to the segment start time
-                # so here we calculate the actual start time
-                actual_psd_start_time = self.start_time + self.psd_start_time
-                actual_psd_end_time = actual_psd_start_time + self.psd_duration
-                logger.info("Getting psd-segment data for {}".format(det))
-                psd_data = self._get_data(
-                    det,
-                    self.get_channel_type(det),
-                    actual_psd_start_time,
-                    actual_psd_end_time,
-                )
-                psd_alpha = 2 * roll_off / self.duration
-                overlap = self.psd_fractional_overlap * self.duration
-                logger.info(
-                    "PSD settings: window=Tukey, Tukey-alpha={} roll-off={},"
-                    " overlap={}, method={}".format(
-                        psd_alpha, roll_off, overlap, self.psd_method
-                    )
-                )
-                psd = psd_data.psd(
-                    fftlength=self.duration,
-                    overlap=overlap,
-                    window=("tukey", psd_alpha),
-                    method=self.psd_method,
-                )
+                psd_data = self.__get_psd_data(det)
+                psd = self.__generate_psd(psd_data, roll_off)
                 ifo.power_spectral_density = PowerSpectralDensity(
                     frequency_array=psd.frequencies.value, psd_array=psd.value
                 )
 
-                if self.create_plots:
-                    self.__plot_ifo_data(
-                        det,
-                        data=data,
-                        psd=psd_data,
-                        time=[self.start_time, end_time],
-                        psd_time=[actual_psd_start_time, actual_psd_end_time],
-                    )
+            if self.create_plots:
+                self.__plot_ifo_data(det, strain_data=data, psd_strain_data=psd_data)
 
             ifo_list.append(ifo)
 
         self.interferometers = bilby.gw.detector.InterferometerList(ifo_list)
 
-    def __plot_ifo_data(self, det, data, time, psd, psd_time):
+    def __get_psd_data(self, det):
+        # psd_start_time is given relative to the segment start time
+        # so here we calculate the actual start time
+        actual_psd_start_time = self.start_time + self.psd_start_time
+        actual_psd_end_time = actual_psd_start_time + self.psd_duration
+        logger.info("Getting psd-segment data for {}".format(det))
+        psd_data = self._get_data(
+            det, self.get_channel_type(det), actual_psd_start_time, actual_psd_end_time,
+        )
+        return psd_data
+
+    def __generate_psd(self, psd_data, roll_off):
+        """Create the psd from strain data."""
+        psd_alpha = 2 * roll_off / self.duration
+        overlap = self.psd_fractional_overlap * self.duration
+        logger.info(
+            "PSD settings: window=Tukey, Tukey-alpha={} roll-off={},"
+            " overlap={}, method={}".format(
+                psd_alpha, roll_off, overlap, self.psd_method
+            )
+        )
+        psd = psd_data.psd(
+            fftlength=self.duration,
+            overlap=overlap,
+            window=("tukey", psd_alpha),
+            method=self.psd_method,
+        )
+        return psd
+
+    def __plot_ifo_data(self, det, strain_data, psd_strain_data=None):
         """Method to plot an IFO's data.
 
         Parameters
         ----------
         det: str
             The detector name corresponding to the key in data-dict
-        data, psd: gwpy.TimeSeries
-            The timeseries strain data of a detector
-        time, psd_time: Int array of len=2
-            [start_time, end_time]
+        strain_data, psd_strain_data: gwpy.TimeSeries
+            The timeseries strain data of a detector.
 
         Returns
         -------
@@ -604,6 +603,12 @@ class DataGenerationInput(Input):
         File by the name `<outdir>/data/<det>_<Label>_D{duration}_data.png`
         is saved
         """
+        if psd_strain_data is None:
+            psd_strain_data = self.__get_psd_data(det)
+            plot_psd = False
+        else:
+            plot_psd = True
+
         plot_kwargs = dict(
             det=det,
             data_directory=self.data_directory,
@@ -613,15 +618,22 @@ class DataGenerationInput(Input):
             label=self.label,
         )
 
-        # plot PSD
-        strain_spectogram_plot(
-            data=psd,
-            extra_label="D{}".format(int(psd_time[1] - psd_time[0])),
-            **plot_kwargs,
-        )
+        time = [strain_data.t0.value, strain_data.t0.value + strain_data.duration.value]
+        psd_time = [
+            psd_strain_data.t0.value,
+            psd_strain_data.t0.value + psd_strain_data.duration.value,
+        ]
 
-        # plot psd+data  and zoom into data segment
-        data_with_psd = psd.append(data)
+        # plot PSD
+        if plot_psd:
+            strain_spectogram_plot(
+                data=psd_strain_data,
+                extra_label="D{}".format(int(psd_time[1] - psd_time[0])),
+                **plot_kwargs,
+            )
+
+        # plot psd_strain_data+strain_data  and zoom into strain_data segment
+        data_with_psd = psd_strain_data.append(strain_data)
         strain_spectogram_plot(
             data=data_with_psd,
             extra_label="D{}".format(int(time[1] - time[0])),
