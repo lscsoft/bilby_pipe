@@ -199,8 +199,8 @@ SAMPLER_SETTINGS = {
         "n_check_point": 10000,
     },
     "FastTest": {
-        "nlive": 100,
-        "walks": 60,
+        "nlive": 170,
+        "walks": 80,
         "check_point_plot": True,
         "n_check_point": 1000,
     },
