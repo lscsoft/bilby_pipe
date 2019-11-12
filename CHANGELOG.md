@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## v0.3.2 : 2019-11-13
+
+### Added
+-   GWpy data quality check
+-   GWpy spectrogram plotting method
+-   Method to apply timeshifts with example
+-   Option to generate injection with different waveform to PE
+
+### Changes
+-   Fix to prior limits for actual spin maximum
+-   Updated calls to pesummary
+-   Minor improvements to gracedb script
+
 ## v0.3.1 : 2019-10-29
 
 ### Added
