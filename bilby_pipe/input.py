@@ -508,8 +508,8 @@ class Input(object):
 
     @minimum_frequency_dict.setter
     def minimum_frequency_dict(self, minimum_frequency_dict):
-        for det in minimum_frequency_dict.keys():
-            if det not in self.detectors:
+        for det in self.detectors:
+            if det not in minimum_frequency_dict.keys():
                 raise BilbyPipeError(
                     "Input minimum frequency required for detector {}".format(det)
                 )
