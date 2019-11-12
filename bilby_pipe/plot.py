@@ -25,6 +25,7 @@ def create_parser():
     parser = BilbyArgParser(ignore_unknown_config_file_keys=True)
     parser.add("--result", type=str, required=True, help="The result file")
     parser.add("--skymap", action="store_true", help="Generate skymap")
+    parser.add("--waveform", action="store_true", help="Generate waveform")
     return parser
 
 
@@ -67,7 +68,8 @@ def main():
     )
     logger.info("Generating calibration posterior")
     result.plot_calibration_posterior()
-    logger.info("Generating waveform posterior")
-    result.plot_waveform_posterior(
-        interferometers=data_dump.interferometers, n_samples=500, format="pdf"
-    )
+    if args.waveform:
+        logger.info("Generating waveform posterior")
+        result.plot_waveform_posterior(
+            interferometers=data_dump.interferometers, n_samples=500, format="pdf"
+        )
