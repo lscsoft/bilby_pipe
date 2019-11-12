@@ -292,7 +292,10 @@ def create_parser(top_level=True):
         help=(
             "The minimum frequency, given either as a float for all detectors "
             "or as a dictionary where all keys relate the detector with values"
-            " of the minimum frequency, e.g. {H1: 10, L1: 20}."
+            " of the minimum frequency, e.g. {H1: 10, L1: 20}. If the waveform"
+            " generation should start the minimum frequency for any of the "
+            "detectors, add another entry to the dictionary, e.g., "
+            "{H1: 40, L1: 60, waveform: 20}."
         ),
     )
     det_parser.add(
