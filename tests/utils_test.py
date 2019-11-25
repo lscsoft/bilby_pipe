@@ -83,6 +83,14 @@ class TestUtils(unittest.TestCase):
             dict(a=False, b=True, c=True, d=False),
         )
         self.assertEqual(
+            cstd('{a=+1, b : "+1", c: -1, "d": "-1"}', key),
+            dict(a=1, b=1, c=-1, d=-1),
+        )
+        self.assertEqual(
+            cstd('{a=+1.6, b : "+1.6", c: -1.6, "d": "-1.6"}', key),
+            dict(a=1.6, b=1.6, c=-1.6, d=-1.6),
+        )
+        self.assertEqual(
             cstd('{path=/path/to/file.txt, path_with_quotes : "/path/to/file.txt"}'),
             dict(path="/path/to/file.txt", path_with_quotes="/path/to/file.txt"),
         )

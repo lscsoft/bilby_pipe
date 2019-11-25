@@ -350,7 +350,7 @@ def convert_string_to_dict(string, key=None):
     string = string.replace("=", ":")
     string = string.replace(" ", "")
     # Force double quotes around everything
-    string = re.sub(r'([A-Za-z/\.0-9][^\[\],:"}]*)', r'"\g<1>"', string)
+    string = re.sub(r'([A-Za-z/\.0-9\-\+][^\[\],:"}]*)', r'"\g<1>"', string)
     string = string.replace('""', '"')
 
     # Evaluate as a dictionary of str: str
