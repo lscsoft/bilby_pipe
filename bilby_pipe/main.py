@@ -725,7 +725,7 @@ class PlotNode(Node):
 
 
 class PESummaryNode(Node):
-    def __init__(self, inputs, merged_node_list, dag):
+    def __init__(self, inputs, merged_node_list, generation_node_list, dag):
         super().__init__(inputs)
         self.dag = dag
         self.job_name = "{}_pesummary".format(inputs.label)
@@ -745,11 +745,14 @@ class PESummaryNode(Node):
         self.arguments.append(
             "-a {}".format(" ".join([self.inputs.waveform_approximant] * n_results))
         )
-        self.arguments.append(
-            "--gwdata {}".format(
-                DataDump.get_filename(self.inputs.data_directory, self.inputs.label)
+        if len(generation_node_list) == 1:
+            self.arguments.append(
+                "--gwdata {}".format(generation_node_list[0].data_dump_file)
             )
-        )
+        elif len(generation_node_list) > 1:
+            logger.info(
+                "Not adding --gwdata to PESummary job as there are multiple files"
+            )
         existing_dir = self.inputs.existing_dir
         if existing_dir is not None:
             self.arguments.add("existing_webdir", existing_dir)
@@ -916,7 +919,7 @@ def generate_dag(inputs):
             PlotNode(inputs, merged_node, dag=dag)
 
     if inputs.create_summary:
-        PESummaryNode(inputs, merged_node_list, dag=dag)
+        PESummaryNode(inputs, merged_node_list, generation_node_list, dag=dag)
     if inputs.postprocessing_arguments is not None:
         PostProcessAllResultsNode(inputs, merged_node_list, dag)
 
