@@ -323,7 +323,7 @@ def create_config_file(
         label=gracedb,
         outdir=outdir,
         accounting="ligo.dev.o3.cbc.pe.lalinference",
-        maximum_frequency=maximum_frequency,
+        maximum_frequency=min(maximum_frequency, 4096),
         minimum_frequency=minimum_frequency,
         sampling_frequency=16384,
         reference_frequency=100,
