@@ -1,5 +1,13 @@
 # All notable changes will be documented in this file
 
+## v0.3.3 : 2019-11-26
+Minor release following small fixes
+
+### Changes
+-   All gracedb jobs default to "vanilla" universe
+-   Fixes dict conversion error of reading negative numbers
+-   Minor fix to gwdata paths
+
 ## v0.3.2 : 2019-11-13
 
 ### Added
