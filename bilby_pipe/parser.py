@@ -226,7 +226,12 @@ def create_parser(top_level=True):
         "--generation-seed",
         default=None,
         type=noneint,
-        help="Random seed used during data generation",
+        help=(
+            "Random seed used during data generation. If no generation seed "
+            "provided, a random seed between 1 and 1e6 is selected. If a seed "
+            "is provided, it is used as the base seed and all generation jobs "
+            "will have their seeds set as {generation_seed = base_seed + job_idx}."
+        ),
     )
     det_parser.add(
         "--psd-dict", type=nonestr, default=None, help="Dictionary of PSD files to use"
