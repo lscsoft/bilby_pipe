@@ -203,6 +203,72 @@ class TestDataGenerationInput(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
 
+    def test_generation_seed_increases_with_injection_index(self):
+        """Assert that generation seed increments for each job.
+
+        ie
+        JOB 0 -- seed X
+        JOB 1 -- seed X + 1
+        ...
+        JOB N -- seed X + N
+
+        This is so that the gaussian data for each job will be different.
+        """
+        idx = 0
+        generation_seed = 0
+        args_list = [
+            "--ini",
+            "tests/test_data_generation.ini",
+            "--generation-seed={}".format(generation_seed),
+            "--idx={}".format(idx),
+            "--gaussian-noise",
+            "--trigger-time",
+            "2",
+            "--outdir",
+            self.outdir,
+            "--label",
+            "TEST",
+        ]
+        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        self.assertEqual(self.inputs.generation_seed, idx + generation_seed)
+        idx = 2
+        generation_seed = 0
+        args_list = [
+            "--ini",
+            "tests/test_data_generation.ini",
+            "--generation-seed={}".format(generation_seed),
+            "--idx={}".format(idx),
+            "--gaussian-noise",
+            "--trigger-time",
+            "1126259462",
+            "--outdir",
+            self.outdir,
+            "--label",
+            "TEST",
+        ]
+        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        self.assertEqual(self.inputs.generation_seed, idx + generation_seed)
+
+    def test_generation_seed_is_random_if_none_provided(self):
+        """Assert that the generation seed is some random value if not provided."""
+        idx = 0
+        generation_seed = None
+        args_list = [
+            "--ini",
+            "tests/test_data_generation.ini",
+            "--generation-seed={}".format(generation_seed),
+            "--idx={}".format(idx),
+            "--gaussian-noise",
+            "--trigger-time",
+            "1126259462",
+            "--outdir",
+            self.outdir,
+            "--label",
+            "TEST",
+        ]
+        self.inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        self.assertTrue(1 <= self.inputs.generation_seed <= 1e6)
+
     @mock.patch("bilby_pipe.data_generation.DataGenerationInput._get_data")
     @mock.patch("bilby.gw.detector.inject_signal_into_gwpy_timeseries")
     def test_inject_signal_into_time_domain_data(

@@ -7,9 +7,9 @@ from __future__ import division, print_function
 import os
 import sys
 
+import gwpy
 import matplotlib
 import numpy as np
-import gwpy
 
 matplotlib.use("agg")  # noqa
 import bilby
@@ -62,8 +62,6 @@ class DataGenerationInput(Input):
 
     def __init__(self, args, unknown_args, create_data=True):
 
-        np.random.seed(args.generation_seed)
-
         logger.info("Command line arguments: {}".format(args))
         logger.info("Unknown command line arguments: {}".format(unknown_args))
 
@@ -84,6 +82,7 @@ class DataGenerationInput(Input):
 
         # Run index arguments
         self.idx = args.idx
+        self.generation_seed = args.generation_seed
         self.trigger_time = args.trigger_time
 
         # Naming arguments
@@ -199,6 +198,36 @@ class DataGenerationInput(Input):
 
         if self.data_set is False:
             raise BilbyPipeError("Unable to set data")
+
+    @property
+    def generation_seed(self):
+        return self._generation_seed
+
+    @generation_seed.setter
+    def generation_seed(self, generation_seed):
+        """Sets the generation seed.
+
+        If no generation seed has been provided, a random seed between 1 and 1e6 is
+        selected.
+
+        If a seed is provided, it is used as the base seed and all generation jobs will
+        have their seeds set as {generation_seed = base_seed + job_idx}.
+
+        NOTE: self.idx must not be None
+
+        Parameters
+        ----------
+        generation_seed: int or None
+
+        """
+        if generation_seed is None:
+            generation_seed = np.random.randint(1, 1e6)
+        else:
+            assert self.idx is not None
+            generation_seed = generation_seed + self.idx
+        self._generation_seed = generation_seed
+        np.random.seed(generation_seed)
+        logger.info("Generation seed set to {}".format(generation_seed))
 
     @property
     def injection_parameters(self):
@@ -468,7 +497,6 @@ class DataGenerationInput(Input):
             label = None
 
         logger.info("Injecting with {}".format(self.injection_waveform_approximant))
-
         (
             signal_and_data,
             meta_data,
