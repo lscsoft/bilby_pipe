@@ -475,6 +475,16 @@ def create_parser():
         ),
     )
     parser.add_argument(
+        "--convert-to-flat-in-component-mass",
+        type=str,
+        help=(
+            "Convert a flat-in chirp mass and mass-ratio prior file to flat \n"
+            "in component mass during the post-processing. Note, the prior \n"
+            "must be uniform in Mc and q with constraints in m1 and m2 for \n"
+            "this to work. \n"
+        ),
+    )
+    parser.add_argument(
         "--outdir",
         type=str,
         help="Output directory where the ini file and all output is written.",
@@ -586,4 +596,6 @@ def main(args=None):
             arguments.append("--submit")
         if args.online_pe:
             arguments.append("--online-pe")
+        if args.convert_to_flat_in_component_mass:
+            arguments.append("--convert-to-flat-in-component-mass")
         run_command_line(arguments)
