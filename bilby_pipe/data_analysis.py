@@ -98,6 +98,9 @@ class DataAnalysisInput(Input):
         self.time_marginalization = args.time_marginalization
         self.jitter_time = args.jitter_time
 
+        # Prior conversions
+        self.convert_to_flat_in_component_mass = args.convert_to_flat_in_component_mass
+
         if test is False:
             self._load_data_dump()
 
@@ -294,6 +297,17 @@ class DataAnalysisInput(Input):
             result_class=self.result_class,
             **self.sampler_kwargs,
         )
+
+        if self.convert_to_flat_in_component_mass:
+            try:
+                result_reweighted = bilby.gw.prior.convert_to_flat_in_component_mass_prior(
+                    self.result
+                )
+                result_reweighted.save_to_file()
+            except Exception as e:
+                logger.warning(
+                    f"Unable to convert to the flat in component mass prior due to: {e}"
+                )
 
 
 def create_analysis_parser():

@@ -556,6 +556,17 @@ def create_parser(top_level=True):
         ),
     )
     prior_parser.add("--prior-file", type=nonestr, default=None, help="The prior file")
+    prior_parser.add(
+        "--convert-to-flat-in-component-mass",
+        action=StoreBoolean,
+        default=False,
+        help=(
+            "Convert a flat-in chirp mass and mass-ratio prior file to flat "
+            "in component mass during the post-processing. Note, the prior "
+            "must be uniform in Mc and q with constraints in m1 and m2 for "
+            "this to work"
+        ),
+    )
 
     postprocessing_parser = parser.add_argument_group(
         title="Post processing arguments",
