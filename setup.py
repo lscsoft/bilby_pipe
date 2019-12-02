@@ -70,7 +70,7 @@ def get_long_description():
     return long_description
 
 
-VERSION = "0.3.3"
+VERSION = "0.3.4"
 version_file = write_version_file(VERSION)
 long_description = get_long_description()
 
@@ -90,7 +90,7 @@ setup(
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "bilby>=0.5.9",
+        "bilby>=0.6.1",
         "scipy>=1.2.0",
         "gwpy",
         "matplotlib",
@@ -110,7 +110,7 @@ setup(
             "bilby_pipe_review=bilby_pipe.review:main",
             "bilby_pipe_plot=bilby_pipe.plot:main",
             "bilby_pipe_gracedb=bilby_pipe.gracedb:main",
-            "bilby_pipe_write_default_ini=bilby_pipe.parser:main"
+            "bilby_pipe_write_default_ini=bilby_pipe.parser:main",
         ]
     },
     classifiers=[
