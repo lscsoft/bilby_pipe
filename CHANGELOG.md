@@ -1,5 +1,11 @@
 # All notable changes will be documented in this file
 
+## v0.3.4 : 2019-12-02
+-   Minor version release updating to bilby v0.6.1
+-   Remove reflective boundaries from defaults priors
+-   Resolve issue with ROQ times steps and the PSD roll off (!230)
+-   Update the minimum pesummary version
+
 ## v0.3.3 : 2019-11-26
 Minor release following small fixes
 
