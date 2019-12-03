@@ -158,7 +158,7 @@ class TestGraceDB(unittest.TestCase):
         gracedb.main(args)
         files = glob.glob(self.example_gracedb_uid_outdir + "/submit/*")
         # Check this creates jobs
-        self.assertEqual(len(files), 10)
+        self.assertEqual(len(files), 11)
 
 
 if __name__ == "__main__":
