@@ -43,7 +43,7 @@ def main():
     if args.skymap:
         logger.info("Generating skymap")
         try:
-            result.plot_skymap(maxpts=2000)
+            result.plot_skymap(maxpts=5000)
         except Exception as e:
             logger.info("Unable to generate skymap: error {}".format(e))
 

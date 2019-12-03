@@ -347,6 +347,8 @@ def create_config_file(
         distance_marginalization_lookup_table=distance_marginalization_lookup_table,
         n_parallel=4,
         create_summary=True,
+        postprocessing_executable="summarypages",
+        postprocessing_arguments={"nsamples_for_skymap": 5000},
         calibration_model=calibration_model,
         spline_calibration_envelope_dict=calib_dict,
         spline_calibration_nodes=10,
