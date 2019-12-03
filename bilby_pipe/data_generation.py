@@ -1048,6 +1048,7 @@ class DataGenerationInput(Input):
             interferometers=self.interferometers,
             priors=self.priors,
             roq_params=params,
+            roq_scale_factor=self.roq_scale_factor,
             waveform_generator=waveform_generator,
             linear_matrix=basis_matrix_linear,
             quadratic_matrix=basis_matrix_quadratic,
