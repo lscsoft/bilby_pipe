@@ -784,7 +784,11 @@ class Input(object):
                 weights = self.meta_data["weight_file"]
                 logger.info("Loading ROQ weights from {}".format(weights))
 
-            likelihood_kwargs.update(weights=weights, roq_params=params)
+            likelihood_kwargs.update(
+                weights=weights,
+                roq_params=params,
+                roq_scale_factor=self.roq_scale_factor,
+            )
 
         elif "." in self.likelihood_type:
             split_path = self.likelihood_type.split(".")
