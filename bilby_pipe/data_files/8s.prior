@@ -1,5 +1,6 @@
 chirp_mass = Uniform(name='chirp_mass', minimum=7.932707, maximum=14.759644, unit='$M_{\odot}$')
 mass_ratio = Uniform(name='mass_ratio', minimum=0.125, maximum=1)
+mass_1 = Constraint(name='mass_1', minimum=1.001398, maximum=1000)
 mass_2 = Constraint(name='mass_2', minimum=1.001398, maximum=1000)
 a_1 = Uniform(name='a_1', minimum=0, maximum=0.8)
 a_2 = Uniform(name='a_2', minimum=0, maximum=0.8)
