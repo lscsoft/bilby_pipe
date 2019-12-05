@@ -270,7 +270,14 @@ def prior_lookup(duration, scale_factor, outdir):
 
 
 def create_config_file(
-    candidate, gracedb, outdir, channel_dict, sampler_kwargs, webdir, roq=True
+    candidate,
+    gracedb,
+    outdir,
+    channel_dict,
+    sampler_kwargs,
+    webdir,
+    convert_to_flat_in_component_mass=False,
+    roq=True,
 ):
     """ Creates ini file from defaults and candidate contents
 
@@ -357,6 +364,9 @@ def create_config_file(
     if roq and config_dict["duration"] > 4 and roq_folder is not None:
         config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         config_dict["roq-folder"] = roq_folder
+
+    if convert_to_flat_in_component_mass:
+        config_dict["convert_to_flat_in_component_mass"] = True
 
     comment = (
         "# Configuration ini file generated from GraceDB "
@@ -478,7 +488,8 @@ def create_parser():
     )
     parser.add_argument(
         "--convert-to-flat-in-component-mass",
-        type=str,
+        action="store_true",
+        default=False,
         help=(
             "Convert a flat-in chirp mass and mass-ratio prior file to flat \n"
             "in component mass during the post-processing. Note, the prior \n"
@@ -575,10 +586,18 @@ def main(args=None):
     else:
         webdir = os.path.join(outdir, "results_page")
 
+    convert_to_flat_in_component_mass = args.convert_to_flat_in_component_mass
+
     sampler_kwargs = args.sampler_kwargs
     channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
     filename = create_config_file(
-        candidate, gracedb, outdir, channel_dict, sampler_kwargs, webdir
+        candidate,
+        gracedb,
+        outdir,
+        channel_dict,
+        sampler_kwargs,
+        webdir,
+        convert_to_flat_in_component_mass,
     )
 
     if args.output == "ini":
@@ -598,6 +617,4 @@ def main(args=None):
             arguments.append("--submit")
         if args.online_pe:
             arguments.append("--online-pe")
-        if args.convert_to_flat_in_component_mass:
-            arguments.append("--convert-to-flat-in-component-mass")
         run_command_line(arguments)
