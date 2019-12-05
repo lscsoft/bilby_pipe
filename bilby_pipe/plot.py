@@ -8,6 +8,12 @@ import matplotlib
 
 matplotlib.use("agg")  # noqa
 from bilby.gw.result import CBCResult
+from bilby.gw.source import (
+    binary_black_hole_roq,
+    binary_neutron_star_roq,
+    lal_binary_black_hole,
+    lal_binary_neutron_star,
+)
 
 from .utils import DataDump, parse_args, get_command_line_arguments, logger
 from .bilbyargparser import BilbyArgParser
@@ -26,6 +32,12 @@ def create_parser():
     parser.add("--result", type=str, required=True, help="The result file")
     parser.add("--skymap", action="store_true", help="Generate skymap")
     parser.add("--waveform", action="store_true", help="Generate waveform")
+    parser.add(
+        "--waveform-format",
+        type=str,
+        default="pdf",
+        help="Format for waveform plot, options are [png, pdf, html]",
+    )
     return parser
 
 
@@ -69,7 +81,25 @@ def main():
     logger.info("Generating calibration posterior")
     result.plot_calibration_posterior()
     if args.waveform:
+        if result.frequency_domain_source_model == binary_black_hole_roq:
+            logger.info(
+                "Sampling used the binary_black_hole_roq source model, using "
+                "the lal_binary_black_hole_model for the waveform plot."
+            )
+            result.meta_data["likelihood"][
+                "frequency_domain_source_model"
+            ] = lal_binary_black_hole
+        elif result.frequency_domain_source_model == binary_neutron_star_roq:
+            logger.info(
+                "Sampling used the binary_neutron_star_roq source model, using "
+                "the lal_binary_neutron_star_model for the waveform plot."
+            )
+            result.meta_data["likelihood"][
+                "frequency_domain_source_model"
+            ] = lal_binary_neutron_star
         logger.info("Generating waveform posterior")
         result.plot_waveform_posterior(
-            interferometers=data_dump.interferometers, n_samples=500, format="pdf"
+            interferometers=data_dump.interferometers,
+            n_samples=1000,
+            format=args.waveform_format,
         )
