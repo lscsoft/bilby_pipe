@@ -592,7 +592,7 @@ class DataGenerationInput(Input):
         actual_psd_end_time = actual_psd_start_time + self.psd_duration
         logger.info("Getting psd-segment data for {}".format(det))
         psd_data = self._get_data(
-            det, self.get_channel_type(det), actual_psd_start_time, actual_psd_end_time,
+            det, self.get_channel_type(det), actual_psd_start_time, actual_psd_end_time
         )
         return psd_data
 
