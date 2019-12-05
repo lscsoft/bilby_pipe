@@ -63,6 +63,16 @@ example-ini-file-run:
     - cd tests/
     - bilby_pipe test_full.ini --local --bilby-test-mode
 
+example-ini-file-pesummary:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  script:
+    - source activate python37
+    - pip install --upgrade bilby pesummary
+    - pip install .
+    - cd tests/
+    - bilby_pipe test_pesummary.ini --local --bilby-test-mode
+
 
 python-3.6:
   stage: test
