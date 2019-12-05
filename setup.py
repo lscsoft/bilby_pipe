@@ -98,7 +98,7 @@ setup(
         "tqdm",
         "corner",
         "dynesty>=1.0.0",
-        "pesummary>=0.2.3",
+        "pesummary>=0.2.4",
     ],
     entry_points={
         "console_scripts": [
