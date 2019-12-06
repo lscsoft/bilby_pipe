@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## v0.3.5 : 2019-12-06
+Minor release following small fixes
+
+### Added
+-   PESummary CI test
+-   Mass 1 constraint to prior files
+
+### Changes
+-   Fix --convert-to-flat-in-component-mass flag
+-   Pass the ROQ scale factor to the likelihood
+-   Fix ROQ waveform plotting
+-   Set max skymaps points to 5000
+
 ## v0.3.4 : 2019-12-02
 -   Minor version release updating to bilby v0.6.1
 -   Remove reflective boundaries from defaults priors
