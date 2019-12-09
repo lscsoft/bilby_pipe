@@ -13,24 +13,41 @@ stages:
   - test
   - deploy
 
+cache:
+  paths:
+    - .pip37
+    - .pip36
+
+precommits:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  script:
+    - source activate python37
+    - mkdir -p .pip37
+    - pip install --upgrade pip
+    - pip --cache-dir=.pip37 install --upgrade bilby
+    - pip --cache-dir=.pip37 install .
+    - pip --cache-dir=.pip37 install pre-commit
+
+    # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
+    - pre-commit run -a
+
 python-3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip install --upgrade bilby
-    - pip install .
-
-    # Run black check
-    - black --check bilby_pipe/ --diff
-
-    # Run pyflakes
-    - flake8 .
+    - mkdir -p .pip37
+    - pip install --upgrade pip
+    - pip --cache-dir=.pip37 install --upgrade bilby
+    - pip --cache-dir=.pip37 install .
 
     # Run tests and collect coverage data
     - pytest --cov bilby_pipe
     - coverage html
     - coverage-badge -o coverage_badge.svg -f
+
+
 
   artifacts:
     paths:
@@ -42,8 +59,9 @@ example-ini-file-builds:
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip install --upgrade bilby
-    - pip install .
+    - mkdir -p .pip37
+    - pip --cache-dir=.pip37 install --upgrade bilby
+    - pip --cache-dir=.pip37 install .
     - cd examples/event
     - bilby_pipe *ini
     - cd ../gaussian_noise
@@ -58,8 +76,9 @@ example-ini-file-run:
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip install --upgrade bilby
-    - pip install .
+    - mkdir -p .pip37
+    - pip --cache-dir=.pip37 install --upgrade bilby
+    - pip --cache-dir=.pip37 install .
     - cd tests/
     - bilby_pipe test_full.ini --local --bilby-test-mode
 
@@ -79,8 +98,10 @@ python-3.6:
   image: bilbydev/bilby_pipe-test-suite-python36
   script:
     - source activate python36
-    - pip install --upgrade bilby
-    - pip install .
+    - mkdir -p .pip36
+    - pip install --upgrade pip
+    - pip --cache-dir=.pip36 install --upgrade bilby
+    - pip --cache-dir=.pip36 install .
 
     # run tests
     - pytest
@@ -90,7 +111,8 @@ documentation:
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip install .
+    - mkdir -p .pip37
+    - pip --cache-dir=.pip37 install .
 
     # Make the documentation
     - apt-get update

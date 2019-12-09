@@ -4,9 +4,6 @@ Module containing the tools for plotting of results
 """
 from __future__ import division, print_function
 
-import matplotlib
-
-matplotlib.use("agg")  # noqa
 from bilby.gw.result import CBCResult
 from bilby.gw.source import (
     binary_black_hole_roq,
@@ -15,8 +12,13 @@ from bilby.gw.source import (
     lal_binary_neutron_star,
 )
 
-from .utils import DataDump, parse_args, get_command_line_arguments, logger
 from .bilbyargparser import BilbyArgParser
+from .utils import DataDump, get_command_line_arguments, logger, parse_args
+
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
 
 
 def create_parser():

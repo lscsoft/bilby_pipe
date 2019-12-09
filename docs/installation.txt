@@ -132,8 +132,8 @@ but many people use the direct installation method out of habit.
 Be careful to check any warning messages about where the code has been
 installed.
 
-Additionally, if you recieve error messages about read-only file systems you
-can add :code:`--user` to the installtion call. This will install the software
+Additionally, if you receive error messages about read-only file systems you
+can add :code:`--user` to the installation call. This will install the software
 in a local directory, usually :code:`~/.local`. Be aware that this may not be
 on your :code:`PATH` and also, that this will effect all python environments.
 
@@ -165,7 +165,7 @@ rather than
   bilby_pipe 0.0.1:
 
 Then you have installed :code:`bilby_pipe` from source. This information is
-also printed everytime the code is called and therefore will be at the top of
+also printed every time the code is called and therefore will be at the top of
 your log files.
 
 

@@ -1,7 +1,7 @@
-import os
-import unittest
 import copy
+import os
 import shutil
+import unittest
 
 import numpy as np
 

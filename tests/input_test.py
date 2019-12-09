@@ -2,7 +2,6 @@ import os
 import unittest
 
 import bilby
-
 import bilby_pipe
 from bilby_pipe.utils import BilbyPipeError
 

@@ -1,11 +1,10 @@
-import unittest
 import shutil
+import unittest
 
 import bilby
-
+from bilby_pipe.data_analysis import DataAnalysisInput, create_analysis_parser
 from bilby_pipe.main import parse_args
 from bilby_pipe.utils import BilbyPipeError
-from bilby_pipe.data_analysis import DataAnalysisInput, create_analysis_parser
 
 
 class TestDataAnalysisInput(unittest.TestCase):

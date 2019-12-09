@@ -1,12 +1,12 @@
 import os
-from types import SimpleNamespace
 import shutil
 import unittest
+from types import SimpleNamespace
+
+import numpy as np
+import pandas as pd
 
 import bilby
-import pandas as pd
-import numpy as np
-
 import bilby_pipe
 import bilby_pipe.pp_test
 

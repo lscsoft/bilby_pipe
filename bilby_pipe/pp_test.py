@@ -6,13 +6,18 @@ import glob
 import json
 import os
 
-from bilby.core.result import read_in_result, make_pp_plot, ResultList
-import matplotlib as mpl
+import corner
 import numpy as np
 import tqdm
-import corner
+
+from bilby.core.result import ResultList, make_pp_plot, read_in_result
 
 from .utils import logger
+
+# fmt: off
+import matplotlib as mpl  # isort:skip
+mpl.use("agg")
+# fmt: on
 
 
 mpl.rcParams.update(mpl.rcParamsDefault)

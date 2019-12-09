@@ -2,11 +2,16 @@ import glob
 import os
 import sys
 
-from numpy import linspace
-import bilby
 import matplotlib.pyplot as plt
+from numpy import linspace
 
+import bilby
 from bilby_pipe.utils import DURATION_LOOKUPS
+
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
 
 
 def plot_SNRs(ax, label, prior, waveform_generator, n_samples=200):

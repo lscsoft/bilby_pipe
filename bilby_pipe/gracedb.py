@@ -12,16 +12,15 @@ import numpy as np
 
 import bilby
 
+from . import parser
 from .utils import (
-    test_connection,
+    DEFAULT_DISTANCE_LOOKUPS,
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
     logger,
-    DEFAULT_DISTANCE_LOOKUPS,
     run_command_line,
+    test_connection,
 )
-from . import parser
-
 
 # Default channels from: https://wiki.ligo.org/LSC/JRPComm/ObsRun3
 CHANNEL_DICTS = dict(

@@ -1,16 +1,16 @@
 """
 A set of generic utilities used in bilby_pipe
 """
-import re
-import os
-import sys
+import ast
 import logging
 import math
+import os
 import pickle
-import ast
+import re
+import subprocess
+import sys
 import urllib
 import urllib.request
-import subprocess
 from pathlib import Path
 
 
@@ -341,7 +341,7 @@ def convert_string_to_dict(string, key=None):
     Parameters
     ----------
     string: str
-        The strng to convert
+        The string to convert
     key: str (None)
         A key, used for debugging
     """

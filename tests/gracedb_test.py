@@ -1,7 +1,7 @@
 import glob
-import unittest
 import os
 import shutil
+import unittest
 
 from bilby_pipe import gracedb
 from bilby_pipe.utils import BilbyPipeError

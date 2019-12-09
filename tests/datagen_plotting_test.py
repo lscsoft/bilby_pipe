@@ -1,11 +1,11 @@
-import unittest
-import shutil
-import mock
 import os
-import bilby_pipe
+import shutil
+import unittest
 
 import gwpy
+import mock
 
+import bilby_pipe
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
 from bilby_pipe.plotting_utils import strain_spectogram_plot
 

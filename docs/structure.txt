@@ -69,7 +69,7 @@ multiple components (e.g., create an analysis n injections) things may be
 more complicated. The logic for handling all of this is contained within the
 `main <main.txt>`_ module.
 
-In the most general case, there will be n parallell jobs with no inter-job
+In the most general case, there will be n parallel jobs with no inter-job
 dependencies. Within each of these jobs, there is typically a structure in
 the DAG as follows:
 

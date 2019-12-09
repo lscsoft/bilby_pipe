@@ -1,10 +1,10 @@
-import os
-import unittest
-import bilby_pipe
-import shutil
 import logging
+import os
+import shutil
 import sys
+import unittest
 
+import bilby_pipe
 import bilby_pipe.utils
 
 
@@ -83,8 +83,7 @@ class TestUtils(unittest.TestCase):
             dict(a=False, b=True, c=True, d=False),
         )
         self.assertEqual(
-            cstd('{a=+1, b : "+1", c: -1, "d": "-1"}', key),
-            dict(a=1, b=1, c=-1, d=-1),
+            cstd('{a=+1, b : "+1", c: -1, "d": "-1"}', key), dict(a=1, b=1, c=-1, d=-1),
         )
         self.assertEqual(
             cstd('{a=+1.6, b : "+1.6", c: -1.6, "d": "-1.6"}', key),
@@ -95,7 +94,9 @@ class TestUtils(unittest.TestCase):
             dict(path="/path/to/file.txt", path_with_quotes="/path/to/file.txt"),
         )
         self.assertEqual(
-            cstd('{path=../path/to/file.txt, path_with_quotes : "../path/to/file.txt"}'),
+            cstd(
+                '{path=../path/to/file.txt, path_with_quotes : "../path/to/file.txt"}'
+            ),
             dict(path="../path/to/file.txt", path_with_quotes="../path/to/file.txt"),
         )
         self.assertEqual(
@@ -106,7 +107,7 @@ class TestUtils(unittest.TestCase):
             dict(float=3.0, float_with_quotes=1.0),
         )
         self.assertEqual(
-            cstd('{float=3.0, labels=[Online, Online]}'),
+            cstd("{float=3.0, labels=[Online, Online]}"),
             dict(float=3.0, labels=["Online", "Online"]),
         )
         self.assertEqual(

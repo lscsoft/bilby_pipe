@@ -4,17 +4,18 @@ Module containing the main input class
 """
 from __future__ import division, print_function
 
-import os
 import glob
 import json
+import os
 from importlib import import_module
 
 import numpy as np
-import bilby
 import pandas as pd
 
+import bilby
+
 from . import utils
-from .utils import logger, BilbyPipeError, convert_string_to_dict
+from .utils import BilbyPipeError, convert_string_to_dict, logger
 
 
 class Input(object):
@@ -360,11 +361,11 @@ class Input(object):
                 self.trigger_time + self.post_trigger_duration - self.duration
             )
         except AttributeError:
-            logger.warning("Unable to veryify start-time consistency")
+            logger.warning("Unable to verify start-time consistency")
             return
 
         if inferred_start_time != start_time:
-            raise BilbyPipeError("Unexpected behaviour enountered with start time")
+            raise BilbyPipeError("Unexpected behaviour encountered with start time")
 
     @start_time.setter
     def start_time(self, start_time):

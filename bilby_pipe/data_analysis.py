@@ -4,28 +4,29 @@ Script to analyse the stored data
 """
 from __future__ import division, print_function
 
-import sys
-import signal
 import os
+import signal
+import sys
 
 import numpy as np
-import matplotlib
 
-matplotlib.use("agg")  # noqa
 import bilby
-
+from bilby_pipe.input import Input
+from bilby_pipe.main import parse_args
+from bilby_pipe.parser import create_parser
 from bilby_pipe.utils import (
-    logger,
-    log_version_information,
+    SAMPLER_SETTINGS,
     BilbyPipeError,
     DataDump,
     convert_string_to_dict,
-    SAMPLER_SETTINGS,
+    log_version_information,
+    logger,
 )
 
-from bilby_pipe.main import parse_args
-from bilby_pipe.parser import create_parser
-from bilby_pipe.input import Input
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
 
 
 def sighandler(signum, frame):

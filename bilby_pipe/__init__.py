@@ -8,9 +8,6 @@ estimation on computing clusters.
 
 """
 
-from . import main
-from . import bilbyargparser
-from . import utils
-from . import parser
+from . import bilbyargparser, main, parser, utils
 
 __version__ = utils.get_version_information().split(":", 1)[0]

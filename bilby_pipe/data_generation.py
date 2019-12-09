@@ -8,26 +8,29 @@ import os
 import sys
 
 import gwpy
-import matplotlib
 import numpy as np
 
-matplotlib.use("agg")  # noqa
 import bilby
 from bilby.gw.detector import PowerSpectralDensity
-
-from bilby_pipe.utils import (
-    logger,
-    log_version_information,
-    BilbyPipeError,
-    convert_string_to_dict,
-    DataDump,
-    is_a_power_of_2,
-    get_version_information,
-)
-from bilby_pipe.plotting_utils import strain_spectogram_plot
-from bilby_pipe.main import parse_args
 from bilby_pipe.input import Input
+from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
+from bilby_pipe.plotting_utils import strain_spectogram_plot
+from bilby_pipe.utils import (
+    BilbyPipeError,
+    DataDump,
+    convert_string_to_dict,
+    get_version_information,
+    is_a_power_of_2,
+    log_version_information,
+    logger,
+)
+
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
+
 
 try:
     import nds2  # noqa
@@ -54,7 +57,7 @@ class DataGenerationInput(Input):
     parser: configargparse.ArgParser, optional
         The parser containing the command line / ini file inputs
     args_list: list, optional
-        A list of the arguments to parse. Defauts to `sys.argv[1:]`
+        A list of the arguments to parse. Defaults to `sys.argv[1:]`
     create_data: bool
         If false, no data is generated (used for testing)
 

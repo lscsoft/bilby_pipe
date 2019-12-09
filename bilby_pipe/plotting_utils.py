@@ -1,14 +1,16 @@
 """Plotting helper functions."""
 import os
-
-from bilby_pipe.utils import logger
 from typing import Optional
 
-import matplotlib
-from gwpy.timeseries import TimeSeries
 from gwpy.signal import filter_design
+from gwpy.timeseries import TimeSeries
 
-matplotlib.use("agg")  # noqa
+from bilby_pipe.utils import logger
+
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
 
 
 def safe_run(func):
