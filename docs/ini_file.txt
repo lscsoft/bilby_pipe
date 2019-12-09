@@ -9,7 +9,7 @@ single file. To handle both command line arguments and ini-files, we use the
 
 An ini file can contain multiple types of input. In this example, we
 demonstrate passing in a float for the :code:`trigger-time` attribute, an integer
-for the :code:`duration`, a list for the :code:`detectors`, a boolen for the
+for the :code:`duration`, a list for the :code:`detectors`, a boolean for the
 :code:`coherence-test`, and a dictionary of :code:`sampler-kwargs`:
 
 .. code-block:: text

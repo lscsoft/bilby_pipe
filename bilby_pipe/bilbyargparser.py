@@ -4,6 +4,7 @@ argument parser for bilby_pipe, adapted from configargparse.ArgParser.
 
 import os
 import sys
+
 import configargparse
 
 from .utils import get_version_information, logger

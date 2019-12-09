@@ -1,13 +1,13 @@
-import unittest
 import shutil
+import unittest
+
+import gwpy
+import mock
 
 import bilby
-import gwpy
-
-from bilby_pipe.main import parse_args
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
+from bilby_pipe.main import parse_args
 from bilby_pipe.utils import BilbyPipeError, DataDump
-import mock
 
 
 class TestDataGenerationInput(unittest.TestCase):

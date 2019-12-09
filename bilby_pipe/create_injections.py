@@ -22,24 +22,27 @@ are used (see below).
 from __future__ import division, print_function
 
 import argparse
-import sys
 import json
 import os
+import sys
 
-import pandas as pd
 import numpy as np
-import matplotlib
+import pandas as pd
 
-matplotlib.use("agg")  # noqa
 import bilby
 
+from .input import Input
 from .utils import (
-    parse_args,
-    logger,
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
+    logger,
+    parse_args,
 )
-from .input import Input
+
+# fmt: off
+import matplotlib  # isort:skip
+matplotlib.use("agg")
+# fmt: on
 
 
 class BilbyPipeCreateInjectionsError(BilbyPipeError):
@@ -50,7 +53,7 @@ class BilbyPipeCreateInjectionsError(BilbyPipeError):
 def create_parser():
     """ Generate a parser for the create_injections.py script
 
-    Additional options can be added to the returned parser beforing calling
+    Additional options can be added to the returned parser before calling
     `parser.parse_args` to generate the arguments`
 
     Returns

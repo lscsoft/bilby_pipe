@@ -5,28 +5,28 @@ arguments or an ini file) and creating DAG files for submitting bilby parameter
 estimation jobs.
 """
 import os
-import sys
-import subprocess
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pycondor
 
-from .utils import (
-    logger,
-    parse_args,
-    DataDump,
-    BilbyPipeError,
-    ArgumentsString,
-    get_command_line_arguments,
-    request_memory_generation_lookup,
-    tcolors,
-    log_version_information,
-)
-from .create_injections import create_injection_file
 from . import slurm
+from .create_injections import create_injection_file
 from .input import Input
 from .parser import create_parser
+from .utils import (
+    ArgumentsString,
+    BilbyPipeError,
+    DataDump,
+    get_command_line_arguments,
+    log_version_information,
+    logger,
+    parse_args,
+    request_memory_generation_lookup,
+    tcolors,
+)
 
 
 class MainInput(Input):
@@ -206,7 +206,7 @@ class MainInput(Input):
             if self.gps_file is not None:
                 if self.n_simulation > 0 and self.n_simulation != len(self.gpstimes):
                     raise BilbyPipeError(
-                        "gps_file option and n_simulation options not yet impemented"
+                        "gps_file option and n_simulation options not yet implemented"
                     )
                 n_injection = len(self.gpstimes)
             else:

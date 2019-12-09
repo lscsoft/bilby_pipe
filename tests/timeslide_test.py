@@ -1,11 +1,13 @@
-import unittest
-import shutil
-import numpy as np
 import os
+import shutil
+import unittest
+
 import mock
+import numpy as np
+
 import bilby_pipe
-from bilby_pipe.utils import BilbyPipeError
 from bilby_pipe.data_generation import DataGenerationInput, create_generation_parser
+from bilby_pipe.utils import BilbyPipeError
 
 
 class TestTimeslide(unittest.TestCase):
@@ -152,7 +154,7 @@ class TestTimeslide(unittest.TestCase):
         ]
         parser = create_generation_parser()
 
-        # loading data so we dont have to deal with gwpy's slow fetch_data method
+        # loading data so we don't have to deal with gwpy's slow fetch_data method
         from bilby_pipe.utils import DataDump
 
         d = DataDump.from_pickle("tests/gwpy_data.pickle")

@@ -59,7 +59,7 @@ a 'summary' webpage. This is implemented using `PESummary
 <https://docs.ligo.org/charlie.hoy/pesummary/>`_). 
 
 To generate a summary webpage, the :code:`create-summary` option must be passed
-in the configuration file. Additionally, you can specifiy a web directory where
+in the configuration file. Additionally, you can specify a web directory where
 you would like the output from :code:`PESummary` to be stored; by default this
 is placed in :code:`outdir/results_page`. If you are working on an LDG cluster,
 then the web directory should be in your public_html. Below is an example of

@@ -7,7 +7,7 @@ gravitational wave signals on the LIGO Data Grid clusters. The actual heavy
 lifting of running parameter is done by `bilby
 <https://git.ligo.org/lscsoft/bilby>`_. We provide a `singularity container
 <https://www.sylabs.io/guides/2.6/user-guide/index.html>`_ for bilby_pipe which
-has all the prerequiste software (e.g.., `bilby
+has all the prerequisite software (e.g.., `bilby
 <file:///home/user1/bilby_pipe/docs/_build/html/singularity.html>`_, `lalsuite
 <https://git.ligo.org/lscsoft/lalsuite>`_, `gwpy <https://gwpy.github.io/>`_,
 and `all supported bilby samplers
@@ -15,7 +15,7 @@ and `all supported bilby samplers
 
 A container can be thought of as a lightweight virtual machine which hosts the
 software. Using containers decreases the start-up difficulty and also aids in
-ensuring that results are reproducable since we can know the versions of all
+ensuring that results are reproducible since we can know the versions of all
 software used in the container.
 
 :code:`singularity` is installed on all LIGO Data Grid (LDG) clusters. To

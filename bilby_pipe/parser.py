@@ -1,11 +1,11 @@
 import argparse
-import sys
 import os
+import sys
 
 import bilby
-
 from bilby_pipe.bilbyargparser import BilbyArgParser
-from .utils import logger, noneint, nonestr, nonefloat, get_version_information
+
+from .utils import get_version_information, logger, nonefloat, noneint, nonestr
 
 __version__ = get_version_information()
 
@@ -120,7 +120,7 @@ def create_parser(top_level=True):
             "--data-dump-file",
             type=nonestr,
             default=None,
-            help="Filename for the data dump: only used internall by data_analysis",
+            help="Filename for the data dump: only used internally by data_analysis",
         )
 
     data_gen_pars = parser.add_argument_group(

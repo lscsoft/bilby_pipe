@@ -1,13 +1,12 @@
-import sys
 import os
-import unittest
 import shutil
-
+import sys
+import unittest
 from unittest.mock import patch
 
-from bilby_pipe.main import parse_args
-from bilby_pipe.data_analysis import create_analysis_parser
 from bilby_pipe.bilbyargparser import BilbyArgParser
+from bilby_pipe.data_analysis import create_analysis_parser
+from bilby_pipe.main import parse_args
 
 
 class TestBilbyArgParser(unittest.TestCase):

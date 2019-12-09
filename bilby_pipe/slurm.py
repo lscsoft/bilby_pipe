@@ -119,7 +119,7 @@ class SubmitSLURM(object):
 
             job_str = "{} {}\n\n".format(executable, args)
 
-            # get rid of unneccessary arguments
+            # get rid of unnecessary arguments
             job_str = job_str.replace(" --cluster $(Cluster)", "")
             job_str = job_str.replace(" --process $(Process)", "")
 

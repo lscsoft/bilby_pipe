@@ -5,13 +5,14 @@ import time
 
 import bilby
 import bilby_pipe
+
+from . import parser
 from .utils import (
-    check_directory_exists_and_if_not_mkdir,
     DURATION_LOOKUPS,
     MAXIMUM_FREQUENCY_LOOKUPS,
+    check_directory_exists_and_if_not_mkdir,
     run_command_line,
 )
-from . import parser
 
 fiducial_bbh_injections = {
     "128s": dict(
