@@ -33,3 +33,12 @@ RUN conda install -n ${conda_env} -c conda-forge black ligo-gracedb gwpy lalsuit
 # Install pip-requirements
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools pycondor>=0.5 coverage-badge
+
+# Add the ROQ data to the image
+RUN mkdir roq_basis \
+    && cd roq_basis \
+    && wget https://git.ligo.org/lscsoft/ROQ_data/raw/master/IMRPhenomPv2/4s/B_linear.npy \
+    && wget https://git.ligo.org/lscsoft/ROQ_data/raw/master/IMRPhenomPv2/4s/B_quadratic.npy \
+    && wget https://git.ligo.org/lscsoft/ROQ_data/raw/master/IMRPhenomPv2/4s/fnodes_linear.npy \
+    && wget https://git.ligo.org/lscsoft/ROQ_data/raw/master/IMRPhenomPv2/4s/fnodes_quadratic.npy \
+    && wget https://git.ligo.org/lscsoft/ROQ_data/raw/master/IMRPhenomPv2/4s/params.dat
