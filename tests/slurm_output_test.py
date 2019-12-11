@@ -49,6 +49,7 @@ class TestSlurm(unittest.TestCase):
             default_prior="BBHPriorDict",
             postprocessing_executable=None,
             postprocessing_arguments=None,
+            summarypages_arguments=None,
             scheduler="slurm",
             scheduler_args="account=myaccount partition=mypartition",
             scheduler_module=None,

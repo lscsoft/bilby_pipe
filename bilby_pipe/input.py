@@ -865,16 +865,16 @@ class Input(object):
             return None
 
     @property
-    def postprocessing_arguments(self):
-        return self._postprocessing_arguments
+    def summarypages_arguments(self):
+        return self._summarypages_arguments
 
-    @postprocessing_arguments.setter
-    def postprocessing_arguments(self, postprocessing_arguments):
-        if postprocessing_arguments is None:
-            self._postprocessing_arguments = None
+    @summarypages_arguments.setter
+    def summarypages_arguments(self, summarypages_arguments):
+        if summarypages_arguments is None:
+            self._summarypages_arguments = None
             return
-        string = postprocessing_arguments[0]
+        string = summarypages_arguments[0]
         if "{" in string and "}" in string:
-            self._postprocessing_arguments = convert_string_to_dict(string)
-            return
-        self._postprocessing_arguments = postprocessing_arguments
+            self._summarypages_arguments = convert_string_to_dict(string)
+        else:
+            self._summarypages_arguments = summarypages_arguments
