@@ -227,7 +227,7 @@ def read_candidate(candidate):
     return chirp_mass, superevent, trigger_time, ifos
 
 
-def prior_lookup(duration, scale_factor, outdir):
+def prior_lookup(duration, scale_factor, outdir, template=None):
     """ Lookup the appropriate prior and apply rescaling factors
 
     Parameters
@@ -260,6 +260,7 @@ def prior_lookup(duration, scale_factor, outdir):
         roq_params=roq_params,
         scale_factor=scale_factor,
         outdir=outdir,
+        template=template,
     )
 
     minimum_frequency = roq_params["flow"] * scale_factor
@@ -316,14 +317,33 @@ def create_config_file(
         "{}s_distance_marginalization_lookup.npz".format(duration),
     )
 
+    if sampler_kwargs == "FastTest":
+        template = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "data_files/fast.prior.template",
+        )
+    else:
+        template = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "data_files/roq.prior.template"
+        )
+
     (
         prior_file,
         roq_folder,
         duration,
         minimum_frequency,
         maximum_frequency,
-    ) = prior_lookup(duration, scale_factor, outdir)
+    ) = prior_lookup(
+        duration=duration, scale_factor=scale_factor, outdir=outdir, template=template
+    )
     calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
+
+    if calibration_model is None:
+        spline_calibration_nodes = 0
+    elif sampler_kwargs == "FastTest":
+        spline_calibration_nodes = 2
+    else:
+        spline_calibration_nodes = 10
 
     config_dict = dict(
         label=gracedb,
@@ -356,7 +376,7 @@ def create_config_file(
         summarypages_arguments={"nsamples_for_skymap": 5000},
         calibration_model=calibration_model,
         spline_calibration_envelope_dict=calib_dict,
-        spline_calibration_nodes=10,
+        spline_calibration_nodes=spline_calibration_nodes,
     )
 
     if roq and config_dict["duration"] > 4 and roq_folder is not None:
