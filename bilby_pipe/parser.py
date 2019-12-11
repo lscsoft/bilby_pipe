@@ -535,6 +535,13 @@ def create_parser(top_level=True):
             "outdir/results_page"
         ),
     )
+    output_parser.add(
+        "--summarypages-arguments",
+        type=nonestr,
+        nargs="*",
+        default=None,
+        help="Arguments to pass to the summarypages executable",
+    )
 
     prior_parser = parser.add_argument_group(
         title="Prior arguments", description="Specify the prior settings."

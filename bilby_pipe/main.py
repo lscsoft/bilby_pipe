@@ -96,6 +96,8 @@ class MainInput(Input):
         self.postprocessing_executable = args.postprocessing_executable
         self.postprocessing_arguments = args.postprocessing_arguments
 
+        self.summarypages_arguments = args.summarypages_arguments
+
         self.check_source_model(args)
 
         self.extra_lines = []
@@ -757,8 +759,8 @@ class PESummaryNode(Node):
         if existing_dir is not None:
             self.arguments.add("existing_webdir", existing_dir)
 
-        if isinstance(self.inputs.postprocessing_arguments, dict):
-            if "labels" not in self.inputs.postprocessing_arguments.keys():
+        if isinstance(self.inputs.summarypages_arguments, dict):
+            if "labels" not in self.inputs.summarypages_arguments.keys():
                 self.arguments.append("--labels {}".format(" ".join(labels)))
             else:
                 if len(labels) != len(result_files):
@@ -767,7 +769,7 @@ class PESummaryNode(Node):
                         "as result files"
                     )
             not_recognised_arguments = {}
-            for key, val in self.inputs.postprocessing_arguments.items():
+            for key, val in self.inputs.summarypages_arguments.items():
                 if key == "nsamples_for_skymap":
                     self.arguments.add("nsamples_for_skymap", val)
                 elif key == "gw":
