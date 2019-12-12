@@ -13,6 +13,8 @@ import urllib
 import urllib.request
 from pathlib import Path
 
+import bilby
+
 
 class tcolors:
     WARNING = "\u001b[31m"
@@ -155,7 +157,6 @@ nonestr = NoneWrapper(str)
 noneint = NoneWrapper(int)
 nonefloat = NoneWrapper(float)
 
-
 DEFAULT_DISTANCE_LOOKUPS = {
     "high_mass": (1e2, 5e3),
     "4s": (1e2, 5e3),
@@ -178,7 +179,6 @@ DURATION_LOOKUPS = {
     "128s_tidal": 128,
 }
 
-
 MAXIMUM_FREQUENCY_LOOKUPS = {
     "high_mass": 1024,
     "4s": 1024,
@@ -189,7 +189,6 @@ MAXIMUM_FREQUENCY_LOOKUPS = {
     "128s": 4096,
     "128s_tidal": 2048,
 }
-
 
 SAMPLER_SETTINGS = {
     "Default": {
@@ -489,6 +488,50 @@ def request_memory_generation_lookup(duration, roq=False):
         return int(max([8, min([64, duration])]))
     else:
         return 8
+
+
+def get_geocent_prior(geocent_time, uncertainty):
+    """"Generate a geocent time prior given some uncertainty.
+
+    Parameters
+    ----------
+    geocent_time: float
+        The GPS geocent_time (time of coalescence at the center of the Earth)
+    uncertainty: float
+        The +/- uncertainty based around the geocenter time.
+
+    Returns
+    -------
+    A bilby.core.prior.Uniform for the geocent_time.
+
+    """
+    return bilby.core.prior.Uniform(
+        minimum=geocent_time - uncertainty,
+        maximum=geocent_time + uncertainty,
+        name="geocent_time",
+        latex_label="$t_c$",
+        unit="$s$",
+    )
+
+
+def get_geocent_time_with_uncertainty(geocent_time, uncertainty):
+    """Get a new geocent time within some uncertainty from the original geocent time.
+
+    Parameters
+    ----------
+    geocent_time: float
+        The GPS geocent_time (time of coalescence at the center of the Earth)
+    uncertainty: float
+        The +/- uncertainty based around the geocenter time.
+
+    Returns
+    -------
+    A geocent GPS time (float) inside the range of geocent time - uncertainty and
+    geocent time + uncertainty.
+
+    """
+    geocent_time_prior = get_geocent_prior(geocent_time, uncertainty)
+    return geocent_time_prior.sample()
 
 
 def convert_detectors_input(string):

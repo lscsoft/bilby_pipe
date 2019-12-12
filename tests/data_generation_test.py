@@ -280,7 +280,8 @@ class TestDataGenerationInput(unittest.TestCase):
         inject_signal_into_timeseries_method.return_value = (timeseries, metadata)
         args_list = ["tests/test_injection.ini", "--outdir", self.outdir]
 
-        DataGenerationInput(*parse_args(args_list, self.parser))
+        inputs = DataGenerationInput(*parse_args(args_list, self.parser))
+        self.assertTrue(inputs.injection_parameters["geocent_time"] == 0)
         self.assertEqual(inject_signal_into_timeseries_method.call_count, 2)
         self.assertTrue(get_data_method.called)
 
@@ -294,6 +295,16 @@ class TestDataGenerationInput(unittest.TestCase):
         get_data_method.assert_any_call("H1", "GDS-CALIB_STRAIN", t0_psd, t1_psd)  # PSD
         get_data_method.assert_any_call("L1", "GDS-CALIB_STRAIN", t0, t1)  # SIGNAL
         get_data_method.assert_any_call("L1", "GDS-CALIB_STRAIN", t0_psd, t1_psd)  # PSD
+
+    def test_inject_signal_into_gaussian_noise(self):
+        args_list = [
+            "tests/test_injection_in_gaussian_noise.ini",
+            "--outdir",
+            self.outdir,
+        ]
+        data_input = DataGenerationInput(*parse_args(args_list, self.parser))
+        injection_param = data_input.injection_parameters
+        self.assertTrue(injection_param["geocent_time"] == 0)
 
     @mock.patch("bilby_pipe.data_generation.DataGenerationInput._gwpy_get")
     @mock.patch("bilby_pipe.data_generation.DataGenerationInput._is_gwpy_data_good")

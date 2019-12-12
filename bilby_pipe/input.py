@@ -15,7 +15,7 @@ import pandas as pd
 import bilby
 
 from . import utils
-from .utils import BilbyPipeError, convert_string_to_dict, logger
+from .utils import BilbyPipeError, convert_string_to_dict, get_geocent_prior, logger
 
 
 class Input(object):
@@ -643,12 +643,8 @@ class Input(object):
                     self.trigger_time, self.deltaT
                 )
             )
-            geocent_time_prior = bilby.core.prior.Uniform(
-                minimum=self.trigger_time - self.deltaT / 2,
-                maximum=self.trigger_time + self.deltaT / 2,
-                name="geocent_time",
-                latex_label="$t_c$",
-                unit="$s$",
+            geocent_time_prior = get_geocent_prior(
+                geocent_time=self.trigger_time, uncertainty=self.deltaT / 2.0
             )
         else:
             raise BilbyPipeError("Unable to set geocent_time prior from trigger_time")
