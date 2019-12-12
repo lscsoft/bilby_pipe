@@ -401,6 +401,10 @@ class Node(object):
         self.create_pycondor_job()
 
         if self.inputs.run_local:
+            logger.info(
+                "Running command: "
+                + " ".join([self.executable] + self.arguments.argument_list)
+            )
             subprocess.run([self.executable] + self.arguments.argument_list, check=True)
 
     @staticmethod
@@ -744,13 +748,13 @@ class PESummaryNode(Node):
             self.arguments.add("email", self.inputs.email)
         self.arguments.add("config", " ".join([self.inputs.ini] * n_results))
         self.arguments.add("samples", "{}".format(" ".join(result_files)))
-        self.arguments.append(
-            "-a {}".format(" ".join([self.inputs.waveform_approximant] * n_results))
-        )
+
+        # Using append here as summary pages doesn't take a full name for approximant
+        self.arguments.append("-a")
+        self.arguments.append(" ".join([self.inputs.waveform_approximant] * n_results))
+
         if len(generation_node_list) == 1:
-            self.arguments.append(
-                "--gwdata {}".format(generation_node_list[0].data_dump_file)
-            )
+            self.arguments.add("gwdata", generation_node_list[0].data_dump_file)
         elif len(generation_node_list) > 1:
             logger.info(
                 "Not adding --gwdata to PESummary job as there are multiple files"
@@ -773,25 +777,25 @@ class PESummaryNode(Node):
                 if key == "nsamples_for_skymap":
                     self.arguments.add("nsamples_for_skymap", val)
                 elif key == "gw":
-                    self.arguments.append("--gw")
+                    self.arguments.add_flag("gw")
                 elif key == "no_ligo_skymap":
-                    self.arguments.append("--no_ligo_skymap")
+                    self.arguments.add_flag("no_ligo_skymap")
                 elif key == "burnin":
                     self.arguments.add("burnin", val)
                 elif key == "kde_plot":
-                    self.arguments.append("--kde_plot")
+                    self.arguments.add_flag("kde_plot")
                 elif key == "gracedb":
                     self.arguments.add("gracedb", val)
                 elif key == "palette":
                     self.arguments.add("palette", val)
                 elif key == "include_prior":
-                    self.arguments.append("--include_prior")
+                    self.arguments.add_flag("include_prior")
                 elif key == "notes":
-                    self.arguments.add("--notes", val)
+                    self.arguments.add("notes", val)
                 elif key == "publication":
-                    self.arguments.append("--publication")
+                    self.arguments.add_flag("publication")
                 elif key == "labels":
-                    self.arguments.append("--labels {}".format(" ".join(val)))
+                    self.arguments.add("labels", "{}".format(" ".join(val)))
                 else:
                     not_recognised_arguments[key] = val
             if not_recognised_arguments != {}:
@@ -800,8 +804,6 @@ class PESummaryNode(Node):
                     "the full list of available arguments, please run "
                     "summarypages --help".format(not_recognised_arguments)
                 )
-        elif isinstance(self.inputs.postprocessing_arguments, str):
-            self.arguments.append(self.inputs.postprocessing_arguments)
 
         self.process_node()
         for merged_node in merged_node_list:
