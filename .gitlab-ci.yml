@@ -54,6 +54,7 @@ python-3.7:
       - htmlcov/
       - coverage_badge.svg
 
+# Test that the examples build properly
 example-ini-file-builds:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
@@ -69,9 +70,11 @@ example-ini-file-builds:
     - cd ../injection
     - bilby_pipe *ini
     - cd ../gps_times
-    - bilby_pipe *ini
+    - bilby_pipe gps_times_from_file.ini
+    - bilby_pipe gps_times_from_tuple.ini
 
-example-ini-file-run:
+# Test that the examples build properly
+injection-regression-test:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
@@ -79,8 +82,9 @@ example-ini-file-run:
     - mkdir -p .pip37
     - pip --cache-dir=.pip37 install --upgrade bilby
     - pip --cache-dir=.pip37 install .
-    - cd tests/
-    - bilby_pipe test_full.ini --local --bilby-test-mode
+    - cd tests_ini_files/
+    - bilby_pipe test_gaussian_noise_simulation_and_injection.ini --local --bilby-test-mode
+    - bilby_pipe test_gaussian_noise_simulation.ini --local --bilby-test-mode
 
 example-ini-file-pesummary:
   stage: test
