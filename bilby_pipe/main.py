@@ -16,6 +16,7 @@ import pycondor
 from . import slurm
 from .create_injections import create_injection_file
 from .input import Input
+from .overview import create_overview
 from .parser import create_parser
 from .utils import (
     ArgumentsString,
@@ -38,13 +39,14 @@ class MainInput(Input):
         logger.debug("Creating new Input object")
         logger.debug("Command line arguments: {}".format(args))
 
+        self.known_args = args
         self.unknown_args = unknown_args
         self.ini = args.ini
         self.submit = args.submit
         self.online_pe = args.online_pe
         self.create_plots = args.create_plots
         self.singularity_image = args.singularity_image
-        self.create_summary = args.create_summary
+
         self.outdir = args.outdir
         self.label = args.label
         self.accounting = args.accounting
@@ -54,6 +56,11 @@ class MainInput(Input):
         self.n_parallel = args.n_parallel
         self.transfer_files = args.transfer_files
         self.osg = args.osg
+
+        self.create_summary = args.create_summary
+        self.webdir = args.webdir
+        self.email = args.email
+        self.existing_dir = args.existing_dir
 
         self.scheduler = args.scheduler
         self.scheduler_args = args.scheduler_args
@@ -65,10 +72,6 @@ class MainInput(Input):
         self.duration = args.duration
         self.prior_file = args.prior_file
         self.default_prior = args.default_prior
-
-        self.webdir = args.webdir
-        self.email = args.email
-        self.existing_dir = args.existing_dir
 
         self.run_local = args.local
         self.local_generation = args.local_generation
@@ -337,8 +340,6 @@ class Dag(object):
                     )
                 )
                 job_str = "{} {}\n\n".format(node.executable, node.args[0].arg)
-                job_str = job_str.replace("$(Cluster)", "0")
-                job_str = job_str.replace("$(Process)", "0")
                 ff.write(job_str)
 
     @property
@@ -367,12 +368,12 @@ def _log_output_error_submit_lines(logdir, prefix):
     Examples
     --------
     >>> Dag._log_output_error_submit_lines("test", "job")
-    ['log = test/job_$(Cluster)_$(Process).log',
-     'output = test/job_$(Cluster)_$(Process).out',
-     'error = test/job_$(Cluster)_$(Process).err']
+    ['log = test/job.log',
+     'output = test/job.out',
+     'error = test/job.err']
     """
     logpath = Path(logdir)
-    filename = "{}_$(Cluster)_$(Process).{{}}".format(prefix)
+    filename = "{}.{{}}".format(prefix)
     return [
         "{} = {}".format(opt, str(logpath / filename.format(opt[:3])))
         for opt in ("log", "output", "error")
@@ -660,7 +661,7 @@ class MergeNode(Node):
         self.dag = dag
 
         self.job_name = "{}_merge".format(parallel_node_list[0].base_job_name)
-        self.label = "{}_merged".format(parallel_node_list[0].base_job_name)
+        self.label = "{}_merge".format(parallel_node_list[0].base_job_name)
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
@@ -697,6 +698,7 @@ class PlotNode(Node):
         super().__init__(inputs)
         self.dag = dag
         self.job_name = merged_node.job_name + "_plot"
+        self.label = merged_node.job_name + "_plot"
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
@@ -853,7 +855,9 @@ class PostProcessAllResultsNode(Node):
 
 def get_trigger_time_list(inputs):
     """ Returns a list of GPS trigger times for each data segment """
-    if inputs.trigger_time is not None:
+    if inputs.gaussian_noise:
+        trigger_times = [0] * inputs.n_simulation
+    elif inputs.trigger_time is not None:
         trigger_times = [inputs.trigger_time]
     elif inputs.gps_tuple is not None:
         start, dt, N = convert_string_to_tuple(inputs.gps_tuple)
@@ -862,8 +866,6 @@ def get_trigger_time_list(inputs):
     elif inputs.gps_file is not None:
         start_times = inputs.gpstimes
         trigger_times = start_times + inputs.duration - inputs.post_trigger_duration
-    elif inputs.gaussian_noise:
-        trigger_times = [0] * inputs.n_simulation
     else:
         raise BilbyPipeError("Unable to determine input trigger times from ini file")
     logger.info("Setting segment trigger-times {}".format(trigger_times))
@@ -900,6 +902,7 @@ def generate_dag(inputs):
     detectors_list = get_detectors_list(inputs)
     parallel_list = get_parallel_list(inputs)
     merged_node_list = []
+    all_parallel_node_list = []
     for generation_node in generation_node_list:
         for detectors in detectors_list:
             parallel_node_list = []
@@ -913,6 +916,7 @@ def generate_dag(inputs):
                     sampler=inputs.sampler,
                 )
                 parallel_node_list.append(analysis_node)
+                all_parallel_node_list.append(analysis_node)
 
             if len(parallel_node_list) == 1:
                 merged_node_list.append(analysis_node)
@@ -925,9 +929,10 @@ def generate_dag(inputs):
                 )
                 merged_node_list.append(merge_node)
 
+    plot_nodes_list = []
     for merged_node in merged_node_list:
         if inputs.create_plots:
-            PlotNode(inputs, merged_node, dag=dag)
+            plot_nodes_list.append(PlotNode(inputs, merged_node, dag=dag))
 
     if inputs.create_summary:
         PESummaryNode(inputs, merged_node_list, generation_node_list, dag=dag)
@@ -935,6 +940,13 @@ def generate_dag(inputs):
         PostProcessAllResultsNode(inputs, merged_node_list, dag)
 
     dag.build()
+    create_overview(
+        inputs,
+        generation_node_list,
+        all_parallel_node_list,
+        merged_node_list,
+        plot_nodes_list,
+    )
 
 
 def main():

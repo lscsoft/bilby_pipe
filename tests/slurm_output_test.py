@@ -46,7 +46,7 @@ class TestSlurm(unittest.TestCase):
             request_cpus=1,
             generation_seed=None,
             transfer_files=True,
-            prior_file=None,
+            prior_file="4s",
             default_prior="BBHPriorDict",
             postprocessing_executable=None,
             postprocessing_arguments=None,
