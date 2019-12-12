@@ -99,6 +99,7 @@ setup(
         "corner",
         "dynesty>=1.0.0",
         "pesummary>=0.2.4",
+        "jinja2",
     ],
     entry_points={
         "console_scripts": [

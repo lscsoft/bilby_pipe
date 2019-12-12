@@ -136,6 +136,7 @@ class Input(object):
             self._webdir = os.path.join(self.outdir, "results_page")
         else:
             self._webdir = webdir
+        utils.check_directory_exists_and_if_not_mkdir(self._webdir)
 
     @property
     def gps_file(self):
@@ -653,18 +654,35 @@ class Input(object):
 
     @property
     def priors(self):
-        if getattr(self, "_priors", None) is not None:
-            return self._priors
+        if getattr(self, "_priors", None) is None:
+            self._priors = self._get_priors()
+        return self._priors
 
+    def _get_priors(self, add_geocent_time=True):
+        """ Construct the priors
+
+        Parameters
+        ----------
+        add_geocent_time: bool
+            If True, the geocent time prior is constructed from either the
+            prior file or the trigger time. If False (used for the overview
+            page where a single time-prior doesn't make sense), this isn't
+            added to the prior
+
+        Returns
+        -------
+        prior: bilby.core.prior.PriorDict
+            The generated prior
+        """
         if self.default_prior in self.combined_default_prior_dicts.keys():
-            self._priors = self.combined_default_prior_dicts[self.default_prior](
+            priors = self.combined_default_prior_dicts[self.default_prior](
                 filename=self.prior_file
             )
         else:
             raise ValueError("Unable to set prior: default_prior unavailable")
 
-        if self._priors.get("geocent_time", None) is None:
-            self._priors["geocent_time"] = self.create_geocent_time_prior()
+        if priors.get("geocent_time", None) is None and add_geocent_time:
+            priors["geocent_time"] = self.create_geocent_time_prior()
         else:
             logger.info("Using geocent_time prior from prior_file")
 
@@ -676,7 +694,7 @@ class Input(object):
                             det, self.spline_calibration_envelope_dict[det]
                         )
                     )
-                    self._priors.update(
+                    priors.update(
                         bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
                             self.spline_calibration_envelope_dict[det],
                             minimum_frequency=self.minimum_frequency_dict[det],
@@ -693,7 +711,7 @@ class Input(object):
                         "Creating calibration prior for {} from "
                         "provided constant uncertainty values.".format(det)
                     )
-                    self._priors.update(
+                    priors.update(
                         bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
                             amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
                                 det
@@ -709,7 +727,7 @@ class Input(object):
                     )
                 else:
                     logger.warning(f"No calibration information for {det}")
-        return self._priors
+        return priors
 
     @priors.setter
     def priors(self, priors):
