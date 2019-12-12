@@ -19,6 +19,7 @@ from .utils import (
     check_directory_exists_and_if_not_mkdir,
     logger,
     run_command_line,
+    tcolors,
     test_connection,
 )
 
@@ -575,11 +576,20 @@ def create_parser():
     return parser
 
 
-def main(args=None):
+def main(args=None, unknown_args=None):
 
     if args is None:
-        args = create_parser().parse_args()
+        args, unknown_args = create_parser().parse_known_args()
+    elif unknown_args is None:
+        unknown_args = []
 
+    if len(unknown_args) > 1 and args.output == "ini":
+        msg = [
+            tcolors.WARNING,
+            "Unrecognized arguments {}, these will be ignored".format(unknown_args),
+            tcolors.END,
+        ]
+        logger.warning(" ".join(msg))
     if args.outdir:
         outdir = args.outdir
 
@@ -635,4 +645,6 @@ def main(args=None):
             arguments.append("--submit")
         if args.online_pe:
             arguments.append("--online-pe")
+        if len(unknown_args) > 1:
+            arguments = arguments + unknown_args
         run_command_line(arguments)

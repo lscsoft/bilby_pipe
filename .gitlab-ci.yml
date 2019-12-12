@@ -92,6 +92,18 @@ example-ini-file-pesummary:
     - cd tests/
     - bilby_pipe test_pesummary.ini --local --bilby-test-mode
 
+example-ini-file-gracedb:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  only:
+    - schedules
+  script:
+    - source activate python37
+    - pip install --upgrade bilby pesummary
+    - pip install .
+    - bilby_pipe_gracedb --json examples/gracedb/G298936.json --local --bilby-test-mode --output full-submit --sampler-kwargs FastTest --n-parallel 1
+    - if [[ ! -f outdir_G298936/results_page/home.html ]] ; then exit 1; else echo "Webpage exists"; fi
+
 
 python-3.6:
   stage: test
