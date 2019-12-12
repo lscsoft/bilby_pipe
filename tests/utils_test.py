@@ -83,7 +83,7 @@ class TestUtils(unittest.TestCase):
             dict(a=False, b=True, c=True, d=False),
         )
         self.assertEqual(
-            cstd('{a=+1, b : "+1", c: -1, "d": "-1"}', key), dict(a=1, b=1, c=-1, d=-1),
+            cstd('{a=+1, b : "+1", c: -1, "d": "-1"}', key), dict(a=1, b=1, c=-1, d=-1)
         )
         self.assertEqual(
             cstd('{a=+1.6, b : "+1.6", c: -1.6, "d": "-1.6"}', key),

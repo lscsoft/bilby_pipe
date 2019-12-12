@@ -232,7 +232,9 @@ def create_injection_file(
         n_injection = len(prior_file_input.gpstimes)
 
     if isinstance(n_injection, int) is False or n_injection < 1:
-        raise BilbyPipeCreateInjectionsError("n_injection must be a positive integer")
+        raise BilbyPipeCreateInjectionsError(
+            "n_injection={}, but must be a positive integer".format(n_injection)
+        )
 
     logger.info(
         "Generating injection file {} from prior={}, n_injection={}".format(

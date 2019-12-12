@@ -336,6 +336,41 @@ def get_version_information():
         return ""
 
 
+def convert_string_to_tuple(string, key=None, n=None):
+    """" Convert a string to a tuple
+
+    Parameters
+    ----------
+    string: str
+        The string to convert
+    key: str
+        Name used for printing useful debug messages
+    n: int
+        The length of the string to check against, if None no check performed.
+
+    Returns
+    -------
+    tup: tuple
+        A tuple
+    """
+    try:
+        tup = ast.literal_eval(string)
+    except ValueError as e:
+        if key is not None:
+            raise BilbyPipeError(
+                "Error {}: unable to convert {}: {}".format(e, key, string)
+            )
+        else:
+            raise BilbyPipeError("Error {}: unable to {}".format(e, string))
+    if n is not None:
+        if len(tup) != n:
+            raise BilbyPipeError(
+                "Passed string {} should be a tuple of length {}".format(string, n)
+            )
+
+    return tup
+
+
 def convert_string_to_dict(string, key=None):
     """ Convert a string repr of a string to a python dictionary
 

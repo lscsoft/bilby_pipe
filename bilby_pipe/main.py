@@ -10,6 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pycondor
 
 from . import slurm
@@ -20,6 +21,7 @@ from .utils import (
     ArgumentsString,
     BilbyPipeError,
     DataDump,
+    convert_string_to_tuple,
     get_command_line_arguments,
     log_version_information,
     logger,
@@ -77,6 +79,7 @@ class MainInput(Input):
         self.ignore_gwpy_data_quality_check = args.ignore_gwpy_data_quality_check
         self.trigger_time = args.trigger_time
         self.deltaT = args.deltaT
+        self.gps_tuple = args.gps_tuple
         self.gps_file = args.gps_file
         self.timeslide_file = args.timeslide_file
         self.gaussian_noise = args.gaussian_noise
@@ -852,6 +855,10 @@ def get_trigger_time_list(inputs):
     """ Returns a list of GPS trigger times for each data segment """
     if inputs.trigger_time is not None:
         trigger_times = [inputs.trigger_time]
+    elif inputs.gps_tuple is not None:
+        start, dt, N = convert_string_to_tuple(inputs.gps_tuple)
+        start_times = np.linspace(start, start + (N - 1) * dt, N)
+        trigger_times = start_times + inputs.duration - inputs.post_trigger_duration
     elif inputs.gps_file is not None:
         start_times = inputs.gpstimes
         trigger_times = start_times + inputs.duration - inputs.post_trigger_duration
