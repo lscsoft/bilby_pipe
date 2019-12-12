@@ -20,6 +20,7 @@ from bilby_pipe.utils import (
     BilbyPipeError,
     DataDump,
     convert_string_to_dict,
+    get_geocent_time_with_uncertainty,
     get_version_information,
     is_a_power_of_2,
     log_version_information,
@@ -458,6 +459,12 @@ class DataGenerationInput(Input):
     def inject_signal_into_time_domain_data(self, data, ifo):
         """ Method to inject a signal into time-domain interferometer data
 
+        Parameters of the injection are obtained from the `injection_parameters` or
+        the injection file (if injection_parameters has not been set).
+
+        The geocent_time of the injection is set to be trigger_time +/- deltaT/2 if
+        the geocent_time is not provided in the injection parameters.
+
         Parameters
         ----------
         data: gwpy.timeseries.TimeSeries
@@ -472,15 +479,18 @@ class DataGenerationInput(Input):
 
         """
 
+        # Get the injection parameters
         if self.injection_parameters is not None:
             parameters = self.injection_parameters
         else:
             parameters = self.injection_df.iloc[self.idx].to_dict()
-            parameters["geocent_time"] = np.random.uniform(
-                self.trigger_time - self.deltaT / 2.0,
-                self.trigger_time + self.deltaT / 2.0,
-            )
             self.injection_parameters = parameters
+
+        # Set the geocent time if none is provided
+        if "geocent_time" not in parameters:
+            parameters["geocent_time"] = get_geocent_time_with_uncertainty(
+                geocent_time=self.trigger_time, uncertainty=self.deltaT / 2.0
+            )
 
         waveform_arguments = self.get_injection_waveform_arguments()
 

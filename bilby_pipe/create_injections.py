@@ -35,6 +35,7 @@ from .input import Input
 from .utils import (
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
+    get_geocent_time_with_uncertainty,
     logger,
     parse_args,
 )
@@ -246,15 +247,11 @@ def create_injection_file(
     if prior_file_input.gps_file is not None:
         injection_values = []
         for start_time in prior_file_input.gpstimes:
-            tt = start_time + duration - post_trigger_duration
-            priors["geocent_time"] = bilby.core.prior.Uniform(
-                minimum=tt - prior_file_input.deltaT / 2,
-                maximum=tt + prior_file_input.deltaT / 2,
-                name="geocent_time",
-                latex_label="$t_c$",
-                unit="$s$",
+            geocent_time = get_geocent_time_with_uncertainty(
+                geocent_time=start_time + duration - post_trigger_duration,
+                uncertainty=prior_file_input.deltaT / 2.0,
             )
-            injection_values.append(priors.sample())
+            injection_values.append(geocent_time)
         injection_values = pd.DataFrame(injection_values)
     else:
         injection_values = pd.DataFrame.from_dict(priors.sample(n_injection))
