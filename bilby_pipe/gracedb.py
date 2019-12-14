@@ -342,7 +342,7 @@ def create_config_file(
     if calibration_model is None:
         spline_calibration_nodes = 0
     elif sampler_kwargs == "FastTest":
-        spline_calibration_nodes = 2
+        spline_calibration_nodes = 4
     else:
         spline_calibration_nodes = 10
 
