@@ -90,11 +90,9 @@ class Input(object):
             self.data_analysis_log_directory,
             self.data_directory,
             self.result_directory,
+            self.summary_log_directory,
         ]:
             utils.check_directory_exists_and_if_not_mkdir(dr)
-
-        if getattr(self, "create_summary", False):
-            utils.check_directory_exists_and_if_not_mkdir(self.summary_log_directory)
 
     @property
     def submit_directory(self):
