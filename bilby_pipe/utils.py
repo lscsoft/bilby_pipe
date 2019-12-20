@@ -193,14 +193,14 @@ MAXIMUM_FREQUENCY_LOOKUPS = {
 SAMPLER_SETTINGS = {
     "Default": {
         "nlive": 1000,
-        "walks": 390,
+        "walks": 50,
         "check_point_plot": True,
         "n_check_point": 10000,
     },
     "FastTest": {
-        "nlive": 170,
-        "walks": 10,
-        "dlogz": 5,
+        "nlive": 500,
+        "walks": 50,
+        "dlogz": 2,
         "check_point_plot": True,
         "n_check_point": 1000,
     },

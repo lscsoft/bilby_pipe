@@ -469,6 +469,7 @@ def generate_prior_from_template(
     distance_bounds = DEFAULT_DISTANCE_LOOKUPS[str(duration) + "s"]
     mc_min = roq_params["chirpmassmin"] / scale_factor
     mc_max = roq_params["chirpmassmax"] / scale_factor
+    comp_min = roq_params["compmin"] / scale_factor
 
     if template is None:
         template = os.path.join(
@@ -479,6 +480,7 @@ def generate_prior_from_template(
         prior_string = old_prior.read().format(
             mc_min=mc_min,
             mc_max=mc_max,
+            comp_min=comp_min,
             d_min=distance_bounds[0],
             d_max=distance_bounds[1],
         )
