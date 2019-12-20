@@ -1,5 +1,13 @@
 # All notable changes will be documented in this file
 
+## v0.3.7 : 2019-12-20
+Minor release updating to bilby v0.6.2
+
+### Changes
+- Fixes ROQ scaling issues
+- Modifies Default and FastTest sampler settings
+- Edits template priors to allow component mass scaling
+
 ## v0.3.6 : 2019-12-10
 Minor release fixing bugs with the ROQ
 
