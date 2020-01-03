@@ -1,5 +1,8 @@
 # All notable changes will be documented in this file
 
+## v0.3.8 : 2020-01-03
+Minor release updating to bilby v0.6.3
+
 ## v0.3.7 : 2019-12-20
 Minor release updating to bilby v0.6.2
 
