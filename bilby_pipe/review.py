@@ -119,7 +119,7 @@ def get_default_setup(args, review_name):
         deltaT=0.2,
         prior_file=args.prior,
         duration=args.duration,
-        sampler="dynesty",
+        sampler=args.sampler,
         sampler_kwargs="{n_check_point: 10000}",
         create_plots=None,
         sampling_frequency=4 * MAXIMUM_FREQUENCY_LOOKUPS[args.prior],
@@ -304,6 +304,12 @@ def main():
         default=None,
         help="Signal duration",
         choices=[4, 8, 16, 32, 64, 128],
+    )
+    parser.add_argument(
+        "--sampler",
+        type=str,
+        default="dynesty",
+        help="Sampler to use, default is dynesty",
     )
     args = parser.parse_args()
 
