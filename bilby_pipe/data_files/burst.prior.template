@@ -1,0 +1,6 @@
+hrss = LogUniform(name='hrss', latex_label='$A_{{hrss}}$', minimum=1e-24, maximum=1e-21)
+Q = Uniform(name='quality', latex_label='$Q$', minimum=0, maximum=100)
+frequency = Uniform(name='frequency', latex_label='$f_0$', minimum={minimum_frequency}, maximum={maximum_frequency})
+dec = Cosine(name='dec')
+ra = Uniform(name='ra', minimum=0, maximum=2 * np.pi, boundary='periodic')
+psi = Uniform(name='psi', minimum=0, maximum=np.pi, boundary='periodic')

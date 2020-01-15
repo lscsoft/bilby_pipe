@@ -18,6 +18,7 @@ from .utils import (
     BilbyPipeError,
     check_directory_exists_and_if_not_mkdir,
     logger,
+    next_power_of_2,
     run_command_line,
     tcolors,
     test_connection,
@@ -34,6 +35,9 @@ CHANNEL_DICTS = dict(
         V1="Hrec_hoft_16384Hz_O2Replay",
     ),
 )
+
+CBC_PIPELINES = ["gstlal", "pycbc", "mbtaonline", "spiir"]
+BURST_PIPELINES = ["cwb"]
 
 
 def x509userproxy(outdir):
@@ -212,20 +216,36 @@ def calibration_dict_lookup(trigger_time, detectors):
 
 def read_candidate(candidate):
     """ Read a gracedb candidate json dictionary """
-    try:
-        chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
-    except KeyError:
+    if "extra_attributes" not in candidate:
+        raise BilbyPipeError(
+            "Cannot parse event dictionary, not 'extra_attributes' present."
+        )
+    elif "CoincInspiral" in candidate["extra_attributes"]:
+        return _read_cbc_candidate(candidate)
+    elif "MultiBurst" in candidate["extra_attributes"]:
+        return _read_burst_candidate(candidate)
+
+
+def _read_cbc_candidate(candidate):
+    if "mchirp" not in candidate["extra_attributes"]["CoincInspiral"]:
         raise BilbyPipeError(
             "Unable to determine chirp mass for {} from GraceDB".format(
                 candidate["graceid"]
             )
         )
+    chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
     superevent = candidate["superevent"]
     trigger_time = candidate["gpstime"]
-    singleinspiraltable = candidate["extra_attributes"]["SingleInspiral"]
-
-    ifos = [sngl["ifo"] for sngl in singleinspiraltable]
+    ifos = [sngl["ifo"] for sngl in candidate["extra_attributes"]["SingleInspiral"]]
     return chirp_mass, superevent, trigger_time, ifos
+
+
+def _read_burst_candidate(candidate):
+    central_frequency = candidate["extra_attributes"]["MultiBurst"]["central_freq"]
+    superevent = candidate["superevent"]
+    trigger_time = candidate["gpstime"]
+    ifos = candidate["extra_attributes"]["MultiBurst"]["ifos"].split()
+    return central_frequency, superevent, trigger_time, ifos
 
 
 def prior_lookup(duration, scale_factor, outdir, template=None):
@@ -279,6 +299,7 @@ def create_config_file(
     webdir,
     convert_to_flat_in_component_mass=False,
     roq=True,
+    search_type="cbc",
 ):
     """ Creates ini file from defaults and candidate contents
 
@@ -298,6 +319,10 @@ def create_config_file(
         Directory to store summary pages
     roq: bool
         If True, use the default ROQ settings if required
+    convert_to_flat_in_component_mass: bool
+        If True, will convert to a flat in component mass prior after running
+    search_type: str
+        What kind of search identified the trigger, options are "cbc" and "burst"
 
     Returns
     -------
@@ -306,45 +331,90 @@ def create_config_file(
 
     """
 
-    chirp_mass, superevent, trigger_time, ifos = read_candidate(candidate)
+    if search_type == "cbc":
+        chirp_mass, superevent, trigger_time, ifos = _read_cbc_candidate(candidate)
 
-    duration, scale_factor = determine_duration_and_scale_factor_from_parameters(
-        chirp_mass
-    )
+        duration, scale_factor = determine_duration_and_scale_factor_from_parameters(
+            chirp_mass
+        )
 
-    distance_marginalization_lookup_table = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "data_files",
-        "{}s_distance_marginalization_lookup.npz".format(duration),
-    )
-
-    if sampler_kwargs == "FastTest":
-        template = os.path.join(
+        distance_marginalization_lookup_table = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "data_files/fast.prior.template",
-        )
-    else:
-        template = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "data_files/roq.prior.template"
+            "data_files",
+            "{}s_distance_marginalization_lookup.npz".format(duration),
         )
 
-    (
-        prior_file,
-        roq_folder,
-        duration,
-        minimum_frequency,
-        maximum_frequency,
-    ) = prior_lookup(
-        duration=duration, scale_factor=scale_factor, outdir=outdir, template=template
-    )
-    calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
+        if sampler_kwargs == "FastTest":
+            template = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "data_files/fast.prior.template",
+            )
+        else:
+            template = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "data_files/roq.prior.template",
+            )
 
-    if calibration_model is None:
-        spline_calibration_nodes = 0
-    elif sampler_kwargs == "FastTest":
-        spline_calibration_nodes = 4
+        (
+            prior_file,
+            roq_folder,
+            duration,
+            minimum_frequency,
+            maximum_frequency,
+        ) = prior_lookup(
+            duration=duration,
+            scale_factor=scale_factor,
+            outdir=outdir,
+            template=template,
+        )
+        calibration_model, calib_dict = calibration_dict_lookup(trigger_time, ifos)
+
+        if calibration_model is None:
+            spline_calibration_nodes = 0
+        elif sampler_kwargs == "FastTest":
+            spline_calibration_nodes = 4
+        else:
+            spline_calibration_nodes = 10
+
+        extra_config_arguments = dict(
+            reference_frequency=100,
+            time_marginalization=True,
+            distance_marginalization=True,
+            phase_marginalization=True,
+            distance_marginalization_lookup_table=distance_marginalization_lookup_table,
+            roq_scale_factor=scale_factor,
+            convert_to_flat_in_component_mass=convert_to_flat_in_component_mass,
+            create_plots=True,
+            calibration_model=calibration_model,
+            spline_calibration_envelope_dict=calib_dict,
+            spline_calibration_nodes=spline_calibration_nodes,
+        )
+        if roq and duration > 4 and roq_folder is not None:
+            extra_config_arguments["likelihood-type"] = "ROQGravitationalWaveTransient"
+            extra_config_arguments["roq-folder"] = roq_folder
+    elif search_type == "burst":
+        centre_frequency, superevent, trigger_time, ifos = _read_burst_candidate(
+            candidate
+        )
+        minimum_frequency = min(20, centre_frequency / 2)
+        maximum_frequency = next_power_of_2(centre_frequency * 2)
+        duration = 4
+        extra_config_arguments = dict(
+            frequency_domain_source_model="bilby.gw.source.sinegaussian",
+            default_prior="PriorDict",
+            time_marginalization=False,
+            phase_marginalization=False,
+            sampler_kwargs="FastTest",
+        )
+        prior_file = generate_burst_prior_from_template(
+            minimum_frequency=minimum_frequency,
+            maximum_frequency=maximum_frequency,
+            outdir=outdir,
+        )
     else:
-        spline_calibration_nodes = 10
+        raise BilbyPipeError(
+            "search_type should be either 'cbc' or 'burst', not {}".format(search_type)
+        )
 
     config_dict = dict(
         label=gracedb,
@@ -353,39 +423,23 @@ def create_config_file(
         maximum_frequency=min(maximum_frequency, 4096),
         minimum_frequency=minimum_frequency,
         sampling_frequency=16384,
-        reference_frequency=100,
         trigger_time=trigger_time,
         detectors=ifos,
         channel_dict=channel_dict,
         deltaT=0.2,
         prior_file=prior_file,
         duration=duration,
-        roq_scale_factor=scale_factor,
         sampler="dynesty",
         sampler_kwargs=sampler_kwargs,
         webdir=webdir,
-        create_plots=True,
         local_generation=False,
         local_plot=False,
         transfer_files=False,
-        time_marginalization=True,
-        distance_marginalization=True,
-        phase_marginalization=True,
-        distance_marginalization_lookup_table=distance_marginalization_lookup_table,
         n_parallel=4,
         create_summary=True,
         summarypages_arguments={"nsamples_for_skymap": 5000},
-        calibration_model=calibration_model,
-        spline_calibration_envelope_dict=calib_dict,
-        spline_calibration_nodes=spline_calibration_nodes,
     )
-
-    if roq and config_dict["duration"] > 4 and roq_folder is not None:
-        config_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
-        config_dict["roq-folder"] = roq_folder
-
-    if convert_to_flat_in_component_mass:
-        config_dict["convert_to_flat_in_component_mass"] = True
+    config_dict.update(extra_config_arguments)
 
     comment = (
         "# Configuration ini file generated from GraceDB "
@@ -483,6 +537,39 @@ def generate_prior_from_template(
             comp_min=comp_min,
             d_min=distance_bounds[0],
             d_max=distance_bounds[1],
+        )
+    prior_file = os.path.join(outdir, "online.prior")
+    with open(prior_file, "w") as new_prior:
+        new_prior.write(prior_string)
+    return prior_file
+
+
+def generate_burst_prior_from_template(
+    minimum_frequency, maximum_frequency, outdir, template=None
+):
+    """ Generate a prior file from a template and write it to file
+
+    Parameters
+    ----------
+    minimum_frequency: float
+        Minimum frequency for prior
+    maximum_frequency: float
+        Maximum frequency for prior
+    outdir: str
+        Path to the outdir (the prior is written to outdir/online.prior)
+    template: str
+        Alternative template file to use, otherwise the
+        data_files/roq.prior.template file is used
+    """
+    if template is None:
+        template = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "data_files/burst.prior.template",
+        )
+
+    with open(template, "r") as old_prior:
+        prior_string = old_prior.read().format(
+            minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency,
         )
     prior_file = os.path.join(outdir, "online.prior")
     with open(prior_file, "w") as new_prior:
@@ -592,42 +679,54 @@ def main(args=None, unknown_args=None):
             tcolors.END,
         ]
         logger.warning(" ".join(msg))
-    if args.outdir:
-        outdir = args.outdir
+
+    outdir = args.outdir
 
     if args.json:
         json = args.json
         candidate = read_from_json(json)
         gracedb = candidate["graceid"]
-        if args.outdir is None:
+        if outdir is None:
             outdir = "outdir_{}".format(gracedb)
         check_directory_exists_and_if_not_mkdir(outdir)
-
-    if args.gracedb:
+    elif args.gracedb:
         gracedb = args.gracedb
         gracedb_url = args.gracedb_url
-        if args.outdir is None:
+        if outdir is None:
             outdir = "outdir_{}".format(gracedb)
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
+    else:
+        raise BilbyPipeError("Either gracedb ID or json file must be provided.")
 
     if args.webdir is not None:
         webdir = args.webdir
     else:
         webdir = os.path.join(outdir, "results_page")
 
-    convert_to_flat_in_component_mass = args.convert_to_flat_in_component_mass
-
     sampler_kwargs = args.sampler_kwargs
     channel_dict = CHANNEL_DICTS[args.channel_dict.lower()]
+
+    if candidate["pipeline"].lower() in CBC_PIPELINES:
+        search_type = "cbc"
+        convert_to_flat_in_component_mass = args.convert_to_flat_in_component_mass
+    elif candidate["pipeline"].lower() in BURST_PIPELINES:
+        search_type = "burst"
+        convert_to_flat_in_component_mass = False
+    else:
+        raise BilbyPipeError(
+            "Candidate pipeline {} not recognised.".format(candidate["pipeline"])
+        )
+
     filename = create_config_file(
-        candidate,
-        gracedb,
-        outdir,
-        channel_dict,
-        sampler_kwargs,
-        webdir,
-        convert_to_flat_in_component_mass,
+        candidate=candidate,
+        gracedb=gracedb,
+        outdir=outdir,
+        channel_dict=channel_dict,
+        sampler_kwargs=sampler_kwargs,
+        webdir=webdir,
+        convert_to_flat_in_component_mass=convert_to_flat_in_component_mass,
+        search_type=search_type,
     )
 
     if args.output == "ini":
