@@ -40,9 +40,9 @@ class TestTimeslide(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
         inputs.gps_file = self.gps_file
         inputs.timeslide_file = self.timeslide_file
-        self.assertIsInstance(inputs.timeslides_list, dict)
+        self.assertIsInstance(inputs.timeslides, dict)
         self.assertEqual(
-            inputs.timeslides_list.keys(), {d: [] for d in inputs.detectors}.keys()
+            inputs.timeslides.keys(), {d: [] for d in inputs.detectors}.keys()
         )
 
     def test_timeslide_file_fake(self):
@@ -75,9 +75,9 @@ class TestTimeslide(unittest.TestCase):
             "H1": two_columns_of_vals[:, 0],
             "L1": two_columns_of_vals[:, 1],
         }
-        for det in inputs.timeslides_list.keys():
-            self.assertEqual(len(inputs.timeslides_list[det]), 5)
-            for idx, i in enumerate(inputs.timeslides_list[det]):
+        for det in inputs.timeslides.keys():
+            self.assertEqual(len(inputs.timeslides[det]), 5)
+            for idx, i in enumerate(inputs.timeslides[det]):
                 self.assertEqual(i, correct_list[det][idx])
         pass
 
@@ -105,6 +105,17 @@ class TestTimeslide(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
         inputs.gps_file = self.gps_file
         inputs.timeslide_file = self.timeslide_file
+        self.assertIsInstance(inputs.get_timeslide_dict(idx=0), dict)
+        self.assertIsInstance(inputs.get_timeslide_dict(idx=1), dict)
+        self.assertIsInstance(inputs.get_timeslide_dict(idx=2), dict)
+        with self.assertRaises(BilbyPipeError):
+            inputs.get_timeslide_dict(idx=3)
+        self.assertTrue(
+            all(
+                len(ifo_timeslides) == 3
+                for ifo_timeslides in inputs.timeslides.values()
+            )
+        )
 
     def test_timeslide_parser(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
@@ -117,9 +128,9 @@ class TestTimeslide(unittest.TestCase):
         timeslide_val = inputs.get_timeslide_dict(0)
 
         correct_timeslides = {"H1": [-1, 20, -100], "L1": [1, -20, 100]}
-        for det in inputs.timeslides_list.keys():
-            self.assertEqual(len(inputs.timeslides_list[det]), 3)
-            for idx, i in enumerate(inputs.timeslides_list[det]):
+        for det in inputs.timeslides.keys():
+            self.assertEqual(len(inputs.timeslides[det]), 3)
+            for idx, i in enumerate(inputs.timeslides[det]):
                 self.assertEqual(i, correct_timeslides[det][idx])
 
         self.assertIsNotNone(timeslide_val)

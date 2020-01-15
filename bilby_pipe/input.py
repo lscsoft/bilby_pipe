@@ -213,7 +213,7 @@ class Input(object):
     def _parse_timeslide_file(self):
         """Parse the timeslide file and check for correctness.
 
-        Sets the attribute "timeslides_list" if timeslide file correctly formatted
+        Sets the attribute "timeslides" if timeslide file correctly formatted
         and passed to Inputs()
         """
         timeslides_list = self.read_timeslide_file()
@@ -234,9 +234,9 @@ class Input(object):
                 )
             )
         times = np.hsplit(timeslides_list, len(self.detectors))
-        self.timeslides_list = {}
+        self.timeslides = {}
         for i in range(len(self.detectors)):
-            self.timeslides_list.update({self.detectors[i]: times[i].flatten()})
+            self.timeslides.update({self.detectors[i]: times[i].flatten()})
         logger.info(
             "{} timeslides found in timeslide_file={}".format(
                 number_rows, self.timeslide_file
@@ -249,12 +249,14 @@ class Input(object):
         Given an index, the dict of {detector: timeslide value} is created for
         the specific index and returned.
         """
-        if not hasattr(self, "timeslides_list"):
+        if not hasattr(self, "timeslides"):
             raise BilbyPipeError("Timeslide file must be provided.")
-        if idx > len(self.timeslides_list):
-            raise BilbyPipeError("Valid timeslide index must be provided.")
+        if any(len(t) <= idx for t in self.timeslides.values()):
+            raise BilbyPipeError(
+                "Timeslide index={} > number of timeslides available.".format(idx)
+            )
         timeslide_val = {
-            det: timeslide[idx] for det, timeslide in self.timeslides_list.items()
+            det: timeslide[idx] for det, timeslide in self.timeslides.items()
         }
         logger.info("Timeslide value: {}".format(timeslide_val))
         return timeslide_val
