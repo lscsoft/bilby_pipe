@@ -105,8 +105,10 @@ Python installation
 
       .. code-block:: console
 
-         $ source /cvmfs/ligo-containers.opensciencegrid.org/lscsoft/conda/latest/etc/profile.d/conda.sh
-         $ conda activate ligo-py37
+         $ source /cvmfs/oasis.opensciencegrid.org/ligo/sw/conda/etc/profile.d/conda.sh
+         $ conda activate igwn-py37
+
+     Documentation for this conda setup can be found here: https://computing.docs.ligo.org/conda/
 
 
 
