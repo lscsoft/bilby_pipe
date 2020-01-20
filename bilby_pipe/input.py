@@ -398,6 +398,7 @@ class Input(object):
             self._injection_file = os.path.relpath(injection_file)
             self.injection_df = self.read_injection_file(injection_file)
             self.total_number_of_injections = len(self.injection_df)
+            self.injection = True
         else:
             raise FileNotFoundError(
                 "Injection file {} not found".format(injection_file)
