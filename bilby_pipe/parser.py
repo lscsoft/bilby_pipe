@@ -197,6 +197,7 @@ def create_parser(top_level=True):
     )
     data_gen_pars.add(
         "--channel-dict",
+        type=nonestr,
         default=None,
         help=(
             "Channel dictionary: keys relate to the detector with values "
@@ -314,7 +315,10 @@ def create_parser(top_level=True):
         ),
     )
     det_parser.add(
-        "--zero-noise", default=False, type=bool, help="Use a zero noise realisation"
+        "--zero-noise",
+        default=False,
+        action=StoreBoolean,
+        help="Use a zero noise realisation",
     )
     det_parser.add(
         "--tukey-roll-off",
@@ -395,7 +399,7 @@ def create_parser(top_level=True):
     submission_parser.add(
         "--request-memory",
         type=float,
-        default=4,
+        default=4.0,
         help="Memory allocation request (GB), defaults is 4GB",
     )
     submission_parser.add(
@@ -430,8 +434,7 @@ def create_parser(top_level=True):
     )
     submission_parser.add(
         "--scheduler-module",
-        type=str,
-        action="append",
+        type=nonestr,
         help="Modules scheduler loads during runtime",
     )
     submission_parser.add(
@@ -506,7 +509,9 @@ def create_parser(top_level=True):
             "Need to specify --roq-folder if ROQ likelihood used"
         ),
     )
-    likelihood_parser.add("--roq-folder", default=None, help="The data for ROQ")
+    likelihood_parser.add(
+        "--roq-folder", type=nonestr, default=None, help="The data for ROQ"
+    )
     likelihood_parser.add(
         "--roq-scale-factor",
         default=1,
@@ -526,7 +531,7 @@ def create_parser(top_level=True):
     output_parser.add(
         "--create-summary", action="store_true", help="Create a PESummary page"
     )
-    output_parser.add("--email", type=str, help="Email for notifications")
+    output_parser.add("--email", type=nonestr, help="Email for notifications")
     output_parser.add(
         "--existing-dir",
         type=nonestr,
@@ -548,9 +553,8 @@ def create_parser(top_level=True):
     output_parser.add(
         "--summarypages-arguments",
         type=nonestr,
-        nargs="*",
         default=None,
-        help="Arguments to pass to the summarypages executable",
+        help="Arguments (in the form of a dictionary) to pass to the summarypages executable",
     )
 
     prior_parser = parser.add_argument_group(
@@ -601,7 +605,6 @@ def create_parser(top_level=True):
     postprocessing_parser.add(
         "--postprocessing-arguments",
         type=nonestr,
-        nargs="*",
         default=None,
         help="Arguments to pass to the postprocessing executable",
     )
