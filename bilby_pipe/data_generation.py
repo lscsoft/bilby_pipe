@@ -130,11 +130,12 @@ class DataGenerationInput(Input):
 
         # PSD
         self.psd_maximum_duration = args.psd_maximum_duration
-        self.psd_length = args.psd_length
-        self.psd_fractional_overlap = args.psd_fractional_overlap
-        self.psd_start_time = args.psd_start_time
-        self.psd_method = args.psd_method
         self.psd_dict = args.psd_dict
+        if self.psd_dict is None:
+            self.psd_length = args.psd_length
+            self.psd_fractional_overlap = args.psd_fractional_overlap
+            self.psd_start_time = args.psd_start_time
+            self.psd_method = args.psd_method
 
         # ROQ
         self.roq_folder = args.roq_folder
@@ -350,11 +351,15 @@ class DataGenerationInput(Input):
 
     @data_dict.setter
     def data_dict(self, data_dict):
-        if data_dict is not None:
-            self._data_dict = convert_string_to_dict(data_dict, "data-dict")
-        else:
+        if data_dict is None:
             logger.debug("data-dict set to None")
             self._data_dict = None
+        elif isinstance(data_dict, str):
+            self._data_dict = convert_string_to_dict(data_dict, "data-dict")
+        elif isinstance(data_dict, dict):
+            self._data_dict = data_dict
+        else:
+            raise BilbyPipeError("Input data-dict={} not understood".format(data_dict))
 
     @property
     def channel_dict(self):
@@ -645,8 +650,8 @@ class DataGenerationInput(Input):
         is saved
         """
         if psd_strain_data is None:
-            psd_strain_data = self.__get_psd_data(det)
-            plot_psd = False
+            logger.info("Unable to plot the IFO data without the PSD data")
+            return
         else:
             plot_psd = True
 
@@ -836,44 +841,60 @@ class DataGenerationInput(Input):
         if det not in self.data_dict:
             logger.info("Detector {} not found in data-dict".format(det))
             return None
-
-        if self.data_format is not None:
-            kwargs = dict(format=self.data_format)
-            logger.info(
-                "Calling TimeSeries.read('{}', '{}', start={}, end={}, format='{}', dtype='{}')".format(
-                    self.data_dict[det],
-                    channel,
-                    start_time,
-                    end_time,
-                    self.data_format,
-                    dtype,
-                )
-            )
         else:
-            kwargs = {}
-            logger.info(
-                "Calling TimeSeries.read('{}', '{}', start={}, end={}, dtype={})".format(
-                    self.data_dict[det], channel, start_time, end_time, dtype
-                )
-            )
+            source = self.data_dict[det]
+            format_ext = os.path.splitext(source)[1]
 
-        try:
-            data = gwpy.timeseries.TimeSeries.read(
-                self.data_dict[det],
-                channel,
+        if "gwf" in format_ext:
+            kwargs = dict(
+                source=source,
+                channel=channel,
                 start=start_time,
                 end=end_time,
                 dtype=dtype,
-                **kwargs,
+                format="gwf.lalframe",
             )
-            if data.duration.value != end_time - start_time:
+        elif "hdf5" in format_ext:
+            kwargs = dict(source=source, start=start_time, end=end_time, format="hdf5")
+        elif "txt" in format_ext:
+            data = kwargs = dict(source=source)
+        else:
+            # Generic best try
+            kwargs = dict(
+                source=source, channel=channel, start=start_time, end=end_time
+            )
+
+        if self.data_format is not None:
+            kwargs["format"] = self.data_format
+
+        try:
+            kwargs_string = ""
+            for key, val in kwargs.items():
+                if isinstance(val, str):
+                    val = "'{}'".format(val)
+                kwargs_string += "{}={}, ".format(key, val)
+            logger.info(
+                "Running: gwpy.timeseries.TimeSeries.read({})".format(kwargs_string)
+            )
+            data = gwpy.timeseries.TimeSeries.read(**kwargs)
+
+            if data.duration.value < end_time - start_time:
                 logger.warning(
                     "Unable to read in requested {}s duration of data from {}"
-                    " only {}s available".format(
-                        end_time - start_time, self.data_dict[det], data.duration.value
+                    " only {}s available: returning None".format(
+                        end_time - start_time, source, data.duration.value
                     )
                 )
                 data = None
+            elif data.duration.value > end_time - start_time:
+                logger.info(
+                    "Read in {}s of data from {}, but {}s requested, truncating".format(
+                        data.duration.value, source, end_time - start_time
+                    )
+                )
+                data = data[data.times.value >= start_time]
+                data = data[data.times.value < end_time]
+
             return data
         except ValueError as e:
             logger.info("Reading of data failed with error {}".format(e))

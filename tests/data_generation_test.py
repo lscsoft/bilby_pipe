@@ -409,6 +409,57 @@ class TestDataGenerationInput(unittest.TestCase):
         self.assertTrue(mock_logs.warning.called)
 
 
+class TestDataReading(unittest.TestCase):
+    def setUp(self):
+        self.outdir = "test_outdir"
+        self.data_dir = "tests/DATA/"
+        self.default_args_list = [
+            "--ini",
+            "tests/test_data_generation.ini",
+            "--outdir",
+            self.outdir,
+            "--data-label",
+            "TEST",
+        ]
+        self.parser = create_generation_parser()
+        self.inputs = DataGenerationInput(
+            *parse_args(self.default_args_list, self.parser), create_data=False
+        )
+
+        self.det = "H1"
+        self.channel = "H1:DCS-CALIB_STRAIN_C02"
+        self.start_time = 1126259356.0
+        self.end_time = 1126259357.0
+
+    def tearDown(self):
+        del self.inputs
+        shutil.rmtree(self.outdir)
+
+    def test_read_data_gwf(self):
+        self.inputs.data_dict = {self.det: "{}/test_data.gwf".format(self.data_dir)}
+        data = self.inputs._gwpy_read(
+            self.det, self.channel, self.start_time, self.end_time
+        )
+        self.assertEqual(data.times[0].value, self.start_time)
+        self.assertEqual(len(data), 16384)
+
+    def test_read_data_txt(self):
+        self.inputs.data_dict = {self.det: "{}/test_data.txt".format(self.data_dir)}
+        data = self.inputs._gwpy_read(
+            self.det, self.channel, self.start_time, self.end_time
+        )
+        self.assertEqual(data.times[0].value, self.start_time)
+        self.assertEqual(len(data), 16384)
+
+    def test_read_data_hdf5(self):
+        self.inputs.data_dict = {self.det: "{}/test_data.hdf5".format(self.data_dir)}
+        data = self.inputs._gwpy_read(
+            self.det, self.channel, self.start_time, self.end_time
+        )
+        self.assertEqual(data.times[0].value, self.start_time)
+        self.assertEqual(len(data), 16384)
+
+
 def load_test_strain_data():
     """Helper function to load data from gwpy_data.pickle
     """
