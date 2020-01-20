@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pycondor
 
 from . import slurm
@@ -46,6 +47,7 @@ class MainInput(Input):
         self.online_pe = args.online_pe
         self.create_plots = args.create_plots
         self.singularity_image = args.singularity_image
+        self.create_summary = args.create_summary
 
         self.outdir = args.outdir
         self.label = args.label
@@ -57,7 +59,6 @@ class MainInput(Input):
         self.transfer_files = args.transfer_files
         self.osg = args.osg
 
-        self.create_summary = args.create_summary
         self.webdir = args.webdir
         self.email = args.email
         self.existing_dir = args.existing_dir
@@ -426,7 +427,7 @@ class Node(object):
     ):
         self.arguments = ArgumentsString()
         if add_ini:
-            self.arguments.add_positional_argument(self.inputs.ini)
+            self.arguments.add_positional_argument(self.inputs.complete_ini_file)
         if add_unknown_args:
             self.arguments.add_unknown_args(self.inputs.unknown_args)
         if add_command_line_args:
@@ -615,17 +616,21 @@ class AnalysisNode(Node):
             self.job_name = self.base_job_name
         self.label = self.job_name
 
+        self.setup_arguments()
+
         if self.inputs.transfer_files or self.inputs.osg:
             data_dump_file = generation_node.data_dump_file
-            input_files_to_transfer = [str(data_dump_file), str(self.inputs.ini)]
+            input_files_to_transfer = [
+                str(data_dump_file),
+                str(self.inputs.complete_ini_file),
+            ]
             self.extra_lines.extend(
                 self._condor_file_transfer_lines(
                     input_files_to_transfer,
                     [self._relative_topdir(self.inputs.outdir, self.inputs.initialdir)],
                 )
             )
-
-        self.setup_arguments()
+            self.arguments.add("outdir", os.path.basename(self.inputs.outdir))
 
         for det in detectors:
             self.arguments.add("detectors", det)
@@ -805,7 +810,7 @@ class PESummaryNode(Node):
                     not_recognised_arguments[key] = val
             if not_recognised_arguments != {}:
                 logger.warn(
-                    "Did not recognise the postprocessing_arguments {}. To find "
+                    "Did not recognise the summarypages_arguments {}. To find "
                     "the full list of available arguments, please run "
                     "summarypages --help".format(not_recognised_arguments)
                 )
@@ -936,7 +941,7 @@ def generate_dag(inputs):
 
     if inputs.create_summary:
         PESummaryNode(inputs, merged_node_list, generation_node_list, dag=dag)
-    if inputs.postprocessing_arguments is not None:
+    if inputs.postprocessing_executable is not None:
         PostProcessAllResultsNode(inputs, merged_node_list, dag)
 
     dag.build()
@@ -949,22 +954,65 @@ def generate_dag(inputs):
     )
 
 
+def write_complete_config_file(parser, args, inputs):
+    args_dict = vars(args).copy()
+    for key, val in args_dict.items():
+        if isinstance(val, str):
+            if os.path.isfile(val) or os.path.isdir(val):
+                setattr(args, key, os.path.abspath(val))
+        if isinstance(val, list):
+            if isinstance(val[0], str):
+                setattr(args, key, "[{}]".format(", ".join(val)))
+    parser.write_to_file(
+        filename=inputs.complete_ini_file,
+        args=args,
+        overwrite=False,
+        include_description=False,
+    )
+
+    # Verify that the written complete config is identical to the source config
+    complete_args = parser.parse([inputs.complete_ini_file])
+    complete_inputs = MainInput(complete_args, "")
+    ignore_keys = ["known_args", "unknown_args", "_ini", "_webdir"]
+    differences = []
+    for key, val in inputs.__dict__.items():
+        if key in ignore_keys:
+            continue
+        if isinstance(val, pd.DataFrame) and all(val == complete_inputs.__dict__[key]):
+            continue
+        if isinstance(val, np.ndarray) and all(
+            np.array(val) == np.array(complete_inputs.__dict__[key])
+        ):
+            continue
+        if isinstance(val, str) and os.path.isfile(val):
+            # Check if it is relpath vs abspath
+            if os.path.abspath(val) == os.path.abspath(complete_inputs.__dict__[key]):
+                continue
+        if val == complete_inputs.__dict__[key]:
+            continue
+        differences.append(key)
+
+    if len(differences) > 0:
+        for key in differences:
+            print(
+                key,
+                "{} -- {}".format(inputs.__dict__[key], complete_inputs.__dict__[key]),
+            )
+        raise BilbyPipeError(
+            "The written config file {} differs from the source {} in {}".format(
+                inputs.ini, inputs.complete_ini_file, differences
+            )
+        )
+
+
 def main():
     """ Top-level interface for bilby_pipe """
     parser = create_parser(top_level=True)
     args, unknown_args = parse_args(get_command_line_arguments(), parser)
     log_version_information()
     inputs = MainInput(args, unknown_args)
+    write_complete_config_file(parser, args, inputs)
     generate_dag(inputs)
-
-    args.outdir = os.path.abspath(args.outdir)
-    complete_ini_file = "{}/{}_config_complete.ini".format(inputs.outdir, inputs.label)
-    parser.write_to_file(
-        filename=complete_ini_file,
-        args=args,
-        overwrite=False,
-        include_description=False,
-    )
 
     if len(unknown_args) > 1:
         msg = [

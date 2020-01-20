@@ -22,6 +22,10 @@ class Input(object):
     """ Superclass of input handlers """
 
     @property
+    def complete_ini_file(self):
+        return "{}/{}_config_complete.ini".format(self.outdir, self.label)
+
+    @property
     def idx(self):
         """ The level A job index """
         return self._idx
@@ -885,8 +889,23 @@ class Input(object):
         if summarypages_arguments is None:
             self._summarypages_arguments = None
             return
-        string = summarypages_arguments[0]
+        string = summarypages_arguments
         if "{" in string and "}" in string:
             self._summarypages_arguments = convert_string_to_dict(string)
         else:
             self._summarypages_arguments = summarypages_arguments
+
+    @property
+    def postprocessing_arguments(self):
+        return self._postprocessing_arguments
+
+    @postprocessing_arguments.setter
+    def postprocessing_arguments(self, postprocessing_arguments):
+        if postprocessing_arguments in [None, "None"]:
+            self._postprocessing_arguments = None
+        elif postprocessing_arguments == [None]:
+            self._postprocessing_arguments = None
+        elif isinstance(postprocessing_arguments, str):
+            self._postprocessing_arguments = postprocessing_arguments.split(" ")
+        else:
+            self._postprocessing_arguments = postprocessing_arguments

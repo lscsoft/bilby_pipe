@@ -237,6 +237,11 @@ def parse_args(input_args, parser, allow_unknown=True):
     if len(input_args) == 0:
         raise BilbyPipeError("No command line arguments provided")
 
+    ini_file = input_args[0]
+    if os.path.isfile(ini_file) is False:
+        if os.path.isfile(os.path.basename(ini_file)):
+            input_args[0] = os.path.basename(ini_file)
+
     args, unknown_args = parser.parse_known_args(input_args)
     return args, unknown_args
 
@@ -380,6 +385,8 @@ def convert_string_to_dict(string, key=None):
     key: str (None)
         A key, used for debugging
     """
+    if string == "None":
+        return None
     string = strip_quotes(string)
     # Convert equals to colons
     string = string.replace("=", ":")

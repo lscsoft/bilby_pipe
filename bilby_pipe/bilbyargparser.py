@@ -3,6 +3,7 @@ argument parser for bilby_pipe, adapted from configargparse.ArgParser.
 """
 
 import os
+import re
 import sys
 
 import configargparse
@@ -10,10 +11,19 @@ import configargparse
 from .utils import get_version_information, logger
 
 
+class HyphenStr(str):
+    def __new__(cls, content):
+        return super(HyphenStr, cls).__new__(cls, content.replace("_", "-"))
+
+
 class BilbyArgParser(configargparse.ArgParser):
     """
     The main entry point for command-line parsing
     """
+
+    numbers = dict()
+    comments = dict()
+    inline_comments = dict()
 
     def parse_known_args(
         self, args=None, namespace=None, config_file_contents=None, env_vars=os.environ
@@ -74,12 +84,18 @@ class BilbyArgParser(configargparse.ArgParser):
         file_contents = None
         config_stream = self._open_config_files(args)
         if config_stream:
+            config_file_parser = BilbyConfigFileParser()
             ini_stream = config_stream.pop()  # get ini file's steam
-            ini_items = self._config_file_parser.parse(ini_stream)
+            ini_items, numbers, comments, inline_comments = config_file_parser.parse(
+                ini_stream
+            )
+            self.numbers = numbers
+            self.comments = comments
+            self.inline_comments = inline_comments
             corrected_items = dict(
                 (key.replace("_", "-"), val) for key, val in ini_items.items()
             )
-            file_contents = self._config_file_parser.serialize(corrected_items)
+            file_contents = config_file_parser.serialize(corrected_items)
         return file_contents
 
     def _preprocess_args(self, args):
@@ -109,7 +125,7 @@ class BilbyArgParser(configargparse.ArgParser):
         for arg in args:
             if arg and arg[0] in self.prefix_chars and "=" in arg:
                 key, value = arg.split("=", 1)
-                key = key.replace("_", "-")
+                key = HyphenStr(key)
                 normalized_args.append(key)
                 normalized_args.append(value)
             else:
@@ -152,17 +168,86 @@ class BilbyArgParser(configargparse.ArgParser):
                 for action in group._group_actions:
                     if include_description:
                         print("# {}".format(action.help), file=ff)
+                    dest = action.dest
+                    hyphen_dest = HyphenStr(dest)
                     if isinstance(args, dict):
                         if action.dest in args:
-                            value = args[action.dest]
-                        elif action.dest.replace("_", "-") in args:
-                            value = args[action.dest.replace("_", "-")]
+                            value = args[dest]
+                        elif hyphen_dest in args:
+                            value = args[hyphen_dest]
                         else:
                             value = action.default
                     else:
-                        value = getattr(args, action.dest, action.default)
+                        value = getattr(args, dest, action.default)
 
                     if exclude_default and value == action.default:
                         continue
-                    print("{}={}".format(action.dest.replace("_", "-"), value), file=ff)
+                    self.write_comment_if_needed(hyphen_dest, ff)
+                    self.write_line(hyphen_dest, value, ff)
                 print("", file=ff)
+
+    def write_comment_if_needed(self, hyphen_dest, ff):
+        """ Determine if the line is associated with a comment """
+        if hyphen_dest in self.numbers:
+            previous_line = self.numbers[hyphen_dest] - 1
+            if previous_line in self.comments:
+                print(self.comments[previous_line], file=ff)
+
+    def write_line(self, hyphen_dest, value, ff):
+        if hyphen_dest in self.numbers:
+            comment = self.inline_comments.get(self.numbers[hyphen_dest], "")
+        else:
+            comment = ""
+        print("{}={}{}".format(hyphen_dest, value, comment), file=ff)
+
+
+class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
+    def parse(self, stream):
+        """Parses the keys + values from a config file."""
+
+        items = dict()
+        numbers = dict()
+        comments = dict()
+        inline_comments = dict()
+        for ii, line in enumerate(stream):
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] in ["#", ";", "["] or line.startswith("---"):
+                comments[ii] = line
+                continue
+            if len(line.split("#")) > 1:
+                inline_comments[ii] = "  #" + "#".join(line.split("#")[1:])
+                line = line.split("#")[0]
+            white_space = "\\s*"
+            key = r"(?P<key>[^:=;#\s]+?)"
+            value = white_space + r"[:=\s]" + white_space + "(?P<value>.+?)"
+            comment = white_space + "(?P<comment>\\s[;#].*)?"
+
+            key_only_match = re.match("^" + key + comment + "$", line)
+            if key_only_match:
+                key = HyphenStr(key_only_match.group("key"))
+                items[key] = "true"
+                numbers[key] = ii
+                continue
+
+            key_value_match = re.match("^" + key + value + comment + "$", line)
+            if key_value_match:
+                key = HyphenStr(key_value_match.group("key"))
+                value = key_value_match.group("value")
+
+                if value.startswith("[") and value.endswith("]"):
+                    # handle special case of lists
+                    value = [elem.strip() for elem in value[1:-1].split(",")]
+
+                items[key] = value
+                numbers[key] = ii
+                continue
+
+            raise configargparse.ConfigFileParserException(
+                "Unexpected line {} in {}: {}".format(
+                    ii, getattr(stream, "name", "stream"), line
+                )
+            )
+
+        return items, numbers, comments, inline_comments

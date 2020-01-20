@@ -64,8 +64,10 @@ example-ini-file-builds:
     - pip --cache-dir=.pip37 install --upgrade bilby
     - pip --cache-dir=.pip37 install .
     - cd examples/event
-    - bilby_pipe *ini
-    - cd ../gaussian_noise
+    - bilby_pipe GW150914.ini
+    - cd outdir_GW150914/
+    - bilby_pipe GW150914_config_complete.ini # Check that the completed config file compiles
+    - cd ../../gaussian_noise
     - bilby_pipe *ini
     - cd ../injection
     - bilby_pipe *ini
