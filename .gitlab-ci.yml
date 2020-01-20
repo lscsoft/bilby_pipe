@@ -18,7 +18,7 @@ cache:
     - .pip37
     - .pip36
 
-precommits:
+precommits-py3.7:
   stage: test
   image: bilbydev/bilby_pipe-test-suite-python37
   script:
@@ -30,7 +30,22 @@ precommits:
     - pip --cache-dir=.pip37 install pre-commit
 
     # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
-    - pre-commit run -a
+    - pre-commit run --all-files --verbose --show-diff-on-failure
+
+precommits-py3.6:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python36
+  script:
+    - source activate python36
+    - mkdir -p .pip36
+    - pip install --upgrade pip
+    - pip --cache-dir=.pip36 install --upgrade bilby
+    - pip --cache-dir=.pip36 install .
+    - pip --cache-dir=.pip37 install pre-commit
+
+    # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
+    - pre-commit run --all-files --verbose --show-diff-on-failure
+
 
 python-3.7:
   stage: test
