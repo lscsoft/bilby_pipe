@@ -107,6 +107,7 @@ setup(
             "bilby_pipe_generation=bilby_pipe.data_generation:main",
             "bilby_pipe_analysis=bilby_pipe.data_analysis:main",
             "bilby_pipe_create_injection_file=bilby_pipe.create_injections:main",
+            "bilby_pipe_xml_converter=bilby_pipe.xml_converter:main",
             "bilby_pipe_pp_test=bilby_pipe.pp_test:main",
             "bilby_pipe_review=bilby_pipe.review:main",
             "bilby_pipe_plot=bilby_pipe.plot:main",
