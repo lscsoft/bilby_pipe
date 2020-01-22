@@ -390,6 +390,50 @@ class Input(object):
             logger.info("Setting segment duration {}s".format(duration))
 
     @property
+    def injection_numbers(self):
+        return self._injection_numbers
+
+    @injection_numbers.setter
+    def injection_numbers(self, injection_numbers):
+        if (
+            injection_numbers is None
+            or len(injection_numbers) == 0
+            or injection_numbers[0] is None
+            or injection_numbers[0] == "None"
+        ):
+            self._injection_numbers = None
+            return
+        if all([isinstance(val, int) for val in injection_numbers]):
+            self._injection_numbers = injection_numbers
+        else:
+            raise BilbyPipeError(
+                "Invalid injection numbers {}".format(injection_numbers)
+            )
+
+    @property
+    def injection_df(self):
+        return self._injection_df
+
+    @injection_df.setter
+    def injection_df(self, injection_df):
+        if isinstance(injection_df, pd.DataFrame) is False:
+            raise BilbyPipeError("Setting injection df with non-pandas DataFrame")
+        elif self.injection_numbers is not None:
+            logger.info(
+                "Truncating injection injection df to rows {}".format(
+                    self.injection_numbers
+                )
+            )
+            try:
+                self._injection_df = injection_df.iloc[self.injection_numbers]
+            except IndexError:
+                raise BilbyPipeError(
+                    "Your injection_numbers are incompatible with the injection set"
+                )
+        else:
+            self._injection_df = injection_df
+
+    @property
     def injection_file(self):
         return self._injection_file
 

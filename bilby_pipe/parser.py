@@ -177,7 +177,10 @@ def create_parser(top_level=True):
         "--n-simulation",
         type=int,
         default=0,
-        help="Number of simulated segmenst to use with gaussian-noise",
+        help=(
+            "Number of simulated segments to use with gaussian-noise "
+            "Note, this must match the number of injections specified"
+        ),
     )
     data_gen_pars.add(
         "--data-dict",
@@ -344,6 +347,15 @@ def create_parser(top_level=True):
         help=(
             "Injection file to use. See `bilby_pipe_create_injection_file --help`"
             " for supported formats"
+        ),
+    )
+    injection_parser.add(
+        "--injection-numbers",
+        action="append",
+        default=None,
+        help=(
+            "Specific injections rows to use from the injection_file, e.g. "
+            "`injection_numbers=[0,3] selects the zeroth and third row"
         ),
     )
     injection_parser.add(

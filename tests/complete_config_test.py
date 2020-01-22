@@ -40,6 +40,9 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(inputs.detectors, complete_inputs.detectors)
         exclude_keys.append("detectors")
 
+        self.assertEqual(inputs.injection_numbers, complete_inputs.injection_numbers)
+        exclude_keys.append("injection_numbers")
+
         self.assertEqual(
             inputs.postprocessing_arguments, complete_inputs.postprocessing_arguments
         )

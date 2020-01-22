@@ -186,8 +186,9 @@ class DataGenerationInput(Input):
         """
 
         self.data_set = False
-        self.injection_file = args.injection_file
         self.injection = args.injection
+        self.injection_numbers = args.injection_numbers
+        self.injection_file = args.injection_file
         self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
