@@ -24,6 +24,7 @@ class TestSlurm(unittest.TestCase):
             injection_file=None,
             injection_waveform_approximant=None,
             n_injection=None,
+            injection_numbers=None,
             singularity_image=None,
             local=False,
             queue=1,

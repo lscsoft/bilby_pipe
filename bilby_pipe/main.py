@@ -90,6 +90,7 @@ class MainInput(Input):
         self.n_simulation = args.n_simulation
 
         self.injection = args.injection
+        self.injection_numbers = args.injection_numbers
         self.injection_file = args.injection_file
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.generation_seed = args.generation_seed
@@ -247,7 +248,8 @@ class MainInput(Input):
         if self.n_simulation > 0:
             if self.n_simulation != len(self.injection_df):
                 raise BilbyPipeError(
-                    "n_simulation does not equal the number of injections"
+                    "n-simulation does not match the number of injections: "
+                    "please check your ini file"
                 )
         elif self.n_simulation == 0 and self.gps_file is None:
             self.n_simulation = len(self.injection_df)
