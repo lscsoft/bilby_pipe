@@ -27,9 +27,12 @@ class SubmitSLURM(object):
         with open(self.slurm_master_bash, "w") as f:
 
             # reformat slurm options
-            slurm_args = " ".join(
-                ["--{}".format(arg) for arg in self.scheduler_args.split()]
-            )
+            if self.scheduler_args is not None:
+                slurm_args = " ".join(
+                    ["--{}".format(arg) for arg in self.scheduler_args.split()]
+                )
+            else:
+                slurm_args = ""
 
             f.write("#!/bin/bash \n")
 

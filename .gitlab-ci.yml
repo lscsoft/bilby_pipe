@@ -89,6 +89,8 @@ example-ini-file-builds:
     - cd ../gps_times
     - bilby_pipe gps_times_from_file.ini
     - bilby_pipe gps_times_from_tuple.ini
+    - cd ../slurm
+    - bilby_pipe slurm_GW150914.ini
 
 # Test that the examples build properly
 injection-regression-test:
