@@ -409,6 +409,12 @@ def convert_string_to_dict(string, key=None):
             raise BilbyPipeError("Error {}. Unable to parse {}".format(e, string))
 
     # Convert values to bool/floats/ints where possible
+    dic = convert_dict_values_if_possible(dic)
+
+    return dic
+
+
+def convert_dict_values_if_possible(dic):
     for key in dic:
         if isinstance(dic[key], str) and dic[key].lower() == "true":
             dic[key] = True
@@ -416,7 +422,8 @@ def convert_string_to_dict(string, key=None):
             dic[key] = False
         elif isinstance(dic[key], str):
             dic[key] = string_to_int_float(dic[key])
-
+        elif isinstance(dic[key], dict):
+            dic[key] = convert_dict_values_if_possible(dic[key])
     return dic
 
 

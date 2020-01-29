@@ -118,6 +118,11 @@ class TestUtils(unittest.TestCase):
         self.assertTrue(isinstance(cstd("{float=3.1}")["float"], float))
         self.assertTrue(isinstance(cstd("{int=3}")["int"], int))
 
+        # Tested nested dictionaries
+        self.assertEqual(
+            cstd('{a={a=1, b : "-1", c=test}}', key), dict(a=dict(a=1, b=-1, c="test"))
+        )
+
     def test_convert_detectors_input(self):
         self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("H1"))
         self.assertEqual(["H1"], bilby_pipe.utils.convert_detectors_input("[H1]"))
