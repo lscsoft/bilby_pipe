@@ -5,6 +5,7 @@ arguments or an ini file) and creating DAG files for submitting bilby parameter
 estimation jobs.
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -533,9 +534,15 @@ class Node(object):
         if has_ligo_frames:
             requirements.append("(HAS_LIGO_FRAMES=?=True)")
 
-        # if need the ligo-containers /cvmfs repo:
-        if executable.startswith("/cvmfs/ligo-containers.opensciencegrid.org"):
-            requirements.append("(HAS_CVMFS_LIGO_CONTAINERS=?=True)")
+        # if need a /cvmfs repo for the software:
+        # NOTE: this should really be applied to _all_ workflows
+        #       that need CVMFS, not just distributed ones, but
+        #       not all local pools advertise the CVMFS repo flags
+        if executable.startswith("/cvmfs"):
+            repo = executable.split(os.path.sep, 3)[2]
+            requirements.append("(HAS_CVMFS_{}=?=True)".format(
+                re.sub("[.-]", "_", repo),
+            ))
 
         return lines, " && ".join(requirements)
 
