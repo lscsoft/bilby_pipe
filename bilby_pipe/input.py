@@ -82,54 +82,71 @@ class Input(object):
     @property
     def outdir(self):
         """ The path to the directory where output will be stored """
+        utils.check_directory_exists_and_if_not_mkdir(self._outdir)
         return self._outdir
 
     @outdir.setter
     def outdir(self, outdir):
         self._outdir = os.path.relpath(outdir)
-        for dr in [
-            outdir,
-            self.submit_directory,
-            self.data_generation_log_directory,
-            self.data_analysis_log_directory,
-            self.data_directory,
-            self.result_directory,
-            self.summary_log_directory,
-        ]:
-            utils.check_directory_exists_and_if_not_mkdir(dr)
 
     @property
     def submit_directory(self):
         """ The path to the directory where submit output will be stored """
-        return os.path.join(self._outdir, "submit")
+        path = os.path.join(self._outdir, "submit")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
+
+    @property
+    def log_directory(self):
+        """ The top-level directory for the log directories """
+        utils.check_directory_exists_and_if_not_mkdir(self._log_directory)
+        return self._log_directory
+
+    @log_directory.setter
+    def log_directory(self, log_directory):
+        if log_directory is None:
+            self._log_directory = self._outdir
+        else:
+            self._log_directory = log_directory
 
     @property
     def data_generation_log_directory(self):
-        """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, "log_data_generation")
+        """ The path to the directory where generation logs will be stored """
+        path = os.path.join(self.log_directory, "log_data_generation")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
 
     @property
     def data_analysis_log_directory(self):
-        """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, "log_data_analysis")
+        """ The path to the directory where analysis logs will be stored """
+        path = os.path.join(self.log_directory, "log_data_analysis")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
 
     @property
     def summary_log_directory(self):
-        """ The path to the directory where log output will be stored """
-        return os.path.join(self._outdir, "log_results_page")
+        """ The path to the directory where pesummary logs will be stored """
+        path = os.path.join(self.log_directory, "log_results_page")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
 
     @property
     def data_directory(self):
         """ The path to the directory where data output will be stored """
-        return os.path.join(self._outdir, "data")
+        path = os.path.join(self._outdir, "data")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
 
     @property
     def result_directory(self):
         """ The path to the directory where result output will be stored """
-        return os.path.join(self._outdir, "result")
+        path = os.path.join(self._outdir, "result")
+        utils.check_directory_exists_and_if_not_mkdir(path)
+        return path
 
     @property
     def webdir(self):
+        utils.check_directory_exists_and_if_not_mkdir(self._webdir)
         return self._webdir
 
     @webdir.setter
@@ -138,7 +155,6 @@ class Input(object):
             self._webdir = os.path.join(self.outdir, "results_page")
         else:
             self._webdir = webdir
-        utils.check_directory_exists_and_if_not_mkdir(self._webdir)
 
     @property
     def gps_file(self):

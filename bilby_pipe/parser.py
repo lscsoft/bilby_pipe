@@ -467,6 +467,12 @@ def create_parser(top_level=True):
         help="If true, use HTCondor file transfer mechanism, default is True",
     )
     submission_parser.add(
+        "--log-directory",
+        type=nonestr,
+        default=None,
+        help="If given, an alternative path for the log output",
+    )
+    submission_parser.add(
         "--online-pe", action="store_true", help="Flag for online PE settings"
     )
     submission_parser.add(

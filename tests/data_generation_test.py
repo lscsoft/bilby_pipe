@@ -1,3 +1,4 @@
+import os
 import shutil
 import unittest
 
@@ -31,7 +32,8 @@ class TestDataGenerationInput(unittest.TestCase):
         del self.default_args_list
         del self.parser
         del self.inputs
-        shutil.rmtree(self.outdir)
+        if os.path.isdir(self.outdir):
+            shutil.rmtree(self.outdir)
 
     def test_cluster_set(self):
         self.inputs.cluster = 123
@@ -433,7 +435,8 @@ class TestDataReading(unittest.TestCase):
 
     def tearDown(self):
         del self.inputs
-        shutil.rmtree(self.outdir)
+        if os.path.isdir(self.outdir):
+            shutil.rmtree(self.outdir)
 
     def test_read_data_gwf(self):
         self.inputs.data_dict = {self.det: "{}/test_data.gwf".format(self.data_dir)}

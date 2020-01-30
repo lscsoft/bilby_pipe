@@ -1,3 +1,4 @@
+import os
 import shutil
 import unittest
 
@@ -25,7 +26,8 @@ class TestDataAnalysisInput(unittest.TestCase):
         del self.default_args_list
         del self.parser
         del self.inputs
-        shutil.rmtree(self.outdir)
+        if os.path.isdir(self.outdir):
+            shutil.rmtree(self.outdir)
 
     def test_cluster_setting(self):
         args_list = self.default_args_list
