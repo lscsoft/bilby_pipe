@@ -63,6 +63,7 @@ class TestSlurm(unittest.TestCase):
             post_trigger_duration=2,
             gaussian_noise=True,
             n_simulation=1,
+            log_directory=None,
             osg=True,
         )
         self.test_unknown_args = ["--argument", "value"]

@@ -51,6 +51,7 @@ class MainInput(Input):
 
         self.outdir = args.outdir
         self.label = args.label
+        self.log_directory = args.log_directory
         self.accounting = args.accounting
         self.sampler = args.sampler
         self.detectors = args.detectors
