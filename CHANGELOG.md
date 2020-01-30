@@ -1,5 +1,15 @@
 # All notable changes will be documented in this file
 
+## v0.3.9 : 2020-30-03
+
+### Changes
+-   Update documentation for using CVMFS
+-   Allow other samplers in the review script
+-   Fix the timeslide check
+-   Tweak the generation: add read methods for gwp, txt and hdf5 and improve PSD data handling
+-   Use the generated complete config file at run time
+-   Add an XML conversion method
+
 ## v0.3.8 : 2020-01-03
 Minor release updating to bilby v0.6.3
 
