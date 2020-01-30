@@ -540,9 +540,9 @@ class Node(object):
         #       not all local pools advertise the CVMFS repo flags
         if executable.startswith("/cvmfs"):
             repo = executable.split(os.path.sep, 3)[2]
-            requirements.append("(HAS_CVMFS_{}=?=True)".format(
-                re.sub("[.-]", "_", repo),
-            ))
+            requirements.append(
+                "(HAS_CVMFS_{}=?=True)".format(re.sub("[.-]", "_", repo),)
+            )
 
         return lines, " && ".join(requirements)
 
