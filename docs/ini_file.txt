@@ -2,10 +2,10 @@
 The ini file
 ============
 
-The primary user-inputs to :code:`bilby_pipe` are command-line arguments, or an
-ini file which can be thought of as a set of command-line arguments stored in a
-single file. To handle both command line arguments and ini-files, we use the
-`ConfigArgParse <https://pypi.org/project/ConfigArgParse/>`_ python module.
+The primary user-inputs to :code:`bilby_pipe` is an ini file and optionally
+additional command-line arguments. To handle both command line arguments and
+ini-files, we use the `ConfigArgParse
+<https://pypi.org/project/ConfigArgParse/>`_ python module.
 
 An ini file can contain multiple types of input. In this example, we
 demonstrate passing in a float for the :code:`trigger-time` attribute, an integer
