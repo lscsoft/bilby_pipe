@@ -169,7 +169,7 @@ class MainInput(Input):
     @request_memory_generation.setter
     def request_memory_generation(self, request_memory_generation):
         if request_memory_generation is None:
-            roq = self.likelihood_type == "ROQGravitationalWaveTransient"
+            roq = "roq" in self.likelihood_type.lower()
             request_memory_generation = request_memory_generation_lookup(
                 self.duration, roq=roq
             )

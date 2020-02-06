@@ -536,6 +536,15 @@ def create_parser(top_level=True):
         type=float,
         help="Rescaling factor for the ROQ, default is 1 (no rescaling)",
     )
+    likelihood_parser.add(
+        "--extra-likelihood-kwargs",
+        type=nonestr,
+        default=None,
+        help="Additional keyword arguments to pass to the likelihood. Any arguments "
+        "which are named bilby_pipe arguments, e.g., distance_marginalization "
+        "should NOT be included. This is only used if you are not using the "
+        "GravitationalWaveTransient or ROQGravitationalWaveTransient likelihoods",
+    )
 
     output_parser = parser.add_argument_group(
         title="Output arguments", description="What kind of output/summary to generate."

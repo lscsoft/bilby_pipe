@@ -849,29 +849,17 @@ class Input(object):
 
             likelihood_kwargs.pop("time_marginalization", None)
             likelihood_kwargs.pop("jitter_time", None)
-
-            if hasattr(self, "likelihood_roq_params"):
-                params = self.likelihood_roq_params
-            else:
-                params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
-
-            if hasattr(self, "likelihood_roq_weights"):
-                weights = self.likelihood_roq_weights
-            else:
-                weights = self.meta_data["weight_file"]
-                logger.info("Loading ROQ weights from {}".format(weights))
-
-            likelihood_kwargs.update(
-                weights=weights,
-                roq_params=params,
-                roq_scale_factor=self.roq_scale_factor,
-            )
-
+            likelihood_kwargs.update(self.roq_likelihood_kwargs)
         elif "." in self.likelihood_type:
             split_path = self.likelihood_type.split(".")
             module = ".".join(split_path[:-1])
             likelihood_class = split_path[-1]
             Likelihood = getattr(import_module(module), likelihood_class)
+            likelihood_kwargs.update(self.extra_likelihood_kwargs)
+            if "roq" in self.likelihood_type.lower():
+                likelihood_kwargs.pop("time_marginalization", None)
+                likelihood_kwargs.pop("jitter_time", None)
+                likelihood_kwargs.update(self.roq_likelihood_kwargs)
         else:
             raise ValueError("Unknown Likelihood class {}")
 
@@ -882,6 +870,60 @@ class Input(object):
         )
 
         return Likelihood(**likelihood_kwargs)
+
+    @property
+    def extra_likelihood_kwargs(self):
+        return self._extra_likelihood_kwargs
+
+    @extra_likelihood_kwargs.setter
+    def extra_likelihood_kwargs(self, likelihood_kwargs):
+        if isinstance(likelihood_kwargs, str):
+            likelihood_kwargs = utils.convert_string_to_dict(likelihood_kwargs)
+        elif likelihood_kwargs is None:
+            likelihood_kwargs = dict()
+        elif not isinstance(likelihood_kwargs, dict):
+            raise TypeError(
+                "Type {} not understood for likelihood kwargs.".format(
+                    type(likelihood_kwargs)
+                )
+            )
+        forbidden_keys = [
+            "interferometers",
+            "waveform_generator",
+            "priors",
+            "distance_marginalization",
+            "time_marginalization",
+            "phase_marginalization",
+            "jitter_time",
+            "distance_marginalization_lookup_table",
+        ]
+        if "roq" in self.likelihood_type.lower():
+            forbidden_keys += ["weights", "roq_params", "roq_scale_factor"]
+        for key in forbidden_keys:
+            if key in likelihood_kwargs:
+                raise KeyError(
+                    "{} should be passed through named argument not likelihood_kwargs".format(
+                        key
+                    )
+                )
+        self._extra_likelihood_kwargs = likelihood_kwargs
+
+    @property
+    def roq_likelihood_kwargs(self):
+        if hasattr(self, "likelihood_roq_params"):
+            params = self.likelihood_roq_params
+        else:
+            params = np.genfromtxt(self.roq_folder + "/params.dat", names=True)
+
+        if hasattr(self, "likelihood_roq_weights"):
+            weights = self.likelihood_roq_weights
+        else:
+            weights = self.meta_data["weight_file"]
+            logger.info("Loading ROQ weights from {}".format(weights))
+
+        return dict(
+            weights=weights, roq_params=params, roq_scale_factor=self.roq_scale_factor,
+        )
 
     @property
     def parameter_conversion(self):
