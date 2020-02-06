@@ -752,6 +752,33 @@ class Input(object):
             logger.info("Using geocent_time prior from prior_file")
 
         if self.calibration_model is not None:
+            priors.update(self.calibration_prior)
+        return priors
+
+    @property
+    def calibration_model(self):
+        return getattr(self, "_calibration_model", None)
+
+    @calibration_model.setter
+    def calibration_model(self, calibration_model):
+        if calibration_model is not None:
+            logger.info("Setting calibration_model={}".format(calibration_model))
+            self._calibration_model = calibration_model
+        else:
+            logger.info(
+                "No calibration_model model provided, calibration "
+                "marginalization will not be used"
+            )
+            self._calibration_model = None
+
+    @property
+    def calibration_prior(self):
+        if self.calibration_model is None:
+            return None
+        if getattr(self, "_calibration_prior", None) is not None:
+            return self._calibration_prior
+        self._calibration_prior = bilby.core.prior.PriorDict()
+        if self.calibration_model is not None:
             for det in self.detectors:
                 if det in self.spline_calibration_envelope_dict:
                     logger.info(
@@ -759,7 +786,7 @@ class Input(object):
                             det, self.spline_calibration_envelope_dict[det]
                         )
                     )
-                    priors.update(
+                    self._calibration_prior.update(
                         bilby.gw.prior.CalibrationPriorDict.from_envelope_file(
                             self.spline_calibration_envelope_dict[det],
                             minimum_frequency=self.minimum_frequency_dict[det],
@@ -776,7 +803,7 @@ class Input(object):
                         "Creating calibration prior for {} from "
                         "provided constant uncertainty values.".format(det)
                     )
-                    priors.update(
+                    self._calibration_prior.update(
                         bilby.gw.prior.CalibrationPriorDict.constant_uncertainty_spline(
                             amplitude_sigma=self.spline_calibration_amplitude_uncertainty_dict[
                                 det
@@ -792,7 +819,7 @@ class Input(object):
                     )
                 else:
                     logger.warning(f"No calibration information for {det}")
-        return priors
+        return self._calibration_prior
 
     @priors.setter
     def priors(self, priors):
