@@ -243,6 +243,13 @@ class DataGenerationInput(Input):
     @injection_parameters.setter
     def injection_parameters(self, injection_parameters):
         self._injection_parameters = injection_parameters
+        if self.calibration_prior is not None:
+            for key in self.calibration_prior:
+                if key not in injection_parameters:
+                    if "frequency" in key:
+                        injection_parameters[key] = self.calibration_prior[key].peak
+                    else:
+                        injection_parameters[key] = 0
         self.meta_data["injection_parameters"] = injection_parameters
 
     @property
