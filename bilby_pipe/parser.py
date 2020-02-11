@@ -554,6 +554,33 @@ def create_parser(top_level=True):
         action="store_true",
         help="Create diagnostic and posterior plots",
     )
+    output_parser.add_argument(
+        "--plot-calibration",
+        action="store_true",
+        help="Create calibration posterior plot",
+    )
+    output_parser.add_argument(
+        "--plot-corner",
+        action="store_true",
+        help="Create intrinsic and extrinsic posterior corner plots",
+    )
+    output_parser.add_argument(
+        "--plot-marginal",
+        action="store_true",
+        help="Create 1-d marginal posterior plots",
+    )
+    output_parser.add_argument(
+        "--plot-skymap", action="store_true", help="Create posterior skymap",
+    )
+    output_parser.add_argument(
+        "--plot-waveform", action="store_true", help="Create waveform posterior plot",
+    )
+    output_parser.add_argument(
+        "--plot-format",
+        default="png",
+        help="Format for making bilby_pipe plots, can be [png, pdf, html]. "
+        "If specified format is not supported, will default to png.",
+    )
 
     output_parser.add(
         "--create-summary", action="store_true", help="Create a PESummary page"
