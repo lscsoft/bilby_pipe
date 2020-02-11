@@ -103,6 +103,18 @@ class MainInput(Input):
         self.request_memory_generation = args.request_memory_generation
         self.request_cpus = args.request_cpus
 
+        if self.create_plots:
+            for plot_attr in [
+                "calibration",
+                "corner",
+                "marginal",
+                "skymap",
+                "waveform",
+                "format",
+            ]:
+                attr = "plot_{}".format(plot_attr)
+                setattr(self, attr, getattr(args, attr))
+
         self.postprocessing_executable = args.postprocessing_executable
         self.postprocessing_arguments = args.postprocessing_arguments
 
@@ -719,6 +731,10 @@ class PlotNode(Node):
         )
         self.arguments.add("result", merged_node.result_file)
         self.arguments.add("outdir", self.inputs.result_directory)
+        for plot_type in ["calibration", "corner", "marginal", "skymap", "waveform"]:
+            if getattr(inputs, "plot_{}".format(plot_type), False):
+                self.arguments.add_flag(plot_type)
+        self.arguments.add("format", inputs.plot_format)
         self.process_node()
         self.job.add_parent(merged_node.job)
 

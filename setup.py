@@ -111,6 +111,11 @@ setup(
             "bilby_pipe_pp_test=bilby_pipe.pp_test:main",
             "bilby_pipe_review=bilby_pipe.review:main",
             "bilby_pipe_plot=bilby_pipe.plot:main",
+            "bilby_pipe_plot_calibration=bilby_pipe.plot:plot_calibration",
+            "bilby_pipe_plot_corner=bilby_pipe.plot:plot_corner",
+            "bilby_pipe_plot_marginal=bilby_pipe.plot:plot_marginal",
+            "bilby_pipe_plot_skymap=bilby_pipe.plot:plot_skymap",
+            "bilby_pipe_plot_waveform=bilby_pipe.plot:plot_waveform",
             "bilby_pipe_gracedb=bilby_pipe.gracedb:main",
             "bilby_pipe_write_default_ini=bilby_pipe.parser:main",
         ]

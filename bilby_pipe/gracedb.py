@@ -438,6 +438,12 @@ def create_config_file(
         n_parallel=4,
         create_summary=True,
         summarypages_arguments={"nsamples_for_skymap": 5000},
+        create_plots=True,
+        plot_calibration=False,
+        plot_corner=True,
+        plot_marginal=False,
+        plot_skymap=False,
+        plot_waveform=False,
     )
     config_dict.update(extra_config_arguments)
 
