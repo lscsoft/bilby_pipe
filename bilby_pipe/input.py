@@ -1009,7 +1009,7 @@ class Input(object):
             waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
             waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 
-            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+            waveform_generator = self.waveform_generator_class(
                 frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
@@ -1019,7 +1019,7 @@ class Input(object):
             )
 
         else:
-            waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+            waveform_generator = self.waveform_generator_class(
                 frequency_domain_source_model=self.bilby_frequency_domain_source_model,
                 sampling_frequency=self.interferometers.sampling_frequency,
                 duration=self.interferometers.duration,
@@ -1029,6 +1029,27 @@ class Input(object):
             )
 
         return waveform_generator
+
+    @property
+    def waveform_generator_class(self):
+        return self._waveform_generator_class
+
+    @waveform_generator_class.setter
+    def waveform_generator_class(self, class_name):
+        if "." in class_name:
+            module = ".".join(class_name.split(".")[:-1])
+            class_name = class_name.split(".")[-1]
+        else:
+            module = "bilby.gw.waveform_generator"
+        wfg_class = getattr(import_module(module), class_name, None)
+        if wfg_class is not None:
+            self._waveform_generator_class = wfg_class
+        else:
+            raise BilbyPipeError(
+                "Cannot import waveform generator class {}.{}".format(
+                    module, class_name
+                )
+            )
 
     @property
     def parameter_generation(self):

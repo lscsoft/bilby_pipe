@@ -123,6 +123,7 @@ class DataGenerationInput(Input):
         self.reference_frequency = args.reference_frequency
 
         # Waveform, source model and likelihood
+        self.waveform_generator_class = args.waveform_generator
         self.waveform_approximant = args.waveform_approximant
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
@@ -462,7 +463,7 @@ class DataGenerationInput(Input):
         self._set_interferometers_from_gaussian_noise()
 
         waveform_arguments = self.get_injection_waveform_arguments()
-        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+        waveform_generator = self.waveform_generator_class(
             duration=self.duration,
             start_time=self.start_time,
             sampling_frequency=self.sampling_frequency,
@@ -513,7 +514,7 @@ class DataGenerationInput(Input):
 
         waveform_arguments = self.get_injection_waveform_arguments()
 
-        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+        waveform_generator = self.waveform_generator_class(
             duration=self.duration,
             sampling_frequency=self.sampling_frequency,
             frequency_domain_source_model=self.bilby_frequency_domain_source_model,
@@ -1073,7 +1074,7 @@ class DataGenerationInput(Input):
         waveform_arguments["frequency_nodes_linear"] = freq_nodes_linear
         waveform_arguments["frequency_nodes_quadratic"] = freq_nodes_quadratic
 
-        waveform_generator = bilby.gw.waveform_generator.WaveformGenerator(
+        waveform_generator = self.waveform_generator_class(
             sampling_frequency=self.interferometers.sampling_frequency,
             duration=self.interferometers.duration,
             frequency_domain_source_model=self.bilby_roq_frequency_domain_source_model,
