@@ -696,6 +696,13 @@ def create_parser(top_level=True):
         title="Waveform arguments", description="Setting for the waveform generator"
     )
     waveform_parser.add(
+        "--waveform-generator",
+        default="bilby.gw.waveform_generator.WaveformGenerator",
+        type=str,
+        help="The waveform generator class, should be a python path. This will "
+        "not be able to use any arguments not passed to the default.",
+    )
+    waveform_parser.add(
         "--reference-frequency", default=20, type=float, help="The reference frequency"
     )
     waveform_parser.add(

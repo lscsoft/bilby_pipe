@@ -79,6 +79,7 @@ class DataAnalysisInput(Input):
         self.reference_frequency = args.reference_frequency
 
         # Waveform, source model and likelihood
+        self.waveform_generator_class = args.waveform_generator
         self.waveform_approximant = args.waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type

@@ -12,5 +12,6 @@
    examples
    ini_file
    injections
+   customisation
    structure
    singularity
