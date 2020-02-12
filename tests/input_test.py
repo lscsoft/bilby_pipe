@@ -1,14 +1,20 @@
 import os
 import unittest
 
+import pandas as pd
+
 import bilby
 import bilby_pipe
-from bilby_pipe.utils import BilbyPipeError
+from bilby_pipe.utils import BilbyPipeError, BilbyPipeInternalError
 
 
 class TestInput(unittest.TestCase):
     def setUp(self):
         self.test_gps_file = "tests/gps_file.txt"
+        self.test_injection_file_json = (
+            "tests/lalinference_test_injection_standard.json"
+        )
+        self.test_injection_file_dat = "tests/lalinference_test_injection_standard.dat"
 
     def tearDown(self):
         pass
@@ -269,6 +275,148 @@ class TestInput(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             inputs.frequency_domain_source_model = "unknown"
             inputs.bilby_roq_frequency_domain_source_model
+
+    def test_injection_numbers_unset(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeInternalError):
+            inputs.injection_numbers
+
+    def test_injection_numbers_None(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = None
+        self.assertEqual(inputs.injection_numbers, None)
+
+    def test_injection_numbers_list(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = [1, 2, 3]
+        self.assertEqual(inputs.injection_numbers, [1, 2, 3])
+
+    def test_injection_numbers_None_list(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = [None]
+        self.assertEqual(inputs.injection_numbers, None)
+
+    def test_injection_numbers_None_str_list(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = ["None"]
+        self.assertEqual(inputs.injection_numbers, None)
+
+    def test_injection_numbers_invalid_str(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_numbers = ["a"]
+
+    def test_injection_df_nonpandas(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_df = dict(a=1)
+
+    def test_injection_df(self):
+        inputs = bilby_pipe.main.Input()
+        df = pd.DataFrame(dict(a=[1, 2, 3]))
+        inputs.injection_numbers = None
+        inputs.injection_df = df
+        self.assertTrue(all(inputs.injection_df == df))
+
+    def test_injection_df_injection_numbers(self):
+        inputs = bilby_pipe.main.Input()
+        df = pd.DataFrame(dict(a=[1, 2, 3]))
+        df_trunc = pd.DataFrame(dict(a=[1, 2]))
+        inputs.injection_numbers = [0, 1]
+        inputs.injection_df = df
+        self.assertTrue(all(inputs.injection_df == df_trunc))
+
+    def test_injection_df_injection_numbers_fail(self):
+        inputs = bilby_pipe.main.Input()
+        df = pd.DataFrame(dict(a=[1, 2, 3]))
+        inputs.injection_numbers = [0, 1, 10]
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_df = df
+
+    def test_injection_numbers_invalid_float(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_numbers = [1.5]
+
+    def test_injection_file_set_none(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_file = None
+        self.assertTrue(inputs.injection_file is None)
+
+    def test_injection_file_set_no_file(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(FileNotFoundError):
+            inputs.injection_file = "this/is/not/a/file"
+
+    def test_injection_file_json_set(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = None
+        inputs.injection_file = self.test_injection_file_json
+        self.assertTrue(len(inputs.injection_df) == 1)
+        self.assertTrue(inputs.injection_df["mass_1"].values[0] == 30)
+        self.assertTrue(inputs.injection_file == self.test_injection_file_json)
+
+    def test_injection_file_dat_set(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = None
+        inputs.injection_file = self.test_injection_file_dat
+        self.assertTrue(len(inputs.injection_df) == 1)
+        self.assertTrue(inputs.injection_df["mass_1"].values[0] == 30)
+        self.assertTrue(inputs.injection_file == self.test_injection_file_dat)
+
+    def test_injection_file_json_dat_equiv(self):
+        inputs_dat = bilby_pipe.main.Input()
+        inputs_dat.injection_numbers = None
+        inputs_dat.injection_file = self.test_injection_file_dat
+
+        inputs_json = bilby_pipe.main.Input()
+        inputs_json.injection_numbers = None
+        inputs_json.injection_file = self.test_injection_file_json
+
+        self.assertTrue(all(inputs_dat.injection_df == inputs_json.injection_df))
+
+    def test_injection_file_set_with_numbers(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = [0]
+        inputs.injection_file = self.test_injection_file_json
+        self.assertTrue(len(inputs.injection_df) == 1)
+        self.assertTrue(inputs.injection_df["mass_1"].values[0] == 30)
+
+    def test_injection_file_set_with_invalid_numbers(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = [1]
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_file = self.test_injection_file_json
+
+    def test_injection_dict_set_None(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_dict = None
+        self.assertEqual(inputs.injection_dict, None)
+
+    def test_injection_dict_set_dict(self):
+        inputs = bilby_pipe.main.Input()
+        dict_test = dict(a=1, b=2)
+        inputs.injection_numbers = None
+        inputs.injection_dict = dict_test
+        self.assertEqual(dict_test, inputs.injection_dict)
+
+    def test_injection_dict_set_str(self):
+        inputs = bilby_pipe.main.Input()
+        dict_str = "{a=1, b=2}"
+        dict_test = dict(a=1, b=2)
+        inputs.injection_numbers = None
+        inputs.injection_dict = dict_str
+        self.assertEqual(dict_test, inputs.injection_dict)
+
+    def test_injection_dict_set_fail(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_dict = "fail"
+
+    def test_injection_dict_set_fail_int(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_dict = 1
 
 
 if __name__ == "__main__":

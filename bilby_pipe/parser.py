@@ -340,7 +340,14 @@ def create_parser(top_level=True):
         default=False,
         help="Create data from an injection file",
     )
-    injection_parser.add(
+    injection_parser_input = injection_parser.add_mutually_exclusive_group()
+    injection_parser_input.add(
+        "--injection-dict",
+        type=nonestr,
+        default=None,
+        help="A single injection dictionary given in the ini file",
+    )
+    injection_parser_input.add(
         "--injection-file",
         type=nonestr,
         default=None,

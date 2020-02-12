@@ -4,6 +4,7 @@ bilby_pipe is a command line tools for taking user input (as command line
 arguments or an ini file) and creating DAG files for submitting bilby parameter
 estimation jobs.
 """
+import json
 import os
 import re
 import shutil
@@ -94,6 +95,7 @@ class MainInput(Input):
         self.injection = args.injection
         self.injection_numbers = args.injection_numbers
         self.injection_file = args.injection_file
+        self.injection_dict = args.injection_dict
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.generation_seed = args.generation_seed
         if self.injection:
@@ -215,11 +217,22 @@ class MainInput(Input):
                 logger.warning(" ".join(msg))
 
     def check_injection(self):
-        """ If injections are requested, create an injection file """
+        """ Check injection behaviour
+
+        If injections are requested, either use the injection-dict,
+        injection-file, or create an injection-file
+
+        """
         default_injection_file_name = "{}/{}_injection_file.dat".format(
             self.data_directory, self.label
         )
-        if self.injection_file is not None:
+        if self.injection_dict is not None:
+            logger.info(
+                "Using injection dict from ini file {}".format(
+                    json.dumps(self.injection_dict, indent=2)
+                )
+            )
+        elif self.injection_file is not None:
             logger.info("Using injection file {}".format(self.injection_file))
         elif os.path.isfile(default_injection_file_name):
             # This is done to avoid overwriting the injection file
@@ -553,7 +566,7 @@ class Node(object):
         if executable.startswith("/cvmfs"):
             repo = executable.split(os.path.sep, 3)[2]
             requirements.append(
-                "(HAS_CVMFS_{}=?=True)".format(re.sub("[.-]", "_", repo),)
+                "(HAS_CVMFS_{}=?=True)".format(re.sub("[.-]", "_", repo))
             )
 
         return lines, " && ".join(requirements)

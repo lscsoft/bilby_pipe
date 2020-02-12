@@ -39,6 +39,12 @@ def create_parser():
     parser.add_argument(
         "-n", type=int, help="Number of samples to truncate to", default=None
     )
+    parser.add_argument(
+        "--filter",
+        type=str,
+        help="A string to match and filtering results",
+        default=None,
+    )
     return parser
 
 
@@ -51,7 +57,16 @@ def get_results_filenames(args):
     if len(results_files) == 0:
         raise FileNotFoundError("No results found in path {}".format(args.directory))
 
+    if args.filter is not None:
+        logger.info("Filtering results to only '{}' results".format(args.filter))
+        results_files = [rf for rf in results_files if args.filter in rf]
+
+    if any("merge" in item for item in results_files):
+        logger.info("Filtering results to only 'merge' results")
+        results_files = [rf for rf in results_files if "merge" in rf]
+
     if args.n is not None:
+        logger.info("Truncating to first {} results".format(args.n))
         results_files = results_files[: args.n]
     return results_files
 

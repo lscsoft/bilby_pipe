@@ -35,7 +35,7 @@ def create_overview(
 
     if inputs.injection_waveform_approximant is None:
         inputs.injection_waveform_approximant = inputs.waveform_approximant
-    if inputs.injection:
+    if inputs.injection_file:
         injection_file = abspath(inputs.injection_file)
     else:
         injection_file = None
