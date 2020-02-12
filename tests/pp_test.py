@@ -15,7 +15,12 @@ class TestPP(unittest.TestCase):
     def setUp(self):
         self.outdir = "test_outdir"
         self.args = SimpleNamespace(
-            directory=self.outdir, outdir=None, label=None, n=None, print=False
+            directory=self.outdir,
+            outdir=None,
+            label=None,
+            n=None,
+            print=False,
+            filter=None,
         )
         os.mkdir(self.outdir)
 

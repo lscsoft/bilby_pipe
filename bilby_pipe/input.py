@@ -15,7 +15,13 @@ import pandas as pd
 import bilby
 
 from . import utils
-from .utils import BilbyPipeError, convert_string_to_dict, get_geocent_prior, logger
+from .utils import (
+    BilbyPipeError,
+    BilbyPipeInternalError,
+    convert_string_to_dict,
+    get_geocent_prior,
+    logger,
+)
 
 
 class Input(object):
@@ -407,7 +413,10 @@ class Input(object):
 
     @property
     def injection_numbers(self):
-        return self._injection_numbers
+        if hasattr(self, "_injection_numbers"):
+            return self._injection_numbers
+        else:
+            raise BilbyPipeInternalError("Injection numbers requested, but not yet set")
 
     @injection_numbers.setter
     def injection_numbers(self, injection_numbers):
@@ -468,6 +477,26 @@ class Input(object):
                 "Injection file {} not found".format(injection_file)
             )
 
+    @property
+    def injection_dict(self):
+        return self._injection_dict
+
+    @injection_dict.setter
+    def injection_dict(self, injection_dict):
+        if injection_dict is None:
+            self._injection_dict = None
+            return
+        elif isinstance(injection_dict, str):
+            self._injection_dict = convert_string_to_dict(injection_dict)
+        elif isinstance(injection_dict, dict):
+            self._injection_dict = injection_dict
+        else:
+            raise BilbyPipeError("injection-dict can not be coerced to a dict")
+
+        self.injection_df = pd.DataFrame(self._injection_dict, index=[0])
+        self.total_number_of_injections = 1
+        self.injection = True
+
     @staticmethod
     def read_injection_file(injection_file):
         if "json" in injection_file:
@@ -485,6 +514,7 @@ class Input(object):
         try:
             injection_df = pd.DataFrame(injection_df)
         except ValueError:
+            # If injection_df is a dictionary of single elements, set the index-array in pandas
             injection_df = pd.DataFrame(injection_df, index=[0])
         return injection_df
 
@@ -949,7 +979,7 @@ class Input(object):
             logger.info("Loading ROQ weights from {}".format(weights))
 
         return dict(
-            weights=weights, roq_params=params, roq_scale_factor=self.roq_scale_factor,
+            weights=weights, roq_params=params, roq_scale_factor=self.roq_scale_factor
         )
 
     @property

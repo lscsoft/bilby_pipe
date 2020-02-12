@@ -190,11 +190,16 @@ class DataGenerationInput(Input):
         self.injection = args.injection
         self.injection_numbers = args.injection_numbers
         self.injection_file = args.injection_file
+        self.injection_dict = args.injection_dict
         self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
         if self.gaussian_noise:
             if args.injection_file is not None:
+                logger.debug("Using provided injection file")
+                self._set_interferometers_from_injection_in_gaussian_noise()
+            elif args.injection_dict is not None:
+                logger.debug("Using provided injection dict")
                 self._set_interferometers_from_injection_in_gaussian_noise()
             elif args.injection is False:
                 self._set_interferometers_from_gaussian_noise()

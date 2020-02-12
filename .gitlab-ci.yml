@@ -105,6 +105,26 @@ injection-regression-test:
     - bilby_pipe test_gaussian_noise_simulation_and_injection.ini --local --bilby-test-mode
     - bilby_pipe test_gaussian_noise_simulation.ini --local --bilby-test-mode
 
+# Test that the review tests build properly
+review-test-build:
+  stage: test
+  image: bilbydev/bilby_pipe-test-suite-python37
+  script:
+    - source activate python37
+    - mkdir -p .pip37
+    - pip --cache-dir=.pip37 install --upgrade bilby
+    - pip --cache-dir=.pip37 install .
+    - mkdir TEST_REVIEW_FILES
+    - cd TEST_REVIEW_FILES
+
+    - bilby_pipe_review --prior 4s --bbh --marginalization distance phase --nact 5 --directory TEST
+    - if [[ ! -f TEST/review_fiducial_bbh_4s_dynesty_distance-phase_nact5.ini ]] ; then exit 1; else echo "Webpage exists"; fi
+
+    - bilby_pipe_review --prior 4s --pp-test --marginalization distance phase --sampler cPnEst --nact 5 --directory TEST
+    - if [[ ! -f TEST/review_pp_test_4s_cpnest_distance-phase_nact5.ini ]] ; then exit 1; else echo "Webpage exists"; fi
+    - cd ..
+    - rm TEST_REVIEW_FILES -r
+
 #example-ini-file-pesummary:
 #  stage: test
 #  image: bilbydev/bilby_pipe-test-suite-python37

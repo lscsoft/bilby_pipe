@@ -29,6 +29,11 @@ class BilbyPipeError(Exception):
         super().__init__(message)
 
 
+class BilbyPipeInternalError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class ArgumentsString(object):
     """ A convenience object to aid in the creation of argument strings """
 
@@ -212,9 +217,16 @@ def get_command_line_arguments():
     return sys.argv[1:]
 
 
-def run_command_line(arguments):
+def run_command_line(arguments, directory=None):
+    if directory:
+        pwd = os.path.abspath(".")
+        os.chdir(directory)
+    else:
+        pwd = None
     print("\nRunning command $ {}\n".format(" ".join(arguments)))
     subprocess.call(arguments)
+    if pwd:
+        os.chdir(pwd)
 
 
 def parse_args(input_args, parser, allow_unknown=True):

@@ -158,7 +158,7 @@ class BilbyArgParser(configargparse.ArgParser):
                     file=ff,
                 )
             if isinstance(comment, str):
-                print(comment + "\n", file=ff)
+                print("#" + comment + "\n", file=ff)
             for group in self._action_groups[2:]:
                 print("#" * 80, file=ff)
                 print("## {}".format(group.title), file=ff)
