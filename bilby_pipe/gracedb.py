@@ -168,24 +168,25 @@ def calibration_lookup(trigger_time, detector):
         raise BilbyPipeError("Unable to read from calibration folder {}".format(base))
 
     calenv = CALENVS_LOOKUP[detector]
-    times = []
-    files = []
+    times = list()
+    files = dict()
     with open(calenv, "r") as f:
         for line in f:
             time, filename = line.rstrip("\n").rstrip().split(" ")
             times.append(float(time))
-            files.append(filename)
+            files[float(time)] = filename
+    times = sorted(times)
 
     if trigger_time < times[0]:
         raise BilbyPipeError(
             "Requested trigger time prior to earliest calibration file"
         )
 
-    for i, time in enumerate(times):
+    for time in times:
         if trigger_time > time:
             directory = os.path.dirname(calenv)
-            calib_file = "{}/{}".format(directory, files[i])
-            return os.path.abspath(calib_file)
+            calib_file = "{}/{}".format(directory, files[time])
+    return os.path.abspath(calib_file)
 
 
 def calibration_dict_lookup(trigger_time, detectors):
