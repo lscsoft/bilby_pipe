@@ -403,8 +403,10 @@ def convert_string_to_dict(string, key=None):
     # Convert equals to colons
     string = string.replace("=", ":")
     string = string.replace(" ", "")
-    # Force double quotes around everything
+
     string = re.sub(r'([A-Za-z/\.0-9\-\+][^\[\],:"}]*)', r'"\g<1>"', string)
+
+    # Force double quotes around everything
     string = string.replace('""', '"')
 
     # Evaluate as a dictionary of str: str
@@ -412,7 +414,7 @@ def convert_string_to_dict(string, key=None):
         dic = ast.literal_eval(string)
         if isinstance(dic, str):
             raise BilbyPipeError("Unable to format {} into a dictionary".format(string))
-    except ValueError as e:
+    except (ValueError, SyntaxError) as e:
         if key is not None:
             raise BilbyPipeError(
                 "Error {}. Unable to parse {}: {}".format(e, key, string)
@@ -594,6 +596,51 @@ def convert_detectors_input(string):
     detectors.sort()
     detectors = [det.upper() for det in detectors]
     return detectors
+
+
+def convert_prior_string_input(string):
+    string = string.replace(" ", "")
+    string = string.replace(":", "=")
+    prior_dict_of_strings = {}
+    for part in comma_partition(string):
+        if len(part) > 0:
+            prior_dict_of_strings.update(kv_parser(part))
+    return prior_dict_of_strings
+
+
+def comma_partition(s):
+    """Partitions `s` at top-level commas"""
+    s = s.strip("{").strip("}")
+    in_parens = 0
+    ixs = []
+    for i, c in enumerate(s):
+        if c == "(":
+            in_parens += 1
+        if c == ")":
+            in_parens -= 1
+        if not in_parens and c == ",":
+            ixs.append(i)
+    return [s[sc] for sc in make_partition_slices(ixs)]
+
+
+def make_partition_slices(ixs):
+    """Yields partitioning slices, skipping each index of `ixs`"""
+    ix_x = [None] + ixs
+    ix_y = ixs + [None]
+    for x, y in zip(ix_x, ix_y):
+        yield slice(x + 1 if x else x, y)
+
+
+def kv_parser(kv_str, remove_leading_namespace=False):
+    """Takes a string in 'K=V' format and returns dictionary.
+    """
+    try:
+        k, v = kv_str.split("=", 1)
+        return {k: v}
+    except ValueError:
+        raise BilbyPipeInternalError(
+            "Error in ini-dict reader when reading {}".format(kv_str)
+        )
 
 
 setup_logger()

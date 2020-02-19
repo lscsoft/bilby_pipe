@@ -46,12 +46,17 @@ def create_overview(
         # If a trigger time doesn't exist, the geocent time prior isn't defined
         priors = inputs._get_priors(add_geocent_time=False)
 
+    if inputs.prior_file is not None:
+        prior_file = (abspath(inputs.prior_file),)
+    else:
+        prior_file = "Specified in INI"
+
     filled_template = template.render(
         inputs=inputs,
         priors=priors,
         config_file=abspath(inputs.ini),
         config_dict=vars(inputs.known_args),
-        prior_file=abspath(inputs.prior_file),
+        prior_file=prior_file,
         injection_file=injection_file,
         data_directory=relpath(inputs.data_directory, index_file_dir),
         result_directory=relpath(inputs.result_directory, index_file_dir),

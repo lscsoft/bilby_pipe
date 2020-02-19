@@ -697,6 +697,44 @@ class Input(object):
         logger.info("Setting prior-file to {}".format(self._prior_file))
 
     @property
+    def prior_dict(self):
+        """ The input prior_dict from the ini (if given)
+
+        Note, this is not the bilby prior (see self.priors for that), this is
+        a key-val dictionary where the val's are strings which are converting
+        into bilby priors in `_get_prior
+        """
+        return self._prior_dict
+
+    @prior_dict.setter
+    def prior_dict(self, prior_dict):
+        if isinstance(prior_dict, dict):
+            prior_dict = prior_dict
+        elif isinstance(prior_dict, str):
+            prior_dict = utils.convert_prior_string_input(prior_dict)
+        elif prior_dict is None:
+            self._prior_dict = None
+            return
+        else:
+            raise BilbyPipeError("prior_dict={} not understood".format(prior_dict))
+
+        self._prior_dict = {
+            self._convert_prior_dict_key(key): val for key, val in prior_dict.items()
+        }
+
+    @staticmethod
+    def _convert_prior_dict_key(key):
+        """ Converts the prior dict key to standard form
+
+        In the ini read, mass_1 -> mass-1, this corrects for that
+        """
+        if "-" in key:
+            key_replaced = key.replace("-", "_")
+            logger.debug("Converting prior-dict key {} to {}".format(key, key_replaced))
+            key = key_replaced
+        return key
+
+    @property
     def distance_marginalization_lookup_table(self):
         return self._distance_marginalization_lookup_table
 
@@ -749,9 +787,14 @@ class Input(object):
 
     @property
     def priors(self):
+        """ Read in and compose the prior at run-time """
         if getattr(self, "_priors", None) is None:
             self._priors = self._get_priors()
         return self._priors
+
+    @priors.setter
+    def priors(self, priors):
+        self._priors = priors
 
     def _get_priors(self, add_geocent_time=True):
         """ Construct the priors
@@ -770,9 +813,11 @@ class Input(object):
             The generated prior
         """
         if self.default_prior in self.combined_default_prior_dicts.keys():
-            priors = self.combined_default_prior_dicts[self.default_prior](
-                filename=self.prior_file
-            )
+            prior_class = self.combined_default_prior_dicts[self.default_prior]
+            if self.prior_dict is not None:
+                priors = prior_class(dictionary=self.prior_dict)
+            else:
+                priors = prior_class(filename=self.prior_file)
         else:
             raise ValueError("Unable to set prior: default_prior unavailable")
 
@@ -850,10 +895,6 @@ class Input(object):
                 else:
                     logger.warning(f"No calibration information for {det}")
         return self._calibration_prior
-
-    @priors.setter
-    def priors(self, priors):
-        self._priors = priors
 
     @property
     def calibration_model(self):
