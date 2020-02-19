@@ -498,7 +498,7 @@ def determine_duration_and_scale_factor_from_parameters(chirp_mass):
         duration = 64
     elif chirp_mass > 1.43:
         duration = 128
-    elif chirp_mass > 1.3:
+    elif chirp_mass > 0.9:
         duration = 128
         roq_scale_factor = 1 / 1.6
     else:
