@@ -67,7 +67,11 @@ class TestCreateInjections(unittest.TestCase):
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
-            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+            filename,
+            n_injection,
+            prior_file=prior_file,
+            generation_seed=None,
+            extension="dat",
         )
         self.assertTrue(os.path.isfile(filename))
         injections = np.genfromtxt(filename, names=True)
@@ -78,7 +82,11 @@ class TestCreateInjections(unittest.TestCase):
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
-            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+            filename,
+            n_injection,
+            prior_file=prior_file,
+            generation_seed=None,
+            extension="dat",
         )
         actual_filename = filename + ".dat"
         self.assertTrue(os.path.isfile(actual_filename))
@@ -90,7 +98,11 @@ class TestCreateInjections(unittest.TestCase):
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
-            filename, prior_file, n_injection, generation_seed=None, extension="json"
+            filename,
+            n_injection,
+            prior_file=prior_file,
+            generation_seed=None,
+            extension="json",
         )
         actual_filename = filename + ".json"
         self.assertTrue(os.path.isfile(actual_filename))
@@ -102,7 +114,11 @@ class TestCreateInjections(unittest.TestCase):
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
-            filename, prior_file, n_injection, generation_seed=None, extension="dat"
+            filename,
+            n_injection,
+            prior_file=prior_file,
+            generation_seed=None,
+            extension="dat",
         )
         actual_filename = filename
         self.assertTrue(os.path.isfile(actual_filename))
@@ -114,17 +130,17 @@ class TestCreateInjections(unittest.TestCase):
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
-            filename + "_A", prior_file, n_injection, generation_seed=123
+            filename + "_A", n_injection, prior_file=prior_file, generation_seed=123
         )
         injectionsA = np.genfromtxt(filename + "_A.dat", names=True)
 
         bilby_pipe.create_injections.create_injection_file(
-            filename + "_B", prior_file, n_injection, generation_seed=123
+            filename + "_B", n_injection, prior_file=prior_file, generation_seed=123
         )
         injectionsB = np.genfromtxt(filename + "_B.dat", names=True)
 
         bilby_pipe.create_injections.create_injection_file(
-            filename + "_C", prior_file, n_injection, generation_seed=1234
+            filename + "_C", n_injection, prior_file=prior_file, generation_seed=321
         )
         injectionsC = np.genfromtxt(filename + "_C.dat", names=True)
 
@@ -135,45 +151,45 @@ class TestCreateInjections(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             n_injection = None
             bilby_pipe.create_injections.create_injection_file(
-                self.filename, self.example_prior_file, n_injection
+                self.filename, n_injection, prior_file=self.example_prior_file
             )
 
         with self.assertRaises(BilbyPipeError):
             n_injection = -1
             bilby_pipe.create_injections.create_injection_file(
-                self.filename, self.example_prior_file, n_injection
+                self.filename, n_injection, prior_file=self.example_prior_file
             )
 
         with self.assertRaises(BilbyPipeError):
             n_injection = np.inf
             bilby_pipe.create_injections.create_injection_file(
-                self.filename, self.example_prior_file, n_injection
+                self.filename, n_injection, prior_file=self.example_prior_file
             )
 
     def test_unknown_prior_file(self):
         prior_file = "not_a_file"
         with self.assertRaises(FileNotFoundError):
             bilby_pipe.create_injections.create_injection_file(
-                self.filename, prior_file, 1
+                self.filename, 1, prior_file=prior_file
             )
 
     def test_none_prior_file(self):
         prior_file = None
         with self.assertRaises(BilbyPipeError):
             bilby_pipe.create_injections.create_injection_file(
-                self.filename, prior_file, 1
+                self.filename, 1, prior_file=prior_file
             )
 
     def test_unknown_ext(self):
         with self.assertRaises(BilbyPipeError):
             bilby_pipe.create_injections.create_injection_file(
-                "test", self.example_prior_file, 1, extension="other"
+                "test", 1, self.example_prior_file, extension="other"
             )
 
     def test_unknown_ext_from_filename(self):
         with self.assertRaises(BilbyPipeError):
             bilby_pipe.create_injections.create_injection_file(
-                "test.other", self.example_prior_file, 1
+                "test.other", 1, self.example_prior_file
             )
 
 

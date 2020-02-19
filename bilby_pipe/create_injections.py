@@ -162,6 +162,7 @@ class PriorFileInput(Input):
     def __init__(
         self,
         prior_file,
+        prior_dict,
         default_prior,
         trigger_time,
         deltaT,
@@ -170,6 +171,7 @@ class PriorFileInput(Input):
         post_trigger_duration,
     ):
         self.prior_file = prior_file
+        self.prior_dict = prior_dict
         self.default_prior = default_prior
         self.trigger_time = trigger_time
         self.deltaT = deltaT
@@ -193,8 +195,9 @@ def get_full_path(filename, extension):
 
 def create_injection_file(
     filename,
-    prior_file,
     n_injection,
+    prior_file=None,
+    prior_dict=None,
     trigger_time=None,
     deltaT=0.2,
     gps_file=None,
@@ -211,6 +214,7 @@ def create_injection_file(
 
     prior_file_input = PriorFileInput(
         prior_file=prior_file,
+        prior_dict=prior_dict,
         default_prior=default_prior,
         trigger_time=trigger_time,
         deltaT=deltaT,
@@ -220,8 +224,8 @@ def create_injection_file(
     )
     prior_file = prior_file_input.prior_file
 
-    if prior_file is None:
-        raise BilbyPipeCreateInjectionsError("prior_file is None")
+    if prior_file is None and prior_dict is None:
+        raise BilbyPipeCreateInjectionsError("No prior_file or prior_dict given")
 
     np.random.seed(generation_seed)
     logger.info("Setting generation seed={}".format(generation_seed))
@@ -276,6 +280,7 @@ def main():
     create_injection_file(
         filename=args.filename,
         prior_file=args.prior_file,
+        prior_dict=args.prior_dict,
         n_injection=args.n_injection,
         trigger_time=args.trigger_time,
         deltaT=args.deltaT,

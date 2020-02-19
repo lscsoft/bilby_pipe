@@ -90,7 +90,7 @@ setup(
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "bilby>=0.6.4",
+        "bilby>=0.6.5",
         "scipy>=1.2.0",
         "gwpy",
         "matplotlib",

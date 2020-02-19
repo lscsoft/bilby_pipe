@@ -95,6 +95,7 @@ class DataGenerationInput(Input):
 
         # Prior arguments
         self.prior_file = args.prior_file
+        self.prior_dict = args.prior_dict
         self.deltaT = args.deltaT
         self.default_prior = args.default_prior
 

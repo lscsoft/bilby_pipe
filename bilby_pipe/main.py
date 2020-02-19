@@ -75,6 +75,7 @@ class MainInput(Input):
         self.likelihood_type = args.likelihood_type
         self.duration = args.duration
         self.prior_file = args.prior_file
+        self.prior_dict = args.prior_dict
         self.default_prior = args.default_prior
 
         self.run_local = args.local
@@ -255,6 +256,7 @@ class MainInput(Input):
             create_injection_file(
                 filename=default_injection_file_name,
                 prior_file=self.prior_file,
+                prior_dict=self.prior_dict,
                 n_injection=n_injection,
                 trigger_time=trigger_time_injections,
                 deltaT=self.deltaT,
@@ -1012,7 +1014,7 @@ def write_complete_config_file(parser, args, inputs):
     # Verify that the written complete config is identical to the source config
     complete_args = parser.parse([inputs.complete_ini_file])
     complete_inputs = MainInput(complete_args, "")
-    ignore_keys = ["known_args", "unknown_args", "_ini", "_webdir"]
+    ignore_keys = ["known_args", "unknown_args", "_ini", "_webdir", "_prior_dict"]
     differences = []
     for key, val in inputs.__dict__.items():
         if key in ignore_keys:

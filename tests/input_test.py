@@ -1,5 +1,6 @@
 import os
 import unittest
+from shutil import copyfile
 
 import pandas as pd
 
@@ -275,6 +276,92 @@ class TestInput(unittest.TestCase):
         with self.assertRaises(BilbyPipeError):
             inputs.frequency_domain_source_model = "unknown"
             inputs.bilby_roq_frequency_domain_source_model
+
+    def test_default_prior_files(self):
+        inputs = bilby_pipe.main.Input()
+        self.assertEqual(inputs.get_default_prior_files(), inputs.default_prior_files)
+        self.assertTrue(isinstance(inputs.default_prior_files, dict))
+        self.assertTrue("4s" in inputs.default_prior_files)
+        self.assertTrue("128s" in inputs.default_prior_files)
+
+    def test_default_prior_files_lookups(self):
+        inputs = bilby_pipe.main.Input()
+        for prior in inputs.default_prior_files:
+            self.assertTrue(
+                os.path.isfile(inputs.get_distance_file_lookup_table(prior))
+            )
+
+    def test_prior_file_set_None(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.prior_file = None
+        self.assertEqual(inputs.prior_file, None)
+
+    def test_prior_file_set(self):
+        inputs = bilby_pipe.main.Input()
+        prior_name = "4s"
+        inputs.prior_file = inputs.default_prior_files[prior_name]
+        self.assertEqual(inputs.prior_file, inputs.default_prior_files[prior_name])
+
+    def test_prior_file_set_local(self):
+        inputs = bilby_pipe.main.Input()
+        filename = inputs.default_prior_files["4s"]
+        temp_filename = "4s-copy"
+        copyfile(filename, temp_filename)
+        inputs.prior_file = "not-a-directory/{}".format(temp_filename)
+        self.assertEqual(inputs.prior_file, temp_filename)
+        os.remove(temp_filename)
+
+    def test_prior_file_set_from_default(self):
+        inputs = bilby_pipe.main.Input()
+        filename = inputs.default_prior_files["4s"]
+        inputs.prior_file = "4s"
+        self.assertEqual(inputs.prior_file, filename)
+
+    def test_prior_file_set_fail(self):
+        inputs = bilby_pipe.main.Input()
+        with self.assertRaises(FileNotFoundError):
+            inputs.prior_file = "not-a-file"
+
+    def test_prior_dict_set_None(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.prior_dict = None
+        self.assertEqual(inputs.prior_dict, None)
+
+    def test_prior_dict_set_from_dict(self):
+        inputs = bilby_pipe.main.Input()
+        val = dict(a=bilby.core.prior.Uniform(-1, 1, "a"), b=2)
+        inputs.prior_dict = val
+        self.assertTrue(isinstance(inputs.prior_dict, dict))
+        self.assertEqual(inputs.prior_dict, val)
+
+    def test_prior_dict_set_from_str(self):
+        inputs = bilby_pipe.main.Input()
+        val = "{a=bilby.core.prior.Uniform(-1, 1, 'a'), b=2}"
+        out = {"a": "bilby.core.prior.Uniform(-1,1,'a')", "b": "2"}
+        inputs.prior_dict = val
+        self.assertTrue(isinstance(inputs.prior_dict, dict))
+        self.assertEqual(inputs.prior_dict, out)
+
+    def test_prior_dict_set_from_str_nested(self):
+        inputs = bilby_pipe.main.Input()
+        val = "{a=bilby.core.prior.Uniform(-1, 1, 'a', a_prior=test(-1, 1)), b=2}"
+        out = {"a": "bilby.core.prior.Uniform(-1,1,'a',a_prior=test(-1,1))", "b": "2"}
+        inputs.prior_dict = val
+        self.assertTrue(isinstance(inputs.prior_dict, dict))
+        self.assertEqual(inputs.prior_dict, out)
+
+    def test_prior_dict_set_from_str_nested_and_eval(self):
+        inputs = bilby_pipe.main.Input()
+        val = (
+            "{chi_1=bilby.gw.prior.AlignedSpin(name='chi_1',"
+            "a_prior=bilby.core.prior.Uniform(minimum=0,maximum=0.8)), b=2}"
+        )
+        inputs.prior_dict = val
+
+        inputs.default_prior = "BBHPriorDict"
+        inputs.trigger_time = 0
+        inputs.deltaT = 2
+        self.assertTrue(isinstance(inputs.priors["chi_1"], bilby.gw.prior.AlignedSpin))
 
     def test_injection_numbers_unset(self):
         inputs = bilby_pipe.main.Input()

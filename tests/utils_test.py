@@ -4,8 +4,12 @@ import shutil
 import sys
 import unittest
 
+import numpy as np
+
+import bilby
 import bilby_pipe
 import bilby_pipe.utils
+from bilby_pipe.utils import convert_prior_string_input
 
 
 class TestParseArgs(unittest.TestCase):
@@ -157,6 +161,36 @@ class TestUtils(unittest.TestCase):
         )
         self.assertEqual(
             ["H1", "L1"], bilby_pipe.utils.convert_detectors_input(["L1", "H1"])
+        )
+
+    def test_convert_prior_string_input_simpe(self):
+        self.assertEqual(dict(a="1", b="2"), convert_prior_string_input("{a: 1, b:2}"))
+
+    def test_convert_prior_string_input_standard(self):
+        check = dict(a="Uniform(name='ra',minimum=0,maximum=2*np.pi)", b="2")
+        out = convert_prior_string_input(
+            "{a: Uniform(name='ra', minimum=0, maximum=2*np.pi), b=2}"
+        )
+        self.assertEqual(out, check)
+        bbh_prior = bilby.gw.prior.BBHPriorDict(out)
+        self.assertEqual(
+            bbh_prior["a"],
+            bilby.core.prior.Uniform(name="ra", minimum=0, maximum=2 * np.pi),
+        )
+
+    def test_convert_prior_string_input_nested(self):
+        otstr = "bilby.gw.prior.AlignedSpin(name='chi_1',a_prior=bilby.core.prior.Uniform(minimum=0,maximum=0.8))"
+        instr = (
+            "{chi_1: bilby.gw.prior.AlignedSpin(name='chi_1',"
+            " a_prior=bilby.core.prior.Uniform(minimum=0, maximum=0.8))}"
+        )
+        out = convert_prior_string_input(instr)
+        self.assertEqual(dict(chi_1=otstr), out)
+        self.assertEqual(
+            eval(out["chi_1"]),
+            bilby.gw.prior.AlignedSpin(
+                name="chi_1", a_prior=bilby.core.prior.Uniform(minimum=0, maximum=0.8)
+            ),
         )
 
 

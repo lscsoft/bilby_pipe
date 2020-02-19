@@ -89,6 +89,7 @@ class BilbyArgParser(configargparse.ArgParser):
             ini_items, numbers, comments, inline_comments = config_file_parser.parse(
                 ini_stream
             )
+            ini_stream.close()
             self.numbers = numbers
             self.comments = comments
             self.inline_comments = inline_comments
@@ -96,6 +97,7 @@ class BilbyArgParser(configargparse.ArgParser):
                 (key.replace("_", "-"), val) for key, val in ini_items.items()
             )
             file_contents = config_file_parser.serialize(corrected_items)
+
         return file_contents
 
     def _preprocess_args(self, args):
@@ -250,4 +252,37 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
                 )
             )
 
+        items = self.reconstruct_multiline_dictionary(items)
         return items, numbers, comments, inline_comments
+
+    def reconstruct_multiline_dictionary(self, items):
+        keys = list(items.keys())
+        vals = list(items.values())
+        for ii, val in enumerate(vals):
+            if "{" in val and "}" not in val:
+                sub_ii = 1
+                sub_dict_vals = []
+                if val != "{":
+                    sub_dict_vals.append(val.rstrip("{"))
+                while True:
+                    next_line = "{}: {}".format(keys[ii + sub_ii], vals[ii + sub_ii])
+                    items.pop(keys[ii + sub_ii])
+                    if "}" not in next_line:
+                        if "{" in next_line:
+                            raise ValueError("Unable to pass multi-line config file")
+                        sub_dict_vals.append(next_line)
+                        sub_ii += 1
+                        continue
+                    elif next_line == "}: true":
+                        sub_dict_vals.append("}")
+                        break
+                    else:
+                        sub_dict_vals.append(next_line)
+                        break
+                sub_dict_vals_with_comma = [
+                    vv.rstrip(",").lstrip(",") for vv in sub_dict_vals
+                ]
+                items[keys[ii]] = "{" + (", ".join(sub_dict_vals_with_comma)).lstrip(
+                    "{"
+                )
+        return items

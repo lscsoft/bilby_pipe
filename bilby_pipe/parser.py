@@ -577,10 +577,10 @@ def create_parser(top_level=True):
         help="Create 1-d marginal posterior plots",
     )
     output_parser.add_argument(
-        "--plot-skymap", action="store_true", help="Create posterior skymap",
+        "--plot-skymap", action="store_true", help="Create posterior skymap"
     )
     output_parser.add_argument(
-        "--plot-waveform", action="store_true", help="Create waveform posterior plot",
+        "--plot-waveform", action="store_true", help="Create waveform posterior plot"
     )
     output_parser.add_argument(
         "--plot-format",
@@ -637,7 +637,13 @@ def create_parser(top_level=True):
             " search over the coalesence time"
         ),
     )
-    prior_parser.add("--prior-file", type=nonestr, default=None, help="The prior file")
+    prior_parser_main = prior_parser.add_mutually_exclusive_group()
+    prior_parser_main.add(
+        "--prior-file", type=nonestr, default=None, help="The prior file"
+    )
+    prior_parser_main.add(
+        "--prior-dict", type=nonestr, default=None, help="A dictionary of priors"
+    )
     prior_parser.add(
         "--convert-to-flat-in-component-mass",
         action=StoreBoolean,
