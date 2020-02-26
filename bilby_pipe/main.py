@@ -295,7 +295,7 @@ class Dag(object):
         self.dag_name = "dag_{}".format(inputs.label)
 
         # The slurm setup uses the pycondor dag as a base
-        if self.inputs.scheduler in ["condor", "slurm"]:
+        if self.inputs.scheduler.lower() in ["condor", "slurm"]:
             self.setup_pycondor_dag()
 
     def setup_pycondor_dag(self):
