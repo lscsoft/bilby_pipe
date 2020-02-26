@@ -321,6 +321,11 @@ class Input(object):
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
             minimum_frequency=self.minimum_frequency,
+            catch_waveform_errors=self.catch_waveform_errors,
+            pn_spin_order=self.pn_spin_order,
+            pn_tidal_order=self.pn_tidal_order,
+            pn_phase_order=self.pn_phase_order,
+            pn_amplitude_order=self.pn_amplitude_order,
         )
 
     def get_injection_waveform_arguments(self):
@@ -336,6 +341,10 @@ class Input(object):
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.injection_waveform_approximant,
             minimum_frequency=self.minimum_frequency,
+            pn_spin_order=self.pn_spin_order,
+            pn_tidal_order=self.pn_tidal_order,
+            pn_phase_order=self.pn_phase_order,
+            pn_amplitude_order=self.pn_amplitude_order,
         )
 
     @property

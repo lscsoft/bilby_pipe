@@ -81,6 +81,11 @@ class DataAnalysisInput(Input):
         # Waveform, source model and likelihood
         self.waveform_generator_class = args.waveform_generator
         self.waveform_approximant = args.waveform_approximant
+        self.catch_waveform_errors = args.catch_waveform_errors
+        self.pn_spin_order = args.pn_spin_order
+        self.pn_tidal_order = args.pn_tidal_order
+        self.pn_phase_order = args.pn_phase_order
+        self.pn_amplitude_order = args.pn_amplitude_order
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
         self.extra_likelihood_kwargs = args.extra_likelihood_kwargs
