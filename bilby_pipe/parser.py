@@ -2,9 +2,12 @@ import argparse
 import os
 import sys
 
+import configargparse
+
 import bilby
 from bilby_pipe.bilbyargparser import BilbyArgParser
 
+from .main import __doc__ as usage
 from .utils import get_version_information, logger, nonefloat, noneint, nonestr
 
 __version__ = get_version_information()
@@ -50,7 +53,10 @@ def create_parser(top_level=True):
         required = False
 
     parser = BilbyArgParser(
-        usage=__doc__, ignore_unknown_config_file_keys=False, allow_abbrev=False
+        usage=usage,
+        ignore_unknown_config_file_keys=False,
+        allow_abbrev=False,
+        formatter_class=configargparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add("ini", type=str, is_config_file=True, help="Configuration ini file")
     parser.add("-v", "--verbose", action="store_true", help="Verbose output")
