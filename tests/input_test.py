@@ -229,17 +229,31 @@ class TestInput(unittest.TestCase):
         inputs.reference_frequency = 20
         inputs.minimum_frequency = 20
         inputs.waveform_approximant = "IMRPhenomPv2"
+        inputs.pn_spin_order = -1
+        inputs.pn_tidal_order = -1
+        inputs.pn_phase_order = -1
+        inputs.pn_amplitude_order = 0
+        inputs.catch_waveform_errors = False
         wfa = inputs.get_default_waveform_arguments()
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
         self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
-        self.assertEqual(len(wfa), 3)
+        self.assertEqual(wfa["pn_spin_order"], -1)
+        self.assertEqual(wfa["pn_tidal_order"], -1)
+        self.assertEqual(wfa["pn_phase_order"], -1)
+        self.assertEqual(wfa["pn_amplitude_order"], 0)
+        self.assertFalse(wfa["catch_waveform_errors"])
+        self.assertEqual(len(wfa), 8)
 
     def test_injection_waveform_arguments(self):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = ["H1"]
         inputs.reference_frequency = 20
         inputs.minimum_frequency = 20
+        inputs.pn_spin_order = -1
+        inputs.pn_tidal_order = -1
+        inputs.pn_phase_order = -1
+        inputs.pn_amplitude_order = 0
 
         # injection-waveform-approx not provided
         inputs.waveform_approximant = "IMRPhenomPv2"
@@ -248,7 +262,11 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
         self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
-        self.assertEqual(len(wfa), 3)
+        self.assertEqual(wfa["pn_spin_order"], -1)
+        self.assertEqual(wfa["pn_tidal_order"], -1)
+        self.assertEqual(wfa["pn_phase_order"], -1)
+        self.assertEqual(wfa["pn_amplitude_order"], 0)
+        self.assertEqual(len(wfa), 7)
 
         # injection-waveform-approx provided
         inputs.waveform_approximant = "IMRPhenomPv2"
@@ -257,7 +275,7 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
         self.assertEqual(wfa["waveform_approximant"], "SEOBNRv4")
-        self.assertEqual(len(wfa), 3)
+        self.assertEqual(len(wfa), 7)
 
     def test_bilby_roq_frequency_domain_source_model(self):
         inputs = bilby_pipe.main.Input()

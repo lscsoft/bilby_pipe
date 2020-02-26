@@ -718,6 +718,38 @@ def create_parser(top_level=True):
         help="The name of the waveform approximant to use for PE.",
     )
     waveform_parser.add(
+        "--catch-waveform-errors",
+        default=False,
+        action=StoreBoolean,
+        help="Turns on waveform error catching",
+    )
+    waveform_parser.add(
+        "--pn-spin-order",
+        default=-1,
+        type=int,
+        help="Post-newtonian order to use for the spin",
+    )
+    waveform_parser.add(
+        "--pn-tidal-order",
+        default=-1,
+        type=int,
+        help="Post-Newtonian order to use for tides",
+    )
+    waveform_parser.add(
+        "--pn-phase-order",
+        default=-1,
+        type=int,
+        help="post-Newtonian order to use for the phase",
+    )
+    waveform_parser.add(
+        "--pn-amplitude-order",
+        default=0,
+        type=int,
+        help="Post-Newtonian order to use for the amplitude. Also "
+        "used to determine the waveform starting frequency.",
+    )
+
+    waveform_parser.add(
         "--frequency-domain-source-model",
         default="lal_binary_black_hole",
         type=str,
