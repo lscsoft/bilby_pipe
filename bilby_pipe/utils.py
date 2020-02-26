@@ -513,7 +513,7 @@ def next_power_of_2(x):
 def request_memory_generation_lookup(duration, roq=False):
     """ Function to determine memory required at the data generation step """
     if roq:
-        return int(max([8, min([64, duration])]))
+        return int(max([8, min([60, duration])]))
     else:
         return 8
 
