@@ -2,7 +2,16 @@
 """
 bilby_pipe is a command line tools for taking user input (as command line
 arguments or an ini file) and creating DAG files for submitting bilby parameter
-estimation jobs.
+estimation jobs. To get started, write an ini file `config.ini` and run
+
+$ bilby_pipe config.ini
+
+Instruction for how to submit the job are printed in a log message. You can
+also specify extra arguments from the command line, e.g.
+
+$ bilby_pipe config.ini --submit
+
+will build and submit the job.
 """
 import json
 import os
