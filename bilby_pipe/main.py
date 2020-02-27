@@ -491,8 +491,8 @@ class Node(object):
         self.extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
 
         if self.online_pe:
-            self.extra_lines.append("+Online_PE = True")
-            self.requirements.append("((TARGET.Online_PE =?= True))")
+            self.extra_lines.append("+Online_CBC_PE_Daily = True")
+            self.requirements.append("((TARGET.Online_CBC_PE_Daily =?= True))")
 
         if self.universe != "local" and self.inputs.osg:
             _osg_lines, _osg_reqs = self._osg_submit_options(
