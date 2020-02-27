@@ -301,6 +301,7 @@ def create_config_file(
     convert_to_flat_in_component_mass=False,
     roq=True,
     search_type="cbc",
+    online=False,
 ):
     """ Creates ini file from defaults and candidate contents
 
@@ -324,6 +325,8 @@ def create_config_file(
         If True, will convert to a flat in component mass prior after running
     search_type: str
         What kind of search identified the trigger, options are "cbc" and "burst"
+    online: bool
+        Whether this is running online. This disables the pesummary ligo-skymap
 
     Returns
     -------
@@ -436,9 +439,9 @@ def create_config_file(
         local_generation=False,
         local_plot=False,
         transfer_files=False,
-        n_parallel=4,
         create_summary=True,
-        summarypages_arguments={"nsamples_for_skymap": 5000},
+        summarypages_arguments={"gracedb": gracedb},
+        n_parallel=4,
         create_plots=True,
         plot_calibration=False,
         plot_corner=True,
@@ -447,6 +450,11 @@ def create_config_file(
         plot_waveform=False,
     )
     config_dict.update(extra_config_arguments)
+
+    if online:
+        config_dict["summarypages_arguments"]["no_ligo_skymap"] = True
+    else:
+        config_dict["summarypages_arguments"]["nsamples_for_skymap"] = 5000
 
     comment = (
         "# Configuration ini file generated from GraceDB "
@@ -576,7 +584,7 @@ def generate_burst_prior_from_template(
 
     with open(template, "r") as old_prior:
         prior_string = old_prior.read().format(
-            minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency,
+            minimum_frequency=minimum_frequency, maximum_frequency=maximum_frequency
         )
     prior_file = os.path.join(outdir, "online.prior")
     with open(prior_file, "w") as new_prior:
@@ -734,6 +742,7 @@ def main(args=None, unknown_args=None):
         webdir=webdir,
         convert_to_flat_in_component_mass=convert_to_flat_in_component_mass,
         search_type=search_type,
+        online=args.online_pe,
     )
 
     if args.output == "ini":

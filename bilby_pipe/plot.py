@@ -160,7 +160,7 @@ def plot_waveform():
         _format = "png"
 
     result.plot_waveform_posterior(
-        interferometers=interferometers, n_samples=1000, format=_format,
+        interferometers=interferometers, n_samples=1000, format=_format
     )
 
 
