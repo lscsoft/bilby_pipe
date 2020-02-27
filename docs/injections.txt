@@ -41,13 +41,13 @@ Naming this file :code:`bbh.prior` and running
 
 .. code-block:: console
 
-   $ bilby_pipe_create_injections bbh.prior --n-injection 100 --generation-seed 1234 -f injections.json
+   $ bilby_pipe_create_injection_file bbh.prior --n-injection 100 --generation-seed 1234 -f injections.json
 
 Will produce a file :code:`injections.json` containing 100 random draws from the prior. For a complete list of options, see
 
 .. code-block:: console
 
-   $ bilby_pipe_create_injections --help
+   $ bilby_pipe_create_injection_file --help
 
 General tips
 ------------
