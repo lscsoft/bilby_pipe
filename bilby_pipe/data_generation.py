@@ -701,7 +701,7 @@ class DataGenerationInput(Input):
             )
 
         # plot psd_strain_data+strain_data  and zoom into strain_data segment
-        data_with_psd = psd_strain_data.append(strain_data)
+        data_with_psd = psd_strain_data.append(strain_data, inplace=False)
         strain_spectogram_plot(
             data=data_with_psd,
             extra_label="D{}".format(int(time[1] - time[0])),
