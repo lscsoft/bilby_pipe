@@ -1,5 +1,20 @@
 # All notable changes will be documented in this file
 
+## v0.3.10 : 2020-30-03
+
+### Added
+-   Waveform arguments (!296)
+-   prior-dict option (!288)
+-   Variable waveform generator class (!283)
+-   Calibration in injections (!282)
+-   Likelihood kwargs (!285)
+
+### Changes
+-   Improved --help message (!298)
+-   Update to date calibration files for online runs
+-   Improvements to the review tests script (!286)
+-   Documentation on injections (!275)
+
 ## v0.3.9 : 2020-30-03
 
 ### Changes
@@ -11,21 +26,21 @@
 -   Add an XML conversion method
 
 ## v0.3.8 : 2020-01-03
-Minor release updating to bilby v0.6.3
+-   Minor release updating to bilby v0.6.3
 
 ## v0.3.7 : 2019-12-20
-Minor release updating to bilby v0.6.2
+-   Minor release updating to bilby v0.6.2
 
 ### Changes
-- Fixes ROQ scaling issues
-- Modifies Default and FastTest sampler settings
-- Edits template priors to allow component mass scaling
+-   Fixes ROQ scaling issues
+-   Modifies Default and FastTest sampler settings
+-   Edits template priors to allow component mass scaling
 
 ## v0.3.6 : 2019-12-10
-Minor release fixing bugs with the ROQ
+-   Minor release fixing bugs with the ROQ
 
 ## v0.3.5 : 2019-12-06
-Minor release following small fixes
+-   Minor release following small fixes
 
 ### Added
 -   PESummary CI test
@@ -44,7 +59,7 @@ Minor release following small fixes
 -   Update the minimum pesummary version
 
 ## v0.3.3 : 2019-11-26
-Minor release following small fixes
+-   Minor release following small fixes
 
 ### Changes
 -   All gracedb jobs default to "vanilla" universe
