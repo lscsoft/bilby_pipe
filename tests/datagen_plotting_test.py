@@ -25,7 +25,8 @@ class TestDataGenerationPlotting(unittest.TestCase):
         self.psd = gwpy.timeseries.TimeSeries.read("tests/psd.hdf5")
 
     def tearDown(self):
-        shutil.rmtree(self.outdir)
+        if os.path.isdir(self.outdir):
+            shutil.rmtree(self.outdir)
 
     def test_psd_plot(self):
         os.makedirs(self.outdir, exist_ok=True)
@@ -43,7 +44,7 @@ class TestDataGenerationPlotting(unittest.TestCase):
             "--detectors",
             "[H1]",
             "--channel-dict",
-            "{'H1': 'GDS-CALIB_STRAIN',}",
+            "{'H1': 'GWOSC',}",
             "--outdir",
             self.outdir,
             "--trigger-time",
