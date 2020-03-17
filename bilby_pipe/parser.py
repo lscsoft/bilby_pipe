@@ -136,7 +136,7 @@ def create_parser(top_level=True):
 
     data_gen_pars.add(
         "--ignore-gwpy-data-quality-check",
-        type=bool,
+        action=StoreBoolean,
         default=True,
         help=(
             "Ignores the check to see if data queried from GWpy (ie not gaussian "
@@ -157,7 +157,11 @@ def create_parser(top_level=True):
     data_gen_pars.add(
         "--gps-file",
         type=nonestr,
-        help="File containing segment GPS start times",
+        help=(
+            "File containing segment GPS start times. This can be a multi-"
+            "column file if (a) it is comma-separated and (b) the zeroth "
+            "column contains the gps-times to use"
+        ),
         default=None,
     )
     data_gen_pars.add(
@@ -210,7 +214,8 @@ def create_parser(top_level=True):
         default=None,
         help=(
             "Channel dictionary: keys relate to the detector with values "
-            "the channel name, e.g. 'GDS-CALIB_STRAIN'. Note, the "
+            "the channel name, e.g. 'GDS-CALIB_STRAIN'. For GWOSC open data, "
+            "set the channel-dict keys to 'GWOSC'. Note, the "
             "dictionary should follow basic python dict syntax."
         ),
     )

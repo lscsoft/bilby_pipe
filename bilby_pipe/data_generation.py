@@ -4,6 +4,7 @@ Module containing the tools for data generation
 """
 from __future__ import division, print_function
 
+import glob
 import os
 import sys
 
@@ -711,18 +712,28 @@ class DataGenerationInput(Input):
     def _get_data(self, det, channel_type, start_time, end_time, resample=True):
         """ Read in data using gwpy
 
-        This first uses the `gwpy.timeseries.TimeSeries.get()` method to access
-        the data, if this fails, it then attempts to use `fetch_open_data()` as
-        a fallback.
+        If the channel_type is "GWOSC", open data is obtained. Otherwise, we
+        try to read in the data first using "read" if a data_dict exists and
+        then using "get".
 
         Parameters
         ----------
         channel_type: str
             The full channel name is formed from <det>:<channel_type>, see
-            bilby_pipe_generation --help for more information. If given as a
-            list each type will be tried and the first success returned.
+            bilby_pipe --help for more information.
+
         start_time, end_time: float
             GPS start and end time of segment
+
+        Returns
+        -------
+        data: gwpy.timeseries.TimeSeries
+            The loaded data
+
+        Raises
+        ------
+        BilbyPipeError:
+            If there is an issue obtaining the data or with the data itself
         """
         timeslide_val = None
         if hasattr(self, "timeslide_dict"):
@@ -745,13 +756,20 @@ class DataGenerationInput(Input):
                 raise BilbyPipeError("Data quality is not good.")
 
         data = None
+
+        if data is None and channel_type == "GWOSC":
+            data = self._gwpy_fetch_open_data(det, start_time, end_time)
+
         channel = "{}:{}".format(det, channel_type)
         if data is None and self.data_dict is not None:
             data = self._gwpy_read(det, channel, start_time, end_time)
         if data is None:
             data = self._gwpy_get(channel, start_time, end_time)
+
         if data is None:
-            data = self._gwpy_fetch_open_data(det, start_time, end_time)
+            raise BilbyPipeError("Failed to obtain data")
+        if np.all(data.value == 0):
+            raise BilbyPipeError("Obtained data is all zeros")
 
         if resample and data.sample_rate.value == self.sampling_frequency:
             logger.info("Sample rate matches data no resampling")
@@ -806,14 +824,12 @@ class DataGenerationInput(Input):
         )
         try:
             flag = gwpy.segments.DataQualityFlag.query(
-                flag=quality_flag, start=start_time, stop=end_time
+                quality_flag, gwpy.time.to_gps(start_time), gwpy.time.to_gps(end_time),
             )
 
             # compare active duration from quality flag and total duration
             total_duration = end_time - start_time
-            active_duration = (
-                flag.livetime.gpsSeconds + flag.livetime.gpsNanoSeconds * 1e-9
-            )
+            active_duration = float(flag.livetime)
             inactive_duration = total_duration - active_duration
 
             # data is not good if there is any period when the IFO is inactive
@@ -866,6 +882,12 @@ class DataGenerationInput(Input):
         else:
             source = self.data_dict[det]
             format_ext = os.path.splitext(source)[1]
+
+        # If the source contains a glob-path, e.g. *gwf, glob it first
+        if "*" in source:
+            logger.info("Globbing {}".format(source))
+            source = glob.glob(source)
+            logger.info("Setting source={}".format(source))
 
         if "gwf" in format_ext:
             kwargs = dict(
@@ -985,9 +1007,7 @@ class DataGenerationInput(Input):
 
         """
 
-        logger.info(
-            "Previous attempts to download data failed, trying with `fetch_open_data`"
-        )
+        logger.info("Attempting to download data from GWOSC")
         logger.info(
             "Calling TimeSeries.fetch_open_data('{}', start={}, end={})".format(
                 det, start_time, end_time

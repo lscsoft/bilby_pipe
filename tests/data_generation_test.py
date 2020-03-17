@@ -293,10 +293,10 @@ class TestDataGenerationInput(unittest.TestCase):
         t0_psd = t0 - 32
         t1_psd = t0
 
-        get_data_method.assert_any_call("H1", "GDS-CALIB_STRAIN", t0, t1)  # SIGNAL
-        get_data_method.assert_any_call("H1", "GDS-CALIB_STRAIN", t0_psd, t1_psd)  # PSD
-        get_data_method.assert_any_call("L1", "GDS-CALIB_STRAIN", t0, t1)  # SIGNAL
-        get_data_method.assert_any_call("L1", "GDS-CALIB_STRAIN", t0_psd, t1_psd)  # PSD
+        get_data_method.assert_any_call("H1", "GWOSC", t0, t1)  # SIGNAL
+        get_data_method.assert_any_call("H1", "GWOSC", t0_psd, t1_psd)  # PSD
+        get_data_method.assert_any_call("L1", "GWOSC", t0, t1)  # SIGNAL
+        get_data_method.assert_any_call("L1", "GWOSC", t0_psd, t1_psd)  # PSD
 
     def test_inject_signal_into_gaussian_noise(self):
         args_list = [
