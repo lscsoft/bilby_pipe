@@ -411,7 +411,7 @@ def create_parser(top_level=True):
     )
 
     submission_parser.add("--outdir", type=str, default=".", help="Output directory")
-    parser.add(
+    submission_parser.add(
         "--periodic-restart-time",
         default=43200,
         type=int,
