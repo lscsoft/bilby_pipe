@@ -432,17 +432,20 @@ class Input(object):
         if (
             injection_numbers is None
             or len(injection_numbers) == 0
-            or injection_numbers[0] is None
+            or injection_numbers == "None"
             or injection_numbers[0] == "None"
+            or injection_numbers[0] is None
         ):
             self._injection_numbers = None
-            return
-        if all([isinstance(val, int) for val in injection_numbers]):
-            self._injection_numbers = injection_numbers
+        elif all(
+            i is not None
+            and not isinstance(i, float)
+            and utils.check_if_represents_int(i)
+            for i in injection_numbers
+        ):
+            self._injection_numbers = [int(i) for i in injection_numbers]
         else:
-            raise BilbyPipeError(
-                "Invalid injection numbers {}".format(injection_numbers)
-            )
+            raise BilbyPipeError(f"Invalid injection numbers {injection_numbers}")
 
     @property
     def injection_df(self):

@@ -277,6 +277,15 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["waveform_approximant"], "SEOBNRv4")
         self.assertEqual(len(wfa), 7)
 
+    def test_injection_number(self):
+        inputs = bilby_pipe.main.Input()
+        inputs.injection_numbers = [0]
+        self.assertEqual(inputs.injection_numbers, [0])
+        inputs.injection_numbers = ["0"]
+        self.assertEqual(inputs.injection_numbers, [0])
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_numbers = ["abba"]
+
     def test_bilby_roq_frequency_domain_source_model(self):
         inputs = bilby_pipe.main.Input()
         inputs.frequency_domain_source_model = "lal_binary_black_hole"
@@ -442,6 +451,8 @@ class TestInput(unittest.TestCase):
         inputs = bilby_pipe.main.Input()
         with self.assertRaises(BilbyPipeError):
             inputs.injection_numbers = [1.5]
+        with self.assertRaises(BilbyPipeError):
+            inputs.injection_numbers = ["1.5"]
 
     def test_injection_file_set_none(self):
         inputs = bilby_pipe.main.Input()

@@ -643,5 +643,14 @@ def kv_parser(kv_str, remove_leading_namespace=False):
         )
 
 
+def check_if_represents_int(s):
+    """Checks if the string/bytes-like object/number s represents an int"""
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 setup_logger()
 logger = logging.getLogger("bilby_pipe")
