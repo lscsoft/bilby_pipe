@@ -172,7 +172,6 @@ def get_sampler_kwargs(args):
         for attr in SAMPLER_KEYS
         if getattr(args, attr, None) is not None
     }
-    sampler_kwargs["n_check_point"] = 10000
     return sampler_kwargs
 
 
