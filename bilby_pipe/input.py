@@ -2,8 +2,6 @@
 """
 Module containing the main input class
 """
-from __future__ import division, print_function
-
 import glob
 import json
 import os

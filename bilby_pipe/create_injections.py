@@ -19,8 +19,6 @@ If a geocent_time prior is given in the file, this will be used to create the
 time prior. Otherwise, the trigger-time & deltaT or gps-time and deltaT options
 are used (see below).
 """
-from __future__ import division, print_function
-
 import argparse
 import json
 import os
