@@ -31,6 +31,7 @@ from .input import Input
 from .overview import create_overview
 from .parser import create_parser
 from .utils import (
+    CHECKPOINT_EXIT_CODE,
     ArgumentsString,
     BilbyPipeError,
     DataDump,
@@ -522,17 +523,10 @@ class Node(object):
         logger.debug("Adding job: {}".format(job_name))
 
     @staticmethod
-    def _checkpoint_submit_lines(code=130):
+    def _checkpoint_submit_lines():
         return [
-            # needed for htcondor < 8.9.x (probably)
-            "+CheckpointExitBySignal = False",
-            "+CheckpointExitCode = {}".format(code),
-            # htcondor >= 8.9.x (probably)
-            "+SuccessCheckpointExitBySignal = False",
-            "+SuccessCheckpointExitCode = {}".format(code),
-            # ask condor to provide the checkpoint signals
-            "+WantCheckpointSignal = True",
-            '+CheckpointSig = "SIGTERM"',
+            "+SuccessCheckpointExitCode = {}".format(CHECKPOINT_EXIT_CODE),
+            "+WantFTOnCheckpoint = True",
         ]
 
     @staticmethod

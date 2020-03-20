@@ -418,11 +418,11 @@ def create_parser(top_level=True):
     submission_parser.add("--outdir", type=str, default=".", help="Output directory")
     submission_parser.add(
         "--periodic-restart-time",
-        default=43200,
+        default=6000,
         type=int,
         help=(
-            "Time after which the job will be self-evicted with code 130."
-            " After this, condor will restart the job. Default is 10800s."
+            "Time after which the job will be self-evicted."
+            " After this, condor will restart the job. Default is 6000s."
             " This is used to decrease the chance of HTCondor hard evictions"
         ),
     )

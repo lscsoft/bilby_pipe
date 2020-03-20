@@ -15,6 +15,7 @@ from bilby_pipe.input import Input
 from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.utils import (
+    CHECKPOINT_EXIT_CODE,
     SAMPLER_SETTINGS,
     BilbyPipeError,
     DataDump,
@@ -31,7 +32,7 @@ matplotlib.use("agg")
 
 def sighandler(signum, frame):
     logger.info("Performing periodic eviction")
-    sys.exit(130)
+    sys.exit(CHECKPOINT_EXIT_CODE)
 
 
 class DataAnalysisInput(Input):
@@ -303,6 +304,7 @@ class DataAnalysisInput(Input):
             injection_parameters=self.meta_data["injection_parameters"],
             meta_data=self.meta_data,
             result_class=self.result_class,
+            exit_code=CHECKPOINT_EXIT_CODE,
             **self.sampler_kwargs,
         )
 

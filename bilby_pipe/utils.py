@@ -15,6 +15,8 @@ from pathlib import Path
 
 import bilby
 
+CHECKPOINT_EXIT_CODE = 77
+
 
 class tcolors:
     WARNING = "\u001b[31m"
