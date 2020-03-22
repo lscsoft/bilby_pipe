@@ -2,8 +2,6 @@
 """
 Module containing the tools for data generation
 """
-from __future__ import division, print_function
-
 import glob
 import os
 import sys

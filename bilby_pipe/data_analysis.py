@@ -2,8 +2,6 @@
 """
 Script to analyse the stored data
 """
-from __future__ import division, print_function
-
 import os
 import signal
 import sys
