@@ -508,7 +508,7 @@ class Node(object):
             submit=self.inputs.submit_directory,
             request_memory=self.request_memory,
             request_disk=self.request_disk,
-            request_cpus=1,
+            request_cpus=self.request_cpus,
             getenv=self.getenv,
             universe=self.universe,
             initialdir=self.inputs.initialdir,
@@ -590,6 +590,7 @@ class GenerationNode(Node):
         self.trigger_time = trigger_time
         self.idx = idx
         self.dag = dag
+        self.request_cpus = 1
 
         self.setup_arguments()
         self.arguments.add("label", self.label)
@@ -652,6 +653,7 @@ class AnalysisNode(Node):
         self.generation_node = generation_node
         self.detectors = detectors
         self.parallel_idx = parallel_idx
+        self.request_cpus = inputs.request_cpus
 
         data_label = generation_node.job_name
         base_name = data_label.replace("generation", "analysis")
@@ -713,6 +715,7 @@ class MergeNode(Node):
 
         self.job_name = "{}_merge".format(parallel_node_list[0].base_job_name)
         self.label = "{}_merge".format(parallel_node_list[0].base_job_name)
+        self.request_cpus = 1
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
@@ -750,6 +753,7 @@ class PlotNode(Node):
         self.dag = dag
         self.job_name = merged_node.job_name + "_plot"
         self.label = merged_node.job_name + "_plot"
+        self.request_cpus = 1
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )
@@ -795,6 +799,7 @@ class PESummaryNode(Node):
         super().__init__(inputs)
         self.dag = dag
         self.job_name = "{}_pesummary".format(inputs.label)
+        self.request_cpus = 1
 
         n_results = len(merged_node_list)
         result_files = [merged_node.result_file for merged_node in merged_node_list]
@@ -886,6 +891,7 @@ class PostProcessAllResultsNode(Node):
     def __init__(self, inputs, merged_node_list, dag):
         super().__init__(inputs)
         self.dag = dag
+        self.request_cpus = 1
         self.job_name = "{}_postprocess_all".format(self.inputs.label)
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
