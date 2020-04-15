@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## v0.3.11: 2020-15-04
+
+### Changes
+-   Put periodic restart into job submission parser (!306)
+-   Injection number fix (!281)
+-   Changes to data read-in logic (!305)
+-   Update lookup tables following changes in bilby (!307)
+-   Remove hardcoded checkpoint from review runs (!309)
+-   Fix issues with checkpointing (!308)
+-   Remove future imports (!310)
+-   Fix bug where request-cpu value was not passed through (!311)
+-   Allow lal resampling (!312)
+
 ## v0.3.10 : 2020-30-03
 
 ### Added
