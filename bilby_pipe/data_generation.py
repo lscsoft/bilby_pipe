@@ -7,6 +7,7 @@ import os
 import sys
 
 import gwpy
+import lal
 import numpy as np
 
 import bilby
@@ -106,6 +107,7 @@ class DataGenerationInput(Input):
         self.data_format = args.data_format
         self.tukey_roll_off = args.tukey_roll_off
         self.zero_noise = args.zero_noise
+        self.resampling_method = args.resampling_method
 
         if args.timeslide_file is not None:
             self.gps_file = args.gps_file
@@ -772,12 +774,30 @@ class DataGenerationInput(Input):
         if resample and data.sample_rate.value == self.sampling_frequency:
             logger.info("Sample rate matches data no resampling")
         elif resample:
-            logger.info(
-                "Resampling data to sampling_frequency {}".format(
-                    self.sampling_frequency
+            message = "Resampling data to sampling_frequency {} using {}"
+            if self.resampling_method == "gwpy":
+                logger.info(
+                    message.format(self.sampling_frequency, self.resampling_method)
                 )
-            )
-            data = data.resample(self.sampling_frequency)
+                data = data.resample(self.sampling_frequency)
+            elif self.resampling_method == "lal":
+                logger.info(
+                    message.format(self.sampling_frequency, self.resampling_method)
+                )
+                lal_timeseries = data.to_lal()
+                lal.ResampleREAL8TimeSeries(
+                    lal_timeseries, float(1 / self.sampling_frequency)
+                )
+                data = gwpy.timeseries.TimeSeries(
+                    lal_timeseries.data.data,
+                    epoch=lal_timeseries.epoch,
+                    dt=lal_timeseries.deltaT,
+                )
+            else:
+                logger.warning(
+                    "Resampling method {} not understood, should be "
+                    "'gwpy' or 'lal'.".format(self.resampling_method)
+                )
         else:
             logger.info("No data resampling requested")
 

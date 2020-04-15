@@ -340,6 +340,13 @@ def create_parser(top_level=True):
         type=float,
         help="Roll off duration of tukey window in seconds, default is 0.4s",
     )
+    det_parser.add(
+        "--resampling-method",
+        default="lal",
+        type=str,
+        choices=["lal", "gwpy"],
+        help="Resampling method to use: lal matches the resampling used by lalinference/BayesWave",
+    )
 
     injection_parser = parser.add_argument_group(
         title="Injection arguments",
