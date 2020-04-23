@@ -72,6 +72,7 @@ class TestSlurm(unittest.TestCase):
             n_simulation=1,
             log_directory=None,
             osg=True,
+            sampler_kwargs="{}",
         )
         self.test_unknown_args = ["--argument", "value"]
         self.inputs = bilby_pipe.main.MainInput(self.test_args, self.test_unknown_args)

@@ -14,6 +14,7 @@ import bilby
 
 from . import utils
 from .utils import (
+    SAMPLER_SETTINGS,
     BilbyPipeError,
     BilbyPipeInternalError,
     convert_string_to_dict,
@@ -1143,3 +1144,38 @@ class Input(object):
             self._postprocessing_arguments = postprocessing_arguments.split(" ")
         else:
             self._postprocessing_arguments = postprocessing_arguments
+
+    @property
+    def sampler_kwargs(self):
+        return self._sampler_kwargs
+
+    @sampler_kwargs.setter
+    def sampler_kwargs(self, sampler_kwargs):
+        if sampler_kwargs is not None:
+            if sampler_kwargs.lower() == "default":
+                self._sampler_kwargs = SAMPLER_SETTINGS["Default"]
+            elif sampler_kwargs.lower() == "fasttest":
+                self._sampler_kwargs = SAMPLER_SETTINGS["FastTest"]
+            else:
+                self._sampler_kwargs = convert_string_to_dict(
+                    sampler_kwargs, "sampler-kwargs"
+                )
+        else:
+            self._sampler_kwargs = dict()
+
+        self.update_sampler_kwargs_conditional_on_request_cpus()
+
+    def update_sampler_kwargs_conditional_on_request_cpus(self):
+        """ If the user adds request-cpu >1, update kwargs based on the sampler """
+
+        # Keys are samplers, values are the dictionary inputs to update
+        parallelisation_dict = dict(
+            dynesty=dict(queue_size=self.request_cpus),
+            ptemcee=dict(threads=self.request_cpus),
+            cpnest=dict(nthreads=self.request_cpus),
+        )
+
+        # Only run if request_cpus > 1
+        if self.request_cpus > 1:
+            # Only update if parallelisation_dict contains the sampler
+            self._sampler_kwargs.update(parallelisation_dict.get(self.sampler, dict()))

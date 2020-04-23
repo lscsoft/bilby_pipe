@@ -121,6 +121,7 @@ class MainInput(Input):
         self.request_memory = args.request_memory
         self.request_memory_generation = args.request_memory_generation
         self.request_cpus = args.request_cpus
+        self.sampler_kwargs = args.sampler_kwargs
 
         if self.create_plots:
             for plot_attr in [
@@ -1019,6 +1020,7 @@ def write_complete_config_file(parser, args, inputs):
         if isinstance(val, list):
             if isinstance(val[0], str):
                 setattr(args, key, "[{}]".format(", ".join(val)))
+    args.sampler_kwargs = str(inputs.sampler_kwargs)
     parser.write_to_file(
         filename=inputs.complete_ini_file,
         args=args,
