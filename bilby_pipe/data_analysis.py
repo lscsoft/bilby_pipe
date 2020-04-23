@@ -14,10 +14,8 @@ from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
 from bilby_pipe.utils import (
     CHECKPOINT_EXIT_CODE,
-    SAMPLER_SETTINGS,
     BilbyPipeError,
     DataDump,
-    convert_string_to_dict,
     log_version_information,
     logger,
 )
@@ -57,6 +55,7 @@ class DataAnalysisInput(Input):
         self.cluster = args.cluster
         self.process = args.process
         self.periodic_restart_time = args.periodic_restart_time
+        self.request_cpus = args.request_cpus
 
         # Naming arguments
         self.outdir = args.outdir
@@ -175,24 +174,6 @@ class DataAnalysisInput(Input):
                     "Data analysis script received a list of samplers with "
                     "more than one element: {}. Unable to proceed".format(sampler)
                 )
-
-    @property
-    def sampler_kwargs(self):
-        return self._sampler_kwargs
-
-    @sampler_kwargs.setter
-    def sampler_kwargs(self, sampler_kwargs):
-        if sampler_kwargs is not None:
-            if sampler_kwargs.lower() == "default":
-                self._sampler_kwargs = SAMPLER_SETTINGS["Default"]
-            elif sampler_kwargs.lower() == "fasttest":
-                self._sampler_kwargs = SAMPLER_SETTINGS["FastTest"]
-            else:
-                self._sampler_kwargs = convert_string_to_dict(
-                    sampler_kwargs, "sampler-kwargs"
-                )
-        else:
-            self._sampler_kwargs = dict()
 
     @property
     def interferometers(self):
