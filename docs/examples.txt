@@ -17,15 +17,26 @@ the ini file, for example here is an ini file for running on GW150914
 Running on GPS times
 --------------------
 
-Here is an example ini file for running on a list of GPS times
+To run on a list of GPS times, we use :code:`gps-file`. Here is an example ini
+file pointing to a gps file:
 
-.. literalinclude:: ../examples/gps_times/gps_times.ini
+.. literalinclude:: ../examples/gps_times/gps_times_from_file.ini
 
-Note, the ini file provides an argument :code:`gps-file` which points to a file
-`gps_times.txt` which is a simple list of the GPS times to use. Here are
+The ini file argument :code:`gps-file` points to a file
+`gps_times.txt` which is a simple list of the GPS start times to use. Here are
 its contents:
 
 .. literalinclude:: ../examples/gps_times/gps_times.txt
+
+The :code:`gps-file` is a list of GPS start times for each segment. In the
+example above, a single column of data is used. Multi-column files are also
+allowed, provided the first column is the gps start times to use (the other
+columns are ignored).
+
+Alternatively, on can specify the gps start times using a tuple. This is done
+by passing a tuple of :code:`start,step,number`. As an example:
+
+.. literalinclude:: ../examples/gps_times/gps_times_from_file.ini
 
 Running on injections in Gaussian noise
 ---------------------------------------
