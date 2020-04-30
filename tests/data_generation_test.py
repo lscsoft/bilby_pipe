@@ -317,7 +317,7 @@ class TestDataGenerationInput(unittest.TestCase):
         get_data_method.return_value = timeseries
 
         args_list = [
-            "tests/test_timeslide.ini",
+            "tests/test_basic_ini.ini",
             "--detectors",
             "[H1, L1]",
             "--channel-dict",
@@ -362,7 +362,7 @@ class TestDataGenerationInput(unittest.TestCase):
         mock_logs: the logging module being used inside this function
 
         """
-        full_data = gwpy.segments.DataQualityFlag.read("tests/data_quality.hdf5")
+        full_data = gwpy.segments.DataQualityFlag.read("tests/DATA/data_quality.hdf5")
         start_time_bad, end_time_bad = 1241725028.9, 1241725029.1
         quality_query.return_value = full_data
         data_is_good = DataGenerationInput._is_gwpy_data_good(
@@ -383,7 +383,7 @@ class TestDataGenerationInput(unittest.TestCase):
         mock_logs: the logging module being used inside this function
 
         """
-        full_data = gwpy.segments.DataQualityFlag.read("tests/data_quality.hdf5")
+        full_data = gwpy.segments.DataQualityFlag.read("tests/DATA/data_quality.hdf5")
         start_time_good, end_time_good = 1241725028.9, 1241725029
         quality_query.return_value = full_data
         data_is_good = DataGenerationInput._is_gwpy_data_good(
@@ -466,7 +466,7 @@ class TestDataReading(unittest.TestCase):
 def load_test_strain_data():
     """Helper function to load data from gwpy_data.pickle
     """
-    ifo = DataDump.from_pickle("tests/gwpy_data.pickle").interferometers[0]
+    ifo = DataDump.from_pickle("tests/DATA/gwpy_data.pickle").interferometers[0]
     timeseries = ifo.strain_data.to_gwpy_timeseries()
     metadata = ifo.meta_data
     return timeseries, metadata

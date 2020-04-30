@@ -12,183 +12,141 @@ from bilby_pipe.utils import BilbyPipeError
 
 class TestTimeslide(unittest.TestCase):
     def setUp(self):
-        self.directory = os.path.abspath(os.path.dirname(__file__))
-        self.outdir = "outdir"
-        self.known_args_list = [
-            "tests/test_timeslide.ini",
-            "--submit",
-            "--outdir",
-            self.outdir,
-        ]
-        self.unknown_args_list = ["--argument", "value"]
-        self.all_args_list = self.known_args_list + self.unknown_args_list
+        self.outdir = "tests/timeslide_outdir"
+        os.makedirs(self.outdir, exist_ok=True)
         self.parser = bilby_pipe.main.create_parser()
-        self.args = self.parser.parse_args(self.known_args_list)
-        self.inputs = bilby_pipe.main.MainInput(
-            *self.parser.parse_known_args(self.all_args_list)
-        )
-
+        self.ini = os.path.join(self.outdir, "test_timeslide.ini")
         self.gps_file = "tests/gps_file_for_timeslides.txt"
         self.timeslide_file = "tests/timeslides.txt"
 
     def tearDown(self):
         shutil.rmtree(self.outdir)
-        del self.args
-        del self.inputs
 
-    def test_timeslide_file_parser(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+    def get_args_from_ini(self):
+        inputs = bilby_pipe.main.MainInput(self.parser.parse_args([self.ini]), [])
+        return inputs
+
+    def test_timeslide_file_parsed_into_timeslide_dictionary(self):
+        self.generate_ini(self.ini)
+        inputs = self.get_args_from_ini()
+        # Setting GPS and timeslide into the input object
         inputs.gps_file = self.gps_file
         inputs.timeslide_file = self.timeslide_file
+        # Checking that the input object parses the timeslide into a dict
         self.assertIsInstance(inputs.timeslides, dict)
-        self.assertEqual(
-            inputs.timeslides.keys(), {d: [] for d in inputs.detectors}.keys()
-        )
-
-    def test_timeslide_file_fake(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-
-        with self.assertRaises(FileNotFoundError):
-            inputs.timeslide_file = "not a file"
-
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        with self.assertRaises(FileNotFoundError):
-            inputs.timeslide_file = "fakepath.txt"
-
-    def test_correct_number_of_columns_in_file(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        self.assertEqual(len(inputs.detectors), 2, "num detectors")
-
-        valid_timeslide_file = os.path.join(self.outdir, "fake_timeslides_file.txt")
-        valid_gps_file = os.path.join(self.outdir, "fake_gps_file.txt")
-        one_column_of_vals = np.zeros(5)
-        two_columns_of_vals = np.ones((5, 2))
-        two_columns_of_vals[:, 1] += 1
-
-        np.savetxt(valid_timeslide_file, two_columns_of_vals, delimiter="\t")
-        np.savetxt(valid_gps_file, one_column_of_vals, delimiter="\t")
-
-        inputs.gps_file = valid_gps_file
-        inputs.timeslide_file = valid_timeslide_file
-
-        correct_list = {
-            "H1": two_columns_of_vals[:, 0],
-            "L1": two_columns_of_vals[:, 1],
-        }
-        for det in inputs.timeslides.keys():
-            self.assertEqual(len(inputs.timeslides[det]), 5)
-            for idx, i in enumerate(inputs.timeslides[det]):
-                self.assertEqual(i, correct_list[det][idx])
-        pass
-
-    def test_incorrect_number_of_columns_in_file(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        self.assertEqual(len(inputs.detectors), 2)
-
-        one_column_of_vals = np.zeros(5)
-        valid_gps_file = os.path.join(self.outdir, "fake_gps_file.txt")
-        np.savetxt(valid_gps_file, one_column_of_vals, delimiter="\t")
-        inputs.gps_file = valid_gps_file
-
-        # invalid number of columns in timeslide file
-        invalid_timeslides_file = os.path.join(self.outdir, "fake_timeslides_file.txt")
-        np.savetxt(invalid_timeslides_file, one_column_of_vals, delimiter="\t")
-        with self.assertRaises(BilbyPipeError):
-            inputs.timeslide_file = invalid_timeslides_file
-
-        # invalid number of rows in timeslide file
-        np.savetxt(invalid_timeslides_file, np.zeros(3), delimiter="\t")
-        with self.assertRaises(BilbyPipeError):
-            inputs.timeslide_file = invalid_timeslides_file
-
-    def test_timeslide_file(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        inputs.gps_file = self.gps_file
-        inputs.timeslide_file = self.timeslide_file
-        self.assertIsInstance(inputs.get_timeslide_dict(idx=0), dict)
-        self.assertIsInstance(inputs.get_timeslide_dict(idx=1), dict)
-        self.assertIsInstance(inputs.get_timeslide_dict(idx=2), dict)
-        with self.assertRaises(BilbyPipeError):
-            inputs.get_timeslide_dict(idx=3)
-        self.assertTrue(
-            all(
-                len(ifo_timeslides) == 3
-                for ifo_timeslides in inputs.timeslides.values()
-            )
-        )
-
-    def test_timeslide_parser(self):
-        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        with self.assertRaises(BilbyPipeError):
-            inputs.get_timeslide_dict(0)
-
-        args_list = ["tests/test_timeslide_2.ini"]
-        parser = bilby_pipe.main.create_parser()
-        inputs = bilby_pipe.main.MainInput(*parser.parse_known_args(args_list))
-        timeslide_val = inputs.get_timeslide_dict(0)
-
-        correct_timeslides = {"H1": [-1, 20, -100], "L1": [1, -20, 100]}
+        # Checking contents of dict matches up what is expected
+        correct_timeslides = {"H1": [-50, 20, -100], "L1": [50, -20, 100]}
         for det in inputs.timeslides.keys():
             self.assertEqual(len(inputs.timeslides[det]), 3)
             for idx, i in enumerate(inputs.timeslides[det]):
                 self.assertEqual(i, correct_timeslides[det][idx])
 
-        self.assertIsNotNone(timeslide_val)
-        self.assertIsInstance(timeslide_val, dict)
-        self.assertDictEqual(timeslide_val, {"H1": -1, "L1": 1})
-
+    def test_error_thrown_for_non_existant_timeslide_file(self):
+        self.generate_ini(self.ini)
+        inputs = self.get_args_from_ini()
+        # checks that timeslide parser throws an error if the file is not found
+        with self.assertRaises(FileNotFoundError):
+            inputs.timeslide_file = "not a file"
+        # checks that error thrown when no timslide dict set
         with self.assertRaises(BilbyPipeError):
-            inputs.get_timeslide_dict(10000)
+            inputs.get_timeslide_dict(0)
 
-    @mock.patch("gwpy.timeseries.TimeSeries.fetch_open_data")
-    @mock.patch("bilby_pipe.data_generation.DataGenerationInput._is_gwpy_data_good")
-    def test_data_get(self, data_quality_method, fetch_open_data_method):
-        """Test timeslide values being properly set in function call to gwpy.
+    def test_number_of_columns_in_timeslide_file_matches_num_detectors(self):
+        # generate a gps time file, timeslide file, ini file
+        n_rows, n_det = 5, 2
+        timeslide_f = os.path.join(self.outdir, "fake_timeslides.txt")
+        gps_f = os.path.join(self.outdir, "fake_gps.txt")
+        self.generate_gps_and_timeslide_files(timeslide_f, gps_f, n_rows, n_det)
+        self.generate_ini(
+            self.ini, extra_lines=[f"gps-file={gps_f}", f"timeslide-file={timeslide_f}"]
+        )
+        inputs = self.get_args_from_ini()
+        self.assertEqual(len(inputs.detectors), n_det, "num detectors not matching")
 
-        Parameters
-        ----------
-        data_quality_method: mock the data_quality_method to return True
-        fetch_open_data_method: mock the fetch_open_data_method
+        # check if parsed contents of file matches what we expect
+        correct_list = {
+            "H1": np.zeros(n_rows),
+            "L1": np.ones(n_rows),
+        }
+        for det in inputs.timeslides.keys():
+            self.assertEqual(len(inputs.timeslides[det]), n_rows, "#rows not matching")
+            for idx, i in enumerate(inputs.timeslides[det]):
+                self.assertEqual(i, correct_list[det][idx], "tslide val not matching")
+
+        # check if an error is raised with incorrect number of columns
+        with self.assertRaises(BilbyPipeError):
+            self.generate_gps_and_timeslide_files(timeslide_f, gps_f, n_rows, 1)
+            inputs.timeslide_file = timeslide_f
+
+    @mock.patch("bilby_pipe.data_generation.logger")
+    def test_data_generation_data_get_with_timeslide_values(self, mock_logger):
+        """Test timeslide values configured in bilby_pipe.data_generation._get_data()
+        """
+        gps_times = np.loadtxt(self.gps_file)
+        timeslides = np.loadtxt(self.timeslide_file)
+        idx = 0
+        self.generate_ini(
+            self.ini,
+            extra_lines=[
+                f"gps-file={self.gps_file}",
+                f"timeslide-file={self.timeslide_file}\n",
+                f"idx={idx}",
+                f"trigger-time={gps_times[idx] - 2}",
+                "channel-dict={'H1': 'GDS-CALIB_STRAIN', 'L1': 'GDS-CALIB_STRAIN'}",
+                "data-dict={'H1':tests/DATA/strain.hdf5, 'L1':tests/DATA/strain.hdf5}",
+                "psd-dict={'H1':tests/DATA/psd.txt, 'L1':tests/DATA/psd.txt}",
+                "psd-duration=4",
+                "create-plots=True",
+            ],
+        )
+        parser = create_generation_parser()
+        inputs = DataGenerationInput(*bilby_pipe.main.parse_args([self.ini], parser))
+        timeslide_dict = inputs.timeslide_dict
+        expected_dict = dict(H1=timeslides[idx][0], L1=timeslides[idx][1])
+        self.assertDictEqual(timeslide_dict, expected_dict)
+
+        logs = [l.args[0] for l in mock_logger.info.call_args_list]
+        t_log = "Applying timeshift of {tval}. Time range {t0} - {t1} => {nt0} - {nt1}"
+
+        for ifo_num, ifo in enumerate(inputs.interferometers):
+            # make sure timeslide was applied
+            tval = timeslides[idx][ifo_num]
+            t0 = gps_times[idx] - inputs.duration
+            t1 = gps_times[idx]
+            nt0, nt1 = t0 + tval, t1 + tval
+            ifo_log = t_log.format(tval=tval, t0=t0, t1=t1, nt0=nt0, nt1=nt1)
+            self.assertTrue(ifo_log in logs, msg=f"log '{ifo_log}' not in {logs}")
+
+            # Check that the ifo's start time is reset to match after timeslides applied
+            self.assertEqual(ifo.strain_data.start_time, t0)
+
+    def generate_ini(self, filepath, extra_lines=[]):
+        """Generates an ini file"""
+        f = open(filepath, mode="w")
+        starting_lines = [
+            "detectors = [H1, L1]",
+            f"outdir = {self.outdir}",
+            "accounting = accounting.group" "submit=True",
+        ]
+        lines = starting_lines + extra_lines
+        for l in lines:
+            f.write(l + "\n")
+        f.close()
+
+    def generate_gps_and_timeslide_files(
+        self, timeslide_filename, gps_filename, num_rows, num_detectors
+    ):
+        """ Generates a gps and timeslide file
+
+        gps times : [0, 0, 0, 0, 0]
+        timeslide : [ [0, 1], [0, 1] ...]
 
         """
-        args_list = [
-            "--ini",
-            "tests/test_timeslide_2.ini",
-            "--outdir",
-            self.outdir,
-            "--trigger-time",
-            "1126258462",
-            "idx",
-            "0",
-            "--data-label",
-            "TEST",
-        ]
-        parser = create_generation_parser()
-
-        # loading data so we don't have to deal with gwpy's slow fetch_data method
-        from bilby_pipe.utils import DataDump
-
-        d = DataDump.from_pickle("tests/gwpy_data.pickle")
-        timeseries = d.interferometers[0].strain_data.to_gwpy_timeseries()
-
-        fetch_open_data_method.return_value = timeseries
-        data_quality_method.return_value = True
-        self.inputs = DataGenerationInput(
-            *bilby_pipe.main.parse_args(args_list, parser)
-        )
-        timeslide_dict = self.inputs.timeslide_dict
-        self.assertIsInstance(timeslide_dict, dict)
-
-        t0 = self.inputs.start_time
-        t1 = t0 + self.inputs.duration
-
-        t0_psd = t0 - 128
-        t1_psd = t0
-
-        for det, timeslide_val in timeslide_dict.items():
-            fetch_open_data_method.assert_any_call(
-                det, t0 + timeslide_val, t1 + timeslide_val
-            )  # SIGNAL
-            fetch_open_data_method.assert_any_call(
-                det, t0_psd + timeslide_val, t1_psd + timeslide_val
-            )  # PSD
+        # multi-colum timeslide file
+        columns_of_vals = np.zeros((num_rows, num_detectors))
+        if num_detectors > 1:
+            columns_of_vals[:, 1] += 1
+        np.savetxt(timeslide_filename, columns_of_vals, delimiter="\t")
+        # one column gps file
+        one_column_of_vals = np.zeros(num_rows)
+        np.savetxt(gps_filename, one_column_of_vals, delimiter="\t")

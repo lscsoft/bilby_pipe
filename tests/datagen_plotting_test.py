@@ -21,8 +21,8 @@ class TestDataGenerationPlotting(unittest.TestCase):
             "--data-label",
             "TEST",
         ]
-        self.strain = gwpy.timeseries.TimeSeries.read("tests/strain.hdf5")
-        self.psd = gwpy.timeseries.TimeSeries.read("tests/psd.hdf5")
+        self.strain = gwpy.timeseries.TimeSeries.read("tests/DATA/plotting_strain.hdf5")
+        self.psd = gwpy.timeseries.TimeSeries.read("tests/DATA/psd.hdf5")
 
     def tearDown(self):
         if os.path.isdir(self.outdir):
@@ -40,7 +40,7 @@ class TestDataGenerationPlotting(unittest.TestCase):
 
         args_list = [
             "--ini",
-            "tests/test_timeslide.ini",
+            "tests/test_basic_ini.ini",
             "--detectors",
             "[H1]",
             "--channel-dict",
