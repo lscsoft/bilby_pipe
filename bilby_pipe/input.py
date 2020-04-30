@@ -17,6 +17,7 @@ from .utils import (
     BilbyPipeError,
     BilbyPipeInternalError,
     convert_string_to_dict,
+    convert_string_to_list,
     get_geocent_prior,
     logger,
 )
@@ -317,6 +318,26 @@ class Input(object):
     def reference_frequency(self, reference_frequency):
         self._reference_frequency = float(reference_frequency)
 
+    @property
+    def mode_array(self):
+        return self._mode_array
+
+    @mode_array.setter
+    def mode_array(self, mode_array):
+        # Pre sanitize the mode array
+        if mode_array == [None]:
+            mode_array = None
+
+        if isinstance(mode_array, list):
+            # Hack because configargparse splits the mode_array
+            mode_array = ",".join(mode_array)
+
+        if mode_array is not None:
+            self._mode_array = convert_string_to_list(mode_array)
+        else:
+            logger.debug("mode_array not set")
+            self._mode_array = None
+
     def get_default_waveform_arguments(self):
         return dict(
             reference_frequency=self.reference_frequency,
@@ -327,6 +348,7 @@ class Input(object):
             pn_tidal_order=self.pn_tidal_order,
             pn_phase_order=self.pn_phase_order,
             pn_amplitude_order=self.pn_amplitude_order,
+            mode_array=self.mode_array,
         )
 
     def get_injection_waveform_arguments(self):
@@ -346,6 +368,7 @@ class Input(object):
             pn_tidal_order=self.pn_tidal_order,
             pn_phase_order=self.pn_phase_order,
             pn_amplitude_order=self.pn_amplitude_order,
+            mode_array=self.mode_array,
         )
 
     @property

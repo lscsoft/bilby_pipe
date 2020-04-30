@@ -48,6 +48,9 @@ class TestMainInput(unittest.TestCase):
         )
         exclude_keys.append("postprocessing_arguments")
 
+        self.assertEqual(args.mode_array, complete_args.mode_array[0])
+        exclude_keys.append("mode_array")
+
         mismatched_keys = []
         if args != complete_args:
             for key in vars(args).copy():

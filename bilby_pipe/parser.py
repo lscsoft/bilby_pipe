@@ -768,6 +768,15 @@ def create_parser(top_level=True):
     )
 
     waveform_parser.add(
+        "--mode-array",
+        default=None,
+        type=nonestr,
+        action="append",
+        help="Array of modes to use for the waveform. Should be "
+        "a list of lists, eg. [[2,2], [2,-2]]",
+    )
+
+    waveform_parser.add(
         "--frequency-domain-source-model",
         default="lal_binary_black_hole",
         type=str,

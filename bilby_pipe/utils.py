@@ -430,6 +430,53 @@ def convert_string_to_dict(string, key=None):
     return dic
 
 
+def convert_string_to_list(string):
+    """ Converts a string to a list, e.g. the mode_array waveform argument
+
+    See tests/utils_test for tested behaviour.
+
+    Parameters:
+    -----------
+    string: str
+        The input string to convert
+
+    Returns
+    -------
+    new_list: list
+        A list (or lists)
+
+    """
+
+    if type(string) not in [str, list]:
+        return string
+
+    if (string.count("[") == 1) and (string.count("]") == 1):
+        string = str(sanitize_string_for_list(string))
+
+    try:
+        new_list = ast.literal_eval(str(string))
+    except ValueError:
+        return string
+
+    if not isinstance(new_list, list):
+        return new_list
+
+    for ii, ell in enumerate(new_list):
+        new_list[ii] = convert_string_to_list(ell)
+
+    return new_list
+
+
+def sanitize_string_for_list(string):
+    string = string.replace(",", " ")
+    string = string.replace("[", "")
+    string = string.replace("]", "")
+    string = string.replace('"', "")
+    string = string.replace("'", "")
+    string_list = string.split()
+    return string_list
+
+
 def convert_dict_values_if_possible(dic):
     for key in dic:
         if isinstance(dic[key], str) and dic[key].lower() == "true":
