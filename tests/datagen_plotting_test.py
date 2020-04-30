@@ -35,7 +35,7 @@ class TestDataGenerationPlotting(unittest.TestCase):
     @mock.patch("bilby_pipe.data_generation.DataGenerationInput._is_gwpy_data_good")
     @mock.patch("gwpy.timeseries.TimeSeries.fetch_open_data")
     def test_plot_data(self, data_get, is_data_good):
-        data_get.side_effect = [self.strain, self.psd]
+        data_get.side_effect = [self.psd, self.strain]
         is_data_good.return_value = True
 
         args_list = [

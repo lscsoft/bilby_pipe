@@ -592,22 +592,20 @@ class DataGenerationInput(Input):
         )
 
     def _set_interferometers_from_data(self):
-        """ Method to generate the interferometers data from data"""
+        """
+        Method to generate the interferometers data from data
+
+        This sets the PSD before the analysis data so that the SNR of injected
+        signals is correct.
+        """
         end_time = self.start_time + self.duration
         roll_off = self.tukey_roll_off
         if 2 * roll_off > self.duration:
             raise ValueError("2 * tukey-roll-off is longer than segment duration.")
         ifo_list = []
         for det in self.detectors:
-            logger.info("Getting analysis-segment data for {}".format(det))
-            data = self._get_data(
-                det, self.get_channel_type(det), self.start_time, end_time
-            )
             ifo = bilby.gw.detector.get_empty_interferometer(det)
             ifo.strain_data.roll_off = roll_off
-            if self.injection_file is not None:
-                data = self.inject_signal_into_time_domain_data(data, ifo)
-            ifo.strain_data.set_from_gwpy_timeseries(data)
 
             if self.psd_dict is not None and det in self.psd_dict:
                 psd_data = None
@@ -619,6 +617,14 @@ class DataGenerationInput(Input):
                 ifo.power_spectral_density = PowerSpectralDensity(
                     frequency_array=psd.frequencies.value, psd_array=psd.value
                 )
+
+            logger.info("Getting analysis-segment data for {}".format(det))
+            data = self._get_data(
+                det, self.get_channel_type(det), self.start_time, end_time
+            )
+            if self.injection_file is not None:
+                data = self.inject_signal_into_time_domain_data(data, ifo)
+            ifo.strain_data.set_from_gwpy_timeseries(data)
 
             if self.create_plots:
                 self.__plot_ifo_data(det, strain_data=data, psd_strain_data=psd_data)
