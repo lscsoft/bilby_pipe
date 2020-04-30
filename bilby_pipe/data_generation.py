@@ -132,6 +132,7 @@ class DataGenerationInput(Input):
         self.pn_tidal_order = args.pn_tidal_order
         self.pn_phase_order = args.pn_phase_order
         self.pn_amplitude_order = args.pn_amplitude_order
+        self.mode_array = args.mode_array
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
@@ -842,7 +843,7 @@ class DataGenerationInput(Input):
         )
         try:
             flag = gwpy.segments.DataQualityFlag.query(
-                quality_flag, gwpy.time.to_gps(start_time), gwpy.time.to_gps(end_time),
+                quality_flag, gwpy.time.to_gps(start_time), gwpy.time.to_gps(end_time)
             )
 
             # compare active duration from quality flag and total duration
