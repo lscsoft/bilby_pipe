@@ -193,7 +193,7 @@ class Input(object):
         self.gpstimes = gpstimes
 
     def read_gps_file(self):
-        gpstimes = np.loadtxt(self.gps_file, ndmin=1, delimiter=",")
+        gpstimes = np.loadtxt(self.gps_file, ndmin=2, delimiter=",")
         if gpstimes.ndim > 1:
             logger.info("Reading column 0 from gps_file={}".format(self.gps_file))
             gpstimes = gpstimes[:, 0]
