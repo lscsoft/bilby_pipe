@@ -40,7 +40,11 @@ from .utils import (
 
 # fmt: off
 import matplotlib  # isort:skip
+
+
 matplotlib.use("agg")
+
+
 # fmt: on
 
 
@@ -154,7 +158,7 @@ def create_parser():
     return parser
 
 
-class PriorFileInput(Input):
+class InjectionCreator(Input):
     """ An object to hold inputs to create_injection for consistency"""
 
     def __init__(
@@ -163,22 +167,102 @@ class PriorFileInput(Input):
         prior_dict,
         default_prior,
         trigger_time,
-        deltaT,
+        n_injection,
+        generation_seed,
         gps_file,
-        duration,
-        post_trigger_duration,
+        deltaT=0.2,
+        duration=4,
+        post_trigger_duration=2,
     ):
         self.prior_file = prior_file
         self.prior_dict = prior_dict
+        self.check_prior()
         self.default_prior = default_prior
         self.trigger_time = trigger_time
         self.deltaT = deltaT
         self.gps_file = gps_file
         self.duration = duration
         self.post_trigger_duration = post_trigger_duration
+        self.n_injection = n_injection
+        self.generation_seed = generation_seed
+
+    def check_prior(self):
+        """Ensures at least prior/prior_dict set"""
+        if self.prior_file is None and self.prior_dict is None:
+            raise BilbyPipeCreateInjectionsError("No prior_file or prior_dict given")
+
+    @property
+    def n_injection(self):
+        """The number of injections parameters to be stored."""
+        return self._n_injection
+
+    @n_injection.setter
+    def n_injection(self, n_injection):
+        if self.gps_file is not None:
+            logger.info(f"Generation injection using gps_file {self.gps_file}")
+            gps_n_injection = len(self.gpstimes)
+            if n_injection is not None:
+                logger.warning(
+                    f"n-injection={gps_n_injection} given with gps_file,"
+                    f" ignoring n-injection={n_injection}"
+                )
+            n_injection = gps_n_injection
+
+        if isinstance(n_injection, int) is False or n_injection < 1:
+            raise BilbyPipeCreateInjectionsError(
+                "n_injection={}, but must be a positive integer".format(n_injection)
+            )
+        self._n_injection = n_injection
+
+    def get_injection_dataframe(self):
+        """Samples parameters from the prior into a dataframe"""
+        inj_df = pd.DataFrame.from_dict(self.priors.sample(self.n_injection))
+        if self.gps_file is not None:
+            geocent_times = []
+            for start_time in self.gpstimes:
+                geocent_time = get_geocent_time_with_uncertainty(
+                    geocent_time=start_time
+                    + self.duration
+                    - self.post_trigger_duration,
+                    uncertainty=self.deltaT / 2.0,
+                )
+                geocent_times.append(geocent_time)
+            inj_df["geocenter_times"] = geocent_times
+        return inj_df
+
+    @staticmethod
+    def write_injection_dataframe(dataframe, filename, extension):
+        """Writes dataframe into a file with a dat/json extension"""
+        path, extension = get_full_path(filename, extension)
+        if extension == "json":
+            injections = dict(injections=dataframe)
+            with open(path, "w") as file:
+                json.dump(
+                    injections, file, indent=2, cls=bilby.core.result.BilbyJsonEncoder
+                )
+        elif extension == "dat":
+            dataframe.to_csv(path, index=False, header=True, sep=" ")
+        else:
+            raise BilbyPipeCreateInjectionsError(
+                "Extension {} not implemented".format(extension)
+            )
+        logger.info("Created injection file {}".format(path))
+
+    def generate_injection_file(self, filepath, extension):
+        """Sets the generation seed and randomly generates parameters to create inj"""
+        np.random.seed(self.generation_seed)
+        logger.info(
+            f"Generating injection file {filepath} from "
+            f"prior={self.prior_file}, "
+            f"n_injection={self.n_injection}, "
+            f"generation_seed={self.generation_seed}"
+        )
+        injection_dataframe = self.get_injection_dataframe()
+        self.write_injection_dataframe(injection_dataframe, filepath, extension)
 
 
 def get_full_path(filename, extension):
+    """Makes filename and ext consistent amongst user input"""
     ext_in_filename = os.path.splitext(filename)[1].lstrip(".")
     if ext_in_filename == "":
         path = "{}.{}".format(filename, extension)
@@ -188,6 +272,9 @@ def get_full_path(filename, extension):
         logger.debug("Overwriting given extension name")
         path = filename
         extension = ext_in_filename
+    outdir = os.path.dirname(path)
+    if outdir != "":
+        check_directory_exists_and_if_not_mkdir(outdir)
     return path, extension
 
 
@@ -205,78 +292,26 @@ def create_injection_file(
     extension="dat",
     default_prior="BBHPriorDict",
 ):
-    path, extension = get_full_path(filename, extension)
-    outdir = os.path.dirname(path)
-    if outdir != "":
-        check_directory_exists_and_if_not_mkdir(outdir)
-
-    prior_file_input = PriorFileInput(
+    """Makes injection file using arguments from the namespace args parameter"""
+    injection_creator = InjectionCreator(
         prior_file=prior_file,
         prior_dict=prior_dict,
+        n_injection=n_injection,
         default_prior=default_prior,
         trigger_time=trigger_time,
         deltaT=deltaT,
         gps_file=gps_file,
         duration=duration,
         post_trigger_duration=post_trigger_duration,
+        generation_seed=generation_seed,
     )
-    prior_file = prior_file_input.prior_file
-
-    if prior_file is None and prior_dict is None:
-        raise BilbyPipeCreateInjectionsError("No prior_file or prior_dict given")
-
-    np.random.seed(generation_seed)
-    logger.info("Setting generation seed={}".format(generation_seed))
-
-    if prior_file_input.gps_file is not None:
-        logger.info("Generation injection using gps_file {}".format(gps_file))
-        if n_injection is not None:
-            logger.warning("n-injection given with gps_file, ignoring n-injection")
-        n_injection = len(prior_file_input.gpstimes)
-
-    if isinstance(n_injection, int) is False or n_injection < 1:
-        raise BilbyPipeCreateInjectionsError(
-            "n_injection={}, but must be a positive integer".format(n_injection)
-        )
-
-    logger.info(
-        "Generating injection file {} from prior={}, n_injection={}".format(
-            path, prior_file, n_injection
-        )
-    )
-
-    priors = prior_file_input.priors
-    if prior_file_input.gps_file is not None:
-        injection_values = []
-        for start_time in prior_file_input.gpstimes:
-            geocent_time = get_geocent_time_with_uncertainty(
-                geocent_time=start_time + duration - post_trigger_duration,
-                uncertainty=prior_file_input.deltaT / 2.0,
-            )
-            injection_values.append(geocent_time)
-        injection_values = pd.DataFrame(injection_values)
-    else:
-        injection_values = pd.DataFrame.from_dict(priors.sample(n_injection))
-
-    if extension == "json":
-        injections = dict(injections=injection_values)
-        with open(path, "w") as file:
-            json.dump(
-                injections, file, indent=2, cls=bilby.core.result.BilbyJsonEncoder
-            )
-    elif extension == "dat":
-        injection_values.to_csv(path, index=False, header=True, sep=" ")
-    else:
-        raise BilbyPipeCreateInjectionsError(
-            "Extension {} not implemented".format(extension)
-        )
-    logger.info("Created injection file {}".format(path))
+    injection_creator.generate_injection_file(filename, extension)
 
 
 def main():
+    """Driver to create an injection file"""
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
     create_injection_file(
-        filename=args.filename,
         prior_file=args.prior_file,
         prior_dict=args.prior_dict,
         n_injection=args.n_injection,
@@ -286,5 +321,4 @@ def main():
         duration=args.duration,
         post_trigger_duration=args.post_trigger_duration,
         generation_seed=args.generation_seed,
-        extension=args.extension,
     )

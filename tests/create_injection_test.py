@@ -109,6 +109,30 @@ class TestCreateInjections(unittest.TestCase):
         df = Input.read_json_injection_file(actual_filename)
         self.assertEqual(len(df), n_injection)
 
+    def test_create_injection_file_with_gps_file(self):
+        filename = "{}/injections".format(self.outdir)
+        prior_file = self.example_prior_file
+        n_injection = 2
+        bilby_pipe.create_injections.create_injection_file(
+            filename,
+            n_injection,
+            prior_file=prior_file,
+            generation_seed=None,
+            extension="json",
+            gps_file="tests/gps_file.txt",
+        )
+        filename += ".json"
+        gps_vals = np.loadtxt("tests/gps_file.txt")
+
+        df = Input.read_json_injection_file(filename)
+        self.assertEqual(len(df), n_injection)
+        self.assertTrue(
+            len(df.columns.values) > 1, f"Column names: {df.columns.values}"
+        )
+        self.assertAlmostEqual(
+            df["geocenter_times"].iloc[0] / 100, gps_vals[0] / 100, places=1
+        )
+
     def test_create_injection_file_json(self):
         filename = "{}/injections.json".format(self.outdir)
         prior_file = self.example_prior_file
