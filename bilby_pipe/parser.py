@@ -148,7 +148,7 @@ def create_parser(top_level=True):
         "--gps-tuple",
         type=nonestr,
         help=(
-            "Tuple of the (start, duration, number) of GPS start times. For"
+            "Tuple of the (start, step, number) of GPS start times. For"
             " example, (10, 1, 3) produces the gps start times [10, 11, 12]."
             " If given, gps-file is ignored."
         ),
