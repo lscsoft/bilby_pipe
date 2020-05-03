@@ -105,6 +105,9 @@ injection-regression-test:
     - bilby_pipe test_gaussian_noise_simulation_and_injection.ini --local --bilby-test-mode
     - bilby_pipe test_gaussian_noise_simulation.ini --local --bilby-test-mode
 
+    - bilby_pipe_create_injection_file --prior-file ../tests/injection_prior.prior -n 1 -f injection_test.dat
+    - if [[ ! -f injection_test.dat ]] ; then exit 1; else echo "Injection file exists"; fi
+
 # Test that the review tests build properly
 review-test-build:
   stage: test

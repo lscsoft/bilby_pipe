@@ -311,9 +311,11 @@ def create_injection_file(
 def main():
     """Driver to create an injection file"""
     args, unknown_args = parse_args(sys.argv[1:], create_parser())
+
     create_injection_file(
+        args.filename,
         prior_file=args.prior_file,
-        prior_dict=args.prior_dict,
+        prior_dict=None,
         n_injection=args.n_injection,
         trigger_time=args.trigger_time,
         deltaT=args.deltaT,
