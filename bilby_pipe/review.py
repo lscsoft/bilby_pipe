@@ -332,6 +332,9 @@ def get_args():
     main_job_parser.add_argument("--bbh", action="store_true", help="Fiducial BBH test")
     main_job_parser.add_argument("--bns", action="store_true", help="Fiducial BNS test")
     main_job_parser.add_argument("--pp-test", action="store_true", help="PP test test")
+    main_job_parser.add_argument(
+        "--create-dir", action="store_true", help="Create test directory and exit"
+    )
 
     parser.add_argument("--roq", action="store_true", help="Use ROQ likelihood")
     parser.add_argument(
@@ -345,7 +348,7 @@ def get_args():
         type=str,
         help="The default prior to use",
         choices=sorted(bilby_pipe.input.Input.get_default_prior_files()),
-        required=True,
+        default=None,
     )
     parser.add_argument(
         "--duration",
@@ -431,6 +434,9 @@ def main():
 
     args.sampler = args.sampler.lower()
 
+    if args.prior is None and args.create_dir is False:
+        raise Exception("You need to specify a default prior for the test")
+
     if args.bbh:
         logger.info("Review test: fiducial BBH")
         filename = fiducial_bbh(args)
@@ -440,6 +446,9 @@ def main():
     elif args.pp_test:
         logger.info("Review test: PP-test")
         filename = pp_test(args)
+    elif args.create_dir:
+        get_top_level_dir(args)
+        sys.exit()
     else:
         raise Exception("No review test requested, see --help")
 
