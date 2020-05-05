@@ -15,13 +15,12 @@ repos:
     -   id: codespell # Spellchecker
         args: [-L, nd, --skip, "*.html", --ignore-words=.dictionary.txt]
 -   repo: https://github.com/asottile/seed-isort-config
-    rev: v1.3.0
+    rev: v2.1.1
     hooks:
     -   id: seed-isort-config
         args: [--application-directories, 'bilby_pipe, tests']
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.21
+    repo: https://github.com/timothycrosley/isort
+    rev: 4.3.21-2
     hooks:
     -   id: isort # sort imports alphabetically and separates import into sections
         args: [-w=88, -m=3, -tc, -sp=setup.cfg ]
-

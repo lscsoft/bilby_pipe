@@ -22,5 +22,3 @@ The following table summarises three jobs using timeshifts and the various log B
 From the table, we can see that 
 - The results for (1) (2) match up and positively detect the signal
 - For (3) there is a signal in H1 (high lnBF at H) and just noise in L1 (low lnBF at L), so the BCR is low.
-
-
