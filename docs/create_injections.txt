@@ -11,6 +11,3 @@ Command line interface for creating an injection set
    :module: bilby_pipe.create_injections
    :func: create_parser
    :prog: fancytool
-
-
-

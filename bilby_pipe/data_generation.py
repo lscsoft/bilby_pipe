@@ -916,12 +916,7 @@ class DataGenerationInput(Input):
 
         if "gwf" in format_ext:
             kwargs = dict(
-                source=source,
-                channel=channel,
-                start=start_time,
-                end=end_time,
-                dtype=dtype,
-                format="gwf.lalframe",
+                source=source, channel=channel, dtype=dtype, format="gwf.lalframe",
             )
         elif "hdf5" in format_ext:
             kwargs = dict(source=source, start=start_time, end=end_time, format="hdf5")
@@ -946,6 +941,8 @@ class DataGenerationInput(Input):
                 "Running: gwpy.timeseries.TimeSeries.read({})".format(kwargs_string)
             )
             data = gwpy.timeseries.TimeSeries.read(**kwargs)
+
+            data = data.crop(start=start_time, end=end_time)
 
             if data.duration.value < end_time - start_time:
                 logger.warning(

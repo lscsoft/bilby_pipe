@@ -192,6 +192,3 @@ can be installed with conda using the commands
 
    $ conda install -c conda-forge python-ldas-tools-framecpp
    $ conda install -c conda-forge python-nds2-client
-
-
-

@@ -1031,8 +1031,9 @@ def write_complete_config_file(parser, args, inputs):
         "unknown_args",
         "_ini",
         "_webdir",
-        "_log_directory",
         "_prior_dict",
+        "timeslides",
+        "_log_directory",
     ]
     differences = []
     for key, val in inputs.__dict__.items():
@@ -1050,6 +1051,7 @@ def write_complete_config_file(parser, args, inputs):
                 continue
         if val == complete_inputs.__dict__[key]:
             continue
+
         differences.append(key)
 
     if len(differences) > 0:
