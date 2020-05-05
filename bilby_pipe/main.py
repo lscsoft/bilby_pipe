@@ -1026,7 +1026,14 @@ def write_complete_config_file(parser, args, inputs):
     # Verify that the written complete config is identical to the source config
     complete_args = parser.parse([inputs.complete_ini_file])
     complete_inputs = MainInput(complete_args, "")
-    ignore_keys = ["known_args", "unknown_args", "_ini", "_webdir", "_prior_dict"]
+    ignore_keys = [
+        "known_args",
+        "unknown_args",
+        "_ini",
+        "_webdir",
+        "_log_directory",
+        "_prior_dict",
+    ]
     differences = []
     for key, val in inputs.__dict__.items():
         if key in ignore_keys:
