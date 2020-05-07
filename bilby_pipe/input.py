@@ -344,6 +344,7 @@ class Input(object):
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
             minimum_frequency=self.minimum_frequency,
+            maximum_frequency=self.maximum_frequency,
             catch_waveform_errors=self.catch_waveform_errors,
             pn_spin_order=self.pn_spin_order,
             pn_tidal_order=self.pn_tidal_order,
@@ -361,16 +362,9 @@ class Input(object):
         """
         if self.injection_waveform_approximant is None:
             self.injection_waveform_approximant = self.waveform_approximant
-        return dict(
-            reference_frequency=self.reference_frequency,
-            waveform_approximant=self.injection_waveform_approximant,
-            minimum_frequency=self.minimum_frequency,
-            pn_spin_order=self.pn_spin_order,
-            pn_tidal_order=self.pn_tidal_order,
-            pn_phase_order=self.pn_phase_order,
-            pn_amplitude_order=self.pn_amplitude_order,
-            mode_array=self.mode_array,
-        )
+        waveform_arguments = self.get_default_waveform_arguments()
+        waveform_arguments["waveform_approximant"] = self.injection_waveform_approximant
+        return waveform_arguments
 
     @property
     def bilby_roq_frequency_domain_source_model(self):
@@ -545,7 +539,7 @@ class Input(object):
     def read_json_injection_file(injection_file):
         with open(injection_file, "r") as file:
             injection_dict = json.load(
-                file, object_hook=bilby.core.result.decode_bilby_json
+                file, object_hook=bilby.core.utils.decode_bilby_json
             )
         injection_df = injection_dict["injections"]
         try:
@@ -663,8 +657,14 @@ class Input(object):
     @maximum_frequency.setter
     def maximum_frequency(self, maximum_frequency):
         if maximum_frequency is None:
-            self._maximum_frequency = None
-            self.maximum_frequency_dict = {det: None for det in self.detectors}
+            self._maximum_frequency = self.sampling_frequency / 2
+            self.maximum_frequency_dict = {
+                det: self._maximum_frequency for det in self.detectors
+            }
+            logger.info(
+                "No maximum frequency given. "
+                "Setting to sampling frequency / 2 = {}".format(self._maximum_frequency)
+            )
         else:
             try:
                 self._maximum_frequency = float(maximum_frequency)
