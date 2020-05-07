@@ -228,6 +228,7 @@ class TestInput(unittest.TestCase):
         inputs.detectors = ["H1"]
         inputs.reference_frequency = 20
         inputs.minimum_frequency = 20
+        inputs.maximum_frequency = 1024
         inputs.waveform_approximant = "IMRPhenomPv2"
         inputs.pn_spin_order = -1
         inputs.pn_tidal_order = -1
@@ -238,6 +239,7 @@ class TestInput(unittest.TestCase):
         wfa = inputs.get_default_waveform_arguments()
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
+        self.assertEqual(wfa["maximum_frequency"], 1024)
         self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
         self.assertEqual(wfa["pn_spin_order"], -1)
         self.assertEqual(wfa["pn_tidal_order"], -1)
@@ -245,7 +247,7 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["pn_amplitude_order"], 0)
         self.assertIsNone(wfa["mode_array"])
         self.assertFalse(wfa["catch_waveform_errors"])
-        self.assertEqual(len(wfa), 9)
+        self.assertEqual(len(wfa), 10)
 
     def test_mode_array(self):
         inputs = bilby_pipe.main.Input()
@@ -253,6 +255,7 @@ class TestInput(unittest.TestCase):
         inputs.catch_waveform_errors = False
         inputs.reference_frequency = 20
         inputs.minimum_frequency = 20
+        inputs.maximum_frequency = 1024
         inputs.waveform_approximant = "IMRPhenomPv2"
         inputs.pn_spin_order = -1
         inputs.pn_tidal_order = -1
@@ -268,10 +271,12 @@ class TestInput(unittest.TestCase):
         inputs.detectors = ["H1"]
         inputs.reference_frequency = 20
         inputs.minimum_frequency = 20
+        inputs.maximum_frequency = 1024
         inputs.pn_spin_order = -1
         inputs.pn_tidal_order = -1
         inputs.pn_phase_order = -1
         inputs.pn_amplitude_order = 0
+        inputs.catch_waveform_errors = False
         inputs.mode_array = None
 
         # injection-waveform-approx not provided
@@ -280,13 +285,14 @@ class TestInput(unittest.TestCase):
         wfa = inputs.get_injection_waveform_arguments()
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
+        self.assertEqual(wfa["maximum_frequency"], 1024)
         self.assertEqual(wfa["waveform_approximant"], "IMRPhenomPv2")
         self.assertEqual(wfa["pn_spin_order"], -1)
         self.assertEqual(wfa["pn_tidal_order"], -1)
         self.assertEqual(wfa["pn_phase_order"], -1)
         self.assertEqual(wfa["pn_amplitude_order"], 0)
         self.assertIsNone(wfa["mode_array"])
-        self.assertEqual(len(wfa), 8)
+        self.assertEqual(len(wfa), 10)
 
         # injection-waveform-approx provided
         inputs.waveform_approximant = "IMRPhenomPv2"
@@ -295,7 +301,7 @@ class TestInput(unittest.TestCase):
         self.assertEqual(wfa["reference_frequency"], 20)
         self.assertEqual(wfa["minimum_frequency"], 20)
         self.assertEqual(wfa["waveform_approximant"], "SEOBNRv4")
-        self.assertEqual(len(wfa), 8)
+        self.assertEqual(len(wfa), 10)
 
     def test_injection_number(self):
         inputs = bilby_pipe.main.Input()
