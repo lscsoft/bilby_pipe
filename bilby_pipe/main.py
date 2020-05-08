@@ -132,6 +132,8 @@ class MainInput(Input):
 
         self.postprocessing_executable = args.postprocessing_executable
         self.postprocessing_arguments = args.postprocessing_arguments
+        self.single_postprocessing_executable = args.single_postprocessing_executable
+        self.single_postprocessing_arguments = args.single_postprocessing_arguments
 
         self.summarypages_arguments = args.summarypages_arguments
 
@@ -910,6 +912,36 @@ class PostProcessAllResultsNode(Node):
         return self.inputs.data_analysis_log_directory
 
 
+class PostProcessSingleResultsNode(Node):
+    def __init__(self, inputs, merged_node, dag):
+        super().__init__(inputs)
+        self.dag = dag
+        self.request_cpus = 1
+        self.job_name = "{}_postprocess_single".format(self.inputs.label)
+
+        self.setup_arguments(
+            add_ini=False, add_unknown_args=False, add_command_line_args=False
+        )
+
+        alist = self.inputs.single_postprocessing_arguments.split()
+        alist = [arg.replace("$RESULT", merged_node.result_file) for arg in alist]
+        self.arguments.argument_list = alist
+        self.process_node()
+        self.job.add_parent(merged_node.job)
+
+    @property
+    def executable(self):
+        return self._get_executable_path(self.inputs.single_postprocessing_executable)
+
+    @property
+    def request_memory(self):
+        return "4 GB"
+
+    @property
+    def log_directory(self):
+        return self.inputs.data_analysis_log_directory
+
+
 def get_trigger_time_list(inputs):
     """ Returns a list of GPS trigger times for each data segment """
     if inputs.gaussian_noise:
@@ -990,6 +1022,8 @@ def generate_dag(inputs):
     for merged_node in merged_node_list:
         if inputs.create_plots:
             plot_nodes_list.append(PlotNode(inputs, merged_node, dag=dag))
+        if inputs.single_postprocessing_executable:
+            PostProcessSingleResultsNode(inputs, merged_node, dag=dag)
 
     if inputs.create_summary:
         PESummaryNode(inputs, merged_node_list, generation_node_list, dag=dag)
