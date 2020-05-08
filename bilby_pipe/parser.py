@@ -176,6 +176,15 @@ def create_parser(top_level=True):
         default=None,
     )
     data_gen_pars.add(
+        "--timeslide-dict",
+        type=nonestr,
+        help=(
+            "Dictionary containing detector timeslides: applies a fixed offset"
+            " per detector. E.g. to apply +1s in H1, {H1: 1}"
+        ),
+        default=None,
+    )
+    data_gen_pars.add(
         "--trigger-time", default=None, type=nonefloat, help="The trigger time"
     )
     data_gen_pars.add(

@@ -109,7 +109,12 @@ class DataGenerationInput(Input):
         self.zero_noise = args.zero_noise
         self.resampling_method = args.resampling_method
 
-        if args.timeslide_file is not None:
+        if args.timeslide_dict is not None:
+            self.timeslide_dict = convert_string_to_dict(args.timeslide_dict)
+            logger.info(
+                "Read-in timeslide dict directly: {}".format(self.timeslide_dict)
+            )
+        elif args.timeslide_file is not None:
             self.gps_file = args.gps_file
             self.timeslide_file = args.timeslide_file
             self.timeslide_dict = self.get_timeslide_dict(self.idx)
@@ -916,7 +921,7 @@ class DataGenerationInput(Input):
 
         if "gwf" in format_ext:
             kwargs = dict(
-                source=source, channel=channel, dtype=dtype, format="gwf.lalframe",
+                source=source, channel=channel, dtype=dtype, format="gwf.lalframe"
             )
         elif "hdf5" in format_ext:
             kwargs = dict(source=source, start=start_time, end=end_time, format="hdf5")
