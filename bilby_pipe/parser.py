@@ -702,6 +702,26 @@ def create_parser(top_level=True):
         default=None,
         help="Arguments to pass to the postprocessing executable",
     )
+    postprocessing_parser.add(
+        "--single-postprocessing-executable",
+        type=nonestr,
+        default=None,
+        help=(
+            "An executable name for postprocessing. A single postprocessing "
+            "job is run as a child for each analysis jobs: note the "
+            "difference with respect postprocessing-executable"
+        ),
+    )
+    postprocessing_parser.add(
+        "--single-postprocessing-arguments",
+        type=nonestr,
+        default=None,
+        help=(
+            "Arguments to pass to the single postprocessing executable. The "
+            "str '$RESULT' will be replaced by the path to the individual "
+            "result file"
+        ),
+    )
 
     sampler_parser = parser.add_argument_group(title="Sampler arguments")
     sampler_parser.add("--sampler", type=str, default="dynesty", help="Sampler to use")
