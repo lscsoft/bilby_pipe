@@ -19,7 +19,7 @@ from .utils import DataDump, get_command_line_arguments, logger, parse_args
 # fmt: off
 import matplotlib  # isort:skip
 matplotlib.use("agg")  # noqa
-import matplotlib.pyplot as plt  # isort:skip
+import matplotlib.pyplot as plt  # noqa isort:skip
 # fmt: on
 
 

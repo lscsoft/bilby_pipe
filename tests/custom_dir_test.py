@@ -31,8 +31,8 @@ class TestCustomDir(unittest.TestCase):
             "trigger-time=0",
         ]
         lines = starting_lines + extra_lines
-        for l in lines:
-            f.write(l + "\n")
+        for ll in lines:
+            f.write(ll + "\n")
         f.close()
 
     def test_default_dir_structure(self):
