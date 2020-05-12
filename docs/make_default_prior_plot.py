@@ -27,7 +27,7 @@ import matplotlib  # isort:skip noqa
 
 
 matplotlib.use("agg")  # noqa
-import matplotlib.pyplot as plt  # isort:skip noqa
+import matplotlib.pyplot as plt  # noqa isort:skip
 
 # fmt: on
 

@@ -64,10 +64,7 @@ class TestTimeslide(unittest.TestCase):
         self.assertEqual(len(inputs.detectors), n_det, "num detectors not matching")
 
         # check if parsed contents of file matches what we expect
-        correct_list = {
-            "H1": np.zeros(n_rows),
-            "L1": np.ones(n_rows),
-        }
+        correct_list = {"H1": np.zeros(n_rows), "L1": np.ones(n_rows)}
         for det in inputs.timeslides.keys():
             self.assertEqual(len(inputs.timeslides[det]), n_rows, "#rows not matching")
             for idx, i in enumerate(inputs.timeslides[det]):
@@ -105,7 +102,7 @@ class TestTimeslide(unittest.TestCase):
         expected_dict = dict(H1=timeslides[idx][0], L1=timeslides[idx][1])
         self.assertDictEqual(timeslide_dict, expected_dict)
 
-        logs = [l.args[0] for l in mock_logger.info.call_args_list]
+        logs = [ll.args[0] for ll in mock_logger.info.call_args_list]
         t_log = "Applying timeshift of {tval}. Time range {t0} - {t1} => {nt0} - {nt1}"
 
         for ifo_num, ifo in enumerate(inputs.interferometers):
@@ -129,8 +126,8 @@ class TestTimeslide(unittest.TestCase):
             "accounting = accounting.group" "submit=True",
         ]
         lines = starting_lines + extra_lines
-        for l in lines:
-            f.write(l + "\n")
+        for ll in lines:
+            f.write(ll + "\n")
         f.close()
 
     def generate_gps_and_timeslide_files(

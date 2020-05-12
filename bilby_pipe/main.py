@@ -917,7 +917,7 @@ class PostProcessSingleResultsNode(Node):
         super().__init__(inputs)
         self.dag = dag
         self.request_cpus = 1
-        self.job_name = "{}_postprocess_single".format(self.inputs.label)
+        self.job_name = "{}_postprocess_single".format(merged_node.label)
 
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
