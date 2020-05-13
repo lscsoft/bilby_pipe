@@ -458,7 +458,7 @@ def create_parser(top_level=True):
         "--request-cpus",
         type=int,
         default=1,
-        help="CPU allocation request (required multi-processing jobs)",
+        help="Use multi-processing (for available samplers: dynesty, ptemcee, cpnest)",
     )
     submission_parser.add(
         "--singularity-image",

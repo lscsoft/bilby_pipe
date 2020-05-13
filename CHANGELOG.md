@@ -1,5 +1,13 @@
 # All notable changes will be documented in this file
 
+## v0.3.12: 2020-15-04
+### Added
+- Add support for the sky-frame in bilby 0.6.8
+- Add support for post processing individual results
+
+### Changes
+- Fixed a bug in the periodic restart time
+
 ## v0.3.11: 2020-15-04
 
 ### Changes
