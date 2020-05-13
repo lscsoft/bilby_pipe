@@ -94,6 +94,8 @@ class DataGenerationInput(Input):
         self.label = args.label
 
         # Prior arguments
+        self.reference_frame = args.reference_frame
+        self.time_reference = args.time_reference
         self.prior_file = args.prior_file
         self.prior_dict = args.prior_dict
         self.deltaT = args.deltaT
@@ -1145,6 +1147,8 @@ class DataGenerationInput(Input):
             waveform_generator=waveform_generator,
             linear_matrix=basis_matrix_linear,
             quadratic_matrix=basis_matrix_quadratic,
+            reference_frame=self.reference_frame,
+            time_reference=self.time_reference,
         )
 
         del basis_matrix_linear, basis_matrix_quadratic

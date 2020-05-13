@@ -567,26 +567,30 @@ def request_memory_generation_lookup(duration, roq=False):
         return 8
 
 
-def get_geocent_prior(geocent_time, uncertainty):
-    """"Generate a geocent time prior given some uncertainty.
+def get_time_prior(time, uncertainty, name="geocent_time", latex_label="$t_c$"):
+    """"Generate a time prior given some uncertainty.
 
     Parameters
     ----------
-    geocent_time: float
+    time: float
         The GPS geocent_time (time of coalescence at the center of the Earth)
     uncertainty: float
         The +/- uncertainty based around the geocenter time.
+    name: str
+        The name of the time parameter
+    latex_label: str
+        The latex label for the time parameter
 
     Returns
     -------
-    A bilby.core.prior.Uniform for the geocent_time.
+    A bilby.core.prior.Uniform for the time parameter.
 
     """
     return bilby.core.prior.Uniform(
-        minimum=geocent_time - uncertainty,
-        maximum=geocent_time + uncertainty,
-        name="geocent_time",
-        latex_label="$t_c$",
+        minimum=time - uncertainty,
+        maximum=time + uncertainty,
+        name=name,
+        latex_label=latex_label,
         unit="$s$",
     )
 
@@ -607,7 +611,7 @@ def get_geocent_time_with_uncertainty(geocent_time, uncertainty):
     geocent time + uncertainty.
 
     """
-    geocent_time_prior = get_geocent_prior(geocent_time, uncertainty)
+    geocent_time_prior = get_time_prior(geocent_time, uncertainty)
     return geocent_time_prior.sample()
 
 

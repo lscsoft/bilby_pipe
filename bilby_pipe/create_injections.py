@@ -185,6 +185,8 @@ class InjectionCreator(Input):
         self.post_trigger_duration = post_trigger_duration
         self.n_injection = n_injection
         self.generation_seed = generation_seed
+        self.time_reference = "geocent"
+        self.reference_frame = "sky"
 
     def check_prior(self):
         """Ensures at least prior/prior_dict set"""

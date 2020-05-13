@@ -3,6 +3,7 @@
 Module containing the main input class
 """
 import glob
+import inspect
 import json
 import os
 from importlib import import_module
@@ -19,7 +20,7 @@ from .utils import (
     BilbyPipeInternalError,
     convert_string_to_dict,
     convert_string_to_list,
-    get_geocent_prior,
+    get_time_prior,
     logger,
 )
 
@@ -805,7 +806,11 @@ class Input(object):
         d.update(bilby.gw.prior.__dict__)
         return d
 
-    def create_geocent_time_prior(self):
+    @property
+    def time_parameter(self):
+        return "{}_time".format(self.time_reference)
+
+    def create_time_prior(self):
         cond_a = getattr(self, "trigger_time", None) is not None
         cond_b = getattr(self, "deltaT", None) is not None
         if cond_a and cond_b:
@@ -814,13 +819,20 @@ class Input(object):
                     self.trigger_time, self.deltaT
                 )
             )
-            geocent_time_prior = get_geocent_prior(
-                geocent_time=self.trigger_time, uncertainty=self.deltaT / 2.0
+            if self.time_reference == "geocent":
+                latex_label = "$t_c$"
+            else:
+                latex_label = "$t_{}$".format(self.time_reference[0])
+            time_prior = get_time_prior(
+                time=self.trigger_time,
+                uncertainty=self.deltaT / 2.0,
+                name=self.time_parameter,
+                latex_label=latex_label,
             )
         else:
             raise BilbyPipeError("Unable to set geocent_time prior from trigger_time")
 
-        return geocent_time_prior
+        return time_prior
 
     @property
     def priors(self):
@@ -833,13 +845,13 @@ class Input(object):
     def priors(self, priors):
         self._priors = priors
 
-    def _get_priors(self, add_geocent_time=True):
+    def _get_priors(self, add_time=True):
         """ Construct the priors
 
         Parameters
         ----------
-        add_geocent_time: bool
-            If True, the geocent time prior is constructed from either the
+        add_time: bool
+            If True, the time prior is constructed from either the
             prior file or the trigger time. If False (used for the overview
             page where a single time-prior doesn't make sense), this isn't
             added to the prior
@@ -858,14 +870,35 @@ class Input(object):
         else:
             raise ValueError("Unable to set prior: default_prior unavailable")
 
-        if priors.get("geocent_time", None) is None and add_geocent_time:
-            priors["geocent_time"] = self.create_geocent_time_prior()
+        self._update_default_prior_to_sky_frame_parameters(priors)
+
+        if priors.get(self.time_parameter, None) is None and add_time:
+            priors[self.time_parameter] = self.create_time_prior()
         else:
-            logger.info("Using geocent_time prior from prior_file")
+            logger.info("Using {} prior from prior_file".format(self.time_parameter))
 
         if self.calibration_model is not None:
             priors.update(self.calibration_prior)
         return priors
+
+    def _update_default_prior_to_sky_frame_parameters(self, priors):
+        if (
+            getattr(self, "_prior_file", None) in self.default_prior_files.values()
+            and not self.reference_frame == "sky"
+        ):
+            if "ra" in priors:
+                del priors["ra"]
+            if "dec" in priors:
+                del priors["dec"]
+            if "azimuth" not in priors:
+                priors["azimuth"] = bilby.core.prior.Uniform(
+                    minimum=0,
+                    maximum=2 * np.pi,
+                    latex_label="$\\epsilon$",
+                    boundary="periodic",
+                )
+            if "zenith" not in priors:
+                priors["zenith"] = bilby.core.prior.Sine(latex_label="$\\kappa$")
 
     @property
     def calibration_model(self):
@@ -961,6 +994,8 @@ class Input(object):
             distance_marginalization=self.distance_marginalization,
             distance_marginalization_lookup_table=self.distance_marginalization_lookup_table,
             time_marginalization=self.time_marginalization,
+            reference_frame=self.reference_frame,
+            time_reference=self.time_reference,
         )
 
         if getattr(self, "likelihood_lookup_table", None) is not None:
@@ -998,6 +1033,12 @@ class Input(object):
         else:
             raise ValueError("Unknown Likelihood class {}")
 
+        likelihood_kwargs = {
+            key: likelihood_kwargs[key]
+            for key in likelihood_kwargs
+            if key in inspect.getfullargspec(Likelihood.__init__).args
+        }
+
         logger.debug(
             "Initialise likelihood {} with kwargs: \n{}".format(
                 Likelihood, likelihood_kwargs
@@ -1031,6 +1072,8 @@ class Input(object):
             "phase_marginalization",
             "jitter_time",
             "distance_marginalization_lookup_table",
+            "reference_frame",
+            "time_reference",
         ]
         if "roq" in self.likelihood_type.lower():
             forbidden_keys += ["weights", "roq_params", "roq_scale_factor"]

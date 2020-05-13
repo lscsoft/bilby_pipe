@@ -44,7 +44,7 @@ def create_overview(
         priors = inputs.priors
     else:
         # If a trigger time doesn't exist, the geocent time prior isn't defined
-        priors = inputs._get_priors(add_geocent_time=False)
+        priors = inputs._get_priors(add_time=False)
 
     if inputs.prior_file is not None:
         prior_file = (abspath(inputs.prior_file),)

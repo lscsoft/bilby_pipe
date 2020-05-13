@@ -552,6 +552,18 @@ def create_parser(top_level=True):
         help="Boolean. If true, and using a time-marginalized likelihood 'time jittering' will be performed",
     )
     likelihood_parser.add(
+        "--reference-frame",
+        default="sky",
+        type=str,
+        help="Reference frame for the sky parameterisation, either 'sky' (default) or, e.g., 'H1L1'",
+    )
+    likelihood_parser.add(
+        "--time-reference",
+        default="geocent",
+        type=str,
+        help="Time parameter to sample in, either 'geocent' (default) or, e.g., 'H1'",
+    )
+    likelihood_parser.add(
         "--likelihood-type",
         default="GravitationalWaveTransient",
         help=(
