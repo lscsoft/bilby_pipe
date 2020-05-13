@@ -414,6 +414,7 @@ class TestInput(unittest.TestCase):
         inputs.default_prior = "BBHPriorDict"
         inputs.trigger_time = 0
         inputs.deltaT = 2
+        inputs.time_reference = "geocent"
         self.assertTrue(isinstance(inputs.priors["chi_1"], bilby.gw.prior.AlignedSpin))
 
     def test_injection_numbers_unset(self):

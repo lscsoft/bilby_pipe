@@ -83,6 +83,8 @@ class MainInput(Input):
 
         self.waveform_approximant = args.waveform_approximant
 
+        self.time_reference = args.time_reference
+        self.reference_frame = args.reference_frame
         self.likelihood_type = args.likelihood_type
         self.duration = args.duration
         self.prior_file = args.prior_file

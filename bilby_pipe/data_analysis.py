@@ -87,6 +87,8 @@ class DataAnalysisInput(Input):
         self.mode_array = args.mode_array
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
+        self.reference_frame = args.reference_frame
+        self.time_reference = args.time_reference
         self.extra_likelihood_kwargs = args.extra_likelihood_kwargs
 
         # ROQ
