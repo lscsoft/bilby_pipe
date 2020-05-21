@@ -1045,6 +1045,8 @@ def generate_dag(inputs):
 def write_complete_config_file(parser, args, inputs):
     args_dict = vars(args).copy()
     for key, val in args_dict.items():
+        if key == "label":
+            continue
         if isinstance(val, str):
             if os.path.isfile(val) or os.path.isdir(val):
                 setattr(args, key, os.path.abspath(val))
