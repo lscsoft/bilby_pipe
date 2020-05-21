@@ -105,7 +105,10 @@ SAMPLER_KEYS = ["nlive", "walks", "nact", "maxmcmc"]
 
 def get_default_top_level_dir():
     bilby_version_number = bilby.__version__.split(":")[0]
-    bilby_git_hash = bilby.__version__.split(" ")[2]
+    try:
+        bilby_git_hash = bilby.__version__.split(" ")[2]
+    except IndexError:
+        bilby_git_hash = "release"
     bilby_state = ["CLEAN", "UNCLEAN"]["UNCLEAN" in bilby.__version__]
 
     bilby_pipe_version_number = bilby_pipe.__long_version__.split(":")[0]
