@@ -38,15 +38,6 @@ from .utils import (
     parse_args,
 )
 
-# fmt: off
-import matplotlib  # isort:skip
-
-
-matplotlib.use("agg")
-
-
-# fmt: on
-
 
 class BilbyPipeCreateInjectionsError(BilbyPipeError):
     def __init__(self, message):
