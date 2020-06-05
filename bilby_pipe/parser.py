@@ -185,7 +185,14 @@ def create_parser(top_level=True):
         default=None,
     )
     data_gen_pars.add(
-        "--trigger-time", default=None, type=nonefloat, help="The trigger time"
+        "--trigger-time",
+        default=None,
+        type=nonestr,
+        help=(
+            "Either a GPS trigger time, or the event name (e.g. GW150914). "
+            "For event names, the gwosc package is used to identify the "
+            "trigger time"
+        ),
     )
     data_gen_pars.add(
         "--gaussian-noise",

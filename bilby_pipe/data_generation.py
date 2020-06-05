@@ -428,14 +428,6 @@ class DataGenerationInput(Input):
             )
         self._sampling_frequency = sampling_frequency
 
-    @property
-    def trigger_time(self):
-        return self._trigger_time
-
-    @trigger_time.setter
-    def trigger_time(self, trigger_time):
-        self._trigger_time = trigger_time
-
     def _set_interferometers_from_gaussian_noise(self):
         """ Method to generate the interferometers data from Gaussian noise """
 

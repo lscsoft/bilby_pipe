@@ -10,6 +10,7 @@ from importlib import import_module
 
 import numpy as np
 import pandas as pd
+from gwosc.datasets import event_gps
 
 import bilby
 
@@ -393,6 +394,18 @@ class Input(object):
 
     @trigger_time.setter
     def trigger_time(self, trigger_time):
+
+        # Convert trigger time
+        if trigger_time is None:
+            logger.debug("No trigger time given")
+        elif isinstance(trigger_time, str) and "GW" in trigger_time:
+            logger.info(
+                "Using gwosc to find trigger time for event {}".format(trigger_time)
+            )
+            trigger_time = event_gps(trigger_time)
+        else:
+            trigger_time = float(trigger_time)
+
         self._trigger_time = trigger_time
         if trigger_time is not None:
             logger.info("Setting trigger time {}".format(trigger_time))

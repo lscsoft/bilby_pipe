@@ -93,6 +93,7 @@ setup(
         "bilby>=0.6.8",
         "scipy>=1.2.0",
         "gwpy",
+        "gwosc",
         "matplotlib",
         "numpy",
         "tqdm",
