@@ -629,7 +629,7 @@ class DataGenerationInput(Input):
             data = self._get_data(
                 det, self.get_channel_type(det), self.start_time, end_time
             )
-            if self.injection_file is not None:
+            if self.injection:
                 data = self.inject_signal_into_time_domain_data(data, ifo)
             ifo.strain_data.set_from_gwpy_timeseries(data)
 
