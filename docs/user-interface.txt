@@ -72,7 +72,7 @@ webpages:
 .. code-block:: text
 
     create-summary = True
-    email = albert.einstein
+    email = albert.einstein@ligo.org
     webdir = /home/albert.einstein/public_html/project
 
 If you have already generated a webpage in the past using :code:`PESummary`,
@@ -84,7 +84,7 @@ lines in the configuration file that will add to an existing webpage:
 .. code-block:: text
 
     create-summary = True
-    email = albert.einstein
+    email = albert.einstein@ligo.org
     existing-dir = /home/albert.einstein/public_html/project
 
 
