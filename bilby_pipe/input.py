@@ -21,6 +21,7 @@ from .utils import (
     BilbyPipeInternalError,
     convert_string_to_dict,
     convert_string_to_list,
+    get_colored_string,
     get_time_prior,
     logger,
 )
@@ -1258,3 +1259,16 @@ class Input(object):
         if self.request_cpus > 1:
             # Only update if parallelisation_dict contains the sampler
             self._sampler_kwargs.update(parallelisation_dict.get(self.sampler, dict()))
+
+    def pretty_print_prior(self):
+        try:
+            prior = self._get_priors(add_time=False)
+        except Exception as e:
+            raise BilbyPipeError(
+                get_colored_string(
+                    "Unable to parse prior, exception raised {}".format(e)
+                )
+            )
+        prior_as_str = {key: str(val) for key, val in prior.items()}
+        pp = json.dumps(prior_as_str, indent=2)
+        logger.info("Input prior = {}".format(pp))
