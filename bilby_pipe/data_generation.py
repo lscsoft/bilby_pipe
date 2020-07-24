@@ -156,6 +156,7 @@ class DataGenerationInput(Input):
 
         # ROQ
         self.roq_folder = args.roq_folder
+        self.roq_weights = args.roq_weights
         self.roq_scale_factor = args.roq_scale_factor
 
         # Calibration
@@ -1141,6 +1142,7 @@ class DataGenerationInput(Input):
             quadratic_matrix=basis_matrix_quadratic,
             reference_frame=self.reference_frame,
             time_reference=self.time_reference,
+            weights=self.roq_weights,
         )
 
         del basis_matrix_linear, basis_matrix_quadratic
