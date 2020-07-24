@@ -1111,6 +1111,7 @@ def main():
     args, unknown_args = parse_args(get_command_line_arguments(), parser)
     log_version_information()
     inputs = MainInput(args, unknown_args)
+    inputs.pretty_print_prior()
     write_complete_config_file(parser, args, inputs)
     generate_dag(inputs)
 

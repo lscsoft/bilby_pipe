@@ -26,6 +26,14 @@ class tcolors:
     END = "\033[0m"
 
 
+def get_colored_string(msg_list, color="WARNING"):
+    if isinstance(msg_list, str):
+        msg_list = [msg_list]
+    colstr = getattr(tcolors, color)
+    msg = [colstr] + msg_list + [tcolors.END]
+    return " ".join(msg)
+
+
 class BilbyPipeError(Exception):
     def __init__(self, message):
         super().__init__(message)
