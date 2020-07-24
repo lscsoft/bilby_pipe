@@ -5,7 +5,6 @@ bilby_pipe. Alternatively, use the --submit option to also submit the job
 
 """
 import argparse
-import json
 import os
 import sys
 import time
@@ -268,19 +267,10 @@ def fiducial_bns(args):
     config_dict["gaussian-noise"] = True
     config_dict["injection"] = True
     config_dict["n-injection"] = 1
+    config_dict["injection-dict"] = str(fiducial_bns_injections[args.prior])
 
     config_dict["frequency_domain_source_model"] = "lal_binary_neutron_star"
     config_dict["waveform-approximant"] = "IMRPhenomPv2_NRTidal"
-
-    injection_filename = "{}/injection_file.json".format(rundir)
-    with open(injection_filename, "w") as file:
-        json.dump(
-            dict(injections=fiducial_bns_injections[args.prior]),
-            file,
-            indent=2,
-            cls=bilby.core.result.BilbyJsonEncoder,
-        )
-    config_dict["injection-file"] = injection_filename
 
     ini_parser = parser.create_parser()
     write_ini_file(ini_parser, filename, config_dict)
