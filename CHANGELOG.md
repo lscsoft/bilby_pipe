@@ -1,5 +1,15 @@
 # All notable changes will be documented in this file
 
+## v1.0.00: 2020-27-07
+### Added
+- Trigger-time now able to use event names (!333)
+- Add option to pass in ROQ weight file directly (!340)
+- Prior check and print-out and run time and sampler check (!337, !338)
+
+### Changes
+- Modularation of the main module (!336)
+- Documentation bug fixes and versioning (!341 !343)
+
 ## v0.3.12: 2020-15-04
 ### Added
 - Add support for the sky-frame in bilby 0.6.8

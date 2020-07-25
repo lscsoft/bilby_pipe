@@ -70,7 +70,7 @@ def get_long_description():
     return long_description
 
 
-VERSION = "0.3.12"
+VERSION = "1.0.0"
 version_file = write_version_file(VERSION)
 long_description = get_long_description()
 
@@ -95,7 +95,7 @@ setup(
         "pycondor>=0.5",
         "configargparse",
         "ligo-gracedb",
-        "bilby>=0.6.8",
+        "bilby>=1.0.0",
         "scipy>=1.2.0",
         "gwpy",
         "gwosc",
