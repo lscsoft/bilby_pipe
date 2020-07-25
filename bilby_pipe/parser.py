@@ -584,6 +584,15 @@ def create_parser(top_level=True):
         "--roq-folder", type=nonestr, default=None, help="The data for ROQ"
     )
     likelihood_parser.add(
+        "--roq-weights",
+        type=nonestr,
+        default=None,
+        help=(
+            "If given, the ROQ weights to use (rather than building them). "
+            "This must be given along with the roq-folder for checking"
+        ),
+    )
+    likelihood_parser.add(
         "--roq-scale-factor",
         default=1,
         type=float,
