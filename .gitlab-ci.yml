@@ -180,6 +180,8 @@ documentation:
     - make clean
     - bilby_pipe_write_default_ini default.ini
     - bilby_pipe_gracedb --json ../examples/gracedb/G298936.json --output ini --outdir .
+    # Sphinx-multiversion needs to be run from the top-level
+    - cd ..
     - sphinx-multiversion docs/ docs/_build/
 
   artifacts:
