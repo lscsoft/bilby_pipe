@@ -16,6 +16,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinxarg.ext",
     "sphinx_tabs.tabs",
+    "sphinx_multiversion",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -24,24 +25,24 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = [".rst"]
+source_suffix = [".rst", ".txt"]
 
 # The master toctree document.
 master_doc = "index"
 
 # General information about the project.
 project = u"bilby_pipe"
-copyright = u"2018, Greg Ashton"
+copyright = u"2020, Greg Ashton"
 author = u"Gregory Ashton"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-fullversion = bilby_pipe.__version__.split(":")[0]
+fullversion = bilby_pipe.__long_version__
 
 # The short X.Y version.
-version = ".".join(fullversion.split(".")[:3])
+version = bilby_pipe.__version__
 
 # The full version, including alpha/beta/rc tags.
 release = fullversion
@@ -61,127 +62,36 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "requirements.txt"]
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
 
-# If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = False
-
-
-# -- Options for HTML output ----------------------------------------------
-
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 html_theme = "sphinx_rtd_theme"
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ["_static"]
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    "**": [
-        "about.html",
-        "navigation.html",
-        "relations.html",  # needs 'show_related': True theme option to display
-        "searchbox.html",
-        "donate.html",
-    ]
+html_theme_options = {
+    "canonical_url": "",
+    "logo_only": False,
+    "display_version": True,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": False,
+    # Toc options
+    "collapse_navigation": True,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
 }
-
-
-# -- Options for HTMLHelp output ------------------------------------------
-
-# Output file base name for HTML help builder.
-htmlhelp_basename = "bilbydoc"
-
-
-# -- Options for LaTeX output ---------------------------------------------
-
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    #
-    # 'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (
-        master_doc,
-        "bilby_pipe.tex",
-        u"bilby_pipe Documentation",
-        u"Gregory Ashton",
-        "manual",
-    )
-]
-
-
-# -- Options for manual page output ---------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "bilby_pipe", u"bilby_pipe Documentation", [author], 1)]
-
-
-# -- Options for Texinfo output -------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        master_doc,
-        "bilby_pipe",
-        u"bilby_pipe Documentation",
-        author,
-        "bilby_pipe",
-        "One line description of project.",
-        "Miscellaneous",
-    )
-]
 
 numpydoc_show_class_members = False
 
 # Multiversion options
 # Whitelist pattern for tags (set to None to ignore all tags)
-smv_tag_whitelist = r"^0.3.12$"
-smv_tag_whitelist = None
+smv_tag_whitelist = r"^(1.*|0.3.12)$"
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = r"^fixup-documentation$"
+smv_branch_whitelist = r"^master$"
 
 # Whitelist pattern for remotes (set to None to use local branches only)
 smv_remote_whitelist = None
-
-# Pattern for released versions
-smv_released_pattern = r"^tags/.*$"
 
 # Format for versioned output directories inside the build directory
 smv_outputdir_format = "{ref.name}"
 
 # Determines whether remote or local git branches/tags are preferred if their output dirs conflict
 smv_prefer_remote_refs = False
-
-templates_path = ["docs/_templates/"]
-# html_sidebars = dict(versions="versioning.html")
-html_sidebars = {"**": ["versioning.html"]}
