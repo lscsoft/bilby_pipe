@@ -186,7 +186,7 @@ documentation:
 
   artifacts:
     paths:
-      - docs/_build/html/
+      - docs/_build/
 
 pages:
   stage: deploy
