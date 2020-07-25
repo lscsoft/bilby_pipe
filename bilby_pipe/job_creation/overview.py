@@ -6,7 +6,7 @@ from os.path import abspath, relpath
 
 from jinja2 import Template
 
-from .utils import logger
+from ..utils import logger
 
 
 def create_overview(

@@ -160,13 +160,18 @@ class TestMainInput(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
 
         inputs.trigger_time = 10
-        self.assertEqual(bilby_pipe.main.get_trigger_time_list(inputs), [10])
+        self.assertEqual(
+            bilby_pipe.job_creation.bilby_pipe_dag_creator.get_trigger_time_list(
+                inputs
+            ),
+            [10],
+        )
 
     def test_get_trigger_time_list_gps_file(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
 
         inputs.gps_file = self.test_gps_file
-        A = bilby_pipe.main.get_trigger_time_list(inputs)
+        A = bilby_pipe.job_creation.bilby_pipe_dag_creator.get_trigger_time_list(inputs)
         start_times = np.genfromtxt(self.test_gps_file)
         B = start_times + inputs.duration - inputs.post_trigger_duration
         self.assertTrue(np.all(A == B))
@@ -177,24 +182,33 @@ class TestMainInput(unittest.TestCase):
         inputs.gaussian_noise = True
         inputs.n_simulation = 3
         t = 0 + inputs.duration - inputs.post_trigger_duration
-        self.assertTrue(bilby_pipe.main.get_trigger_time_list(inputs), [t] * 3)
+        self.assertTrue(
+            bilby_pipe.job_creation.bilby_pipe_dag_creator.get_trigger_time_list(
+                inputs
+            ),
+            [t] * 3,
+        )
 
     def test_get_trigger_time_list_fail(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
 
         with self.assertRaises(BilbyPipeError):
-            bilby_pipe.main.get_trigger_time_list(inputs)
+            bilby_pipe.job_creation.bilby_pipe_dag_creator.get_trigger_time_list(inputs)
 
     def test_get_detectors_list(self):
         self.args.detectors = ["H1", "L1", "V1"]
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        det_list = bilby_pipe.main.get_detectors_list(inputs)
+        det_list = bilby_pipe.job_creation.bilby_pipe_dag_creator.get_detectors_list(
+            inputs
+        )
         self.assertTrue(det_list, [["H1", "L1", "V1"]])
 
         self.args.detectors = ["H1", "L1", "V1"]
         self.args.coherence_test = True
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
-        det_list = bilby_pipe.main.get_detectors_list(inputs)
+        det_list = bilby_pipe.job_creation.bilby_pipe_dag_creator.get_detectors_list(
+            inputs
+        )
         self.assertTrue(det_list, [["H1", "L1", "V1"], ["H1"], ["L1"], ["V1"]])
 
 
