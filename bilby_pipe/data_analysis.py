@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-Script to analyse the stored data
-"""
+""" Script to perform data analysis """
 import os
 import signal
 import sys
@@ -32,7 +30,7 @@ def sighandler(signum, frame):
 
 
 class DataAnalysisInput(Input):
-    """ Handles user-input and analysis of intermediate ifo list
+    """ Handles user-input for the data analysis script
 
     Parameters
     ----------
@@ -279,10 +277,12 @@ class DataAnalysisInput(Input):
 
 
 def create_analysis_parser():
+    """ Data analysis parser creation """
     return create_parser(top_level=False)
 
 
 def main():
+    """ Data analysis main logic """
     args, unknown_args = parse_args(sys.argv[1:], create_analysis_parser())
     log_version_information()
     analysis = DataAnalysisInput(args, unknown_args)

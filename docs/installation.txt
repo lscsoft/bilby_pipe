@@ -79,7 +79,7 @@ Python installation
       installation and maintenance of various packages in environments. For
       help getting started, see the `LSCsoft documentation <https://lscsoft.docs.ligo.org/conda/>`_.
 
-      For detailed help on creating and managing environments see `here
+      For detailed help on creating and managing environments see `these help pages
       <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_.
       Here is an example of creating and activating an environment named  bilby
 
@@ -183,7 +183,7 @@ library to fetch proprietary data remotely, finally we search the open data.
 To best utilise this tool, you should ensure your python installation has
 access to `LDAStools-frameCPP
 <https://anaconda.org/conda-forge/python-ldas-tools-framecpp>`_
-for local frame-file lookup and `NDS2
+for local frame-file lookup and `the NDS2 library
 <https://anaconda.org/conda-forge/python-nds2-client>`_ for proprietary remote
 data look up. These libraries are typically part of most LIGO data stacks and
 can be installed with conda using the commands

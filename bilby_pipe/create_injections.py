@@ -4,20 +4,13 @@ This a command line tool for the generation of injection files for consumption
 by bilby_pipe. Injection files can be generated in a variety of formats, see
 below, and are generated from a bilby-style prior_file.
 
-Formats
--------
-dat: A dat file consists of a space-separated list of parameters with a header.
-     For example:
-
-     mass_1 mass_2 luminosity_distance ...
-     30 20 1500 ...
-     25 12 2000 ...
-
-json: A JSON formatted file
+Available formats: A dat file consists of a space-separated list of parameters
+with a header; A json formatted file.
 
 If a geocent_time prior is given in the file, this will be used to create the
 time prior. Otherwise, the trigger-time & deltaT or gps-time and deltaT options
 are used (see below).
+
 """
 import argparse
 import json

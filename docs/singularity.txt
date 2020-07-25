@@ -7,8 +7,7 @@ gravitational wave signals on the LIGO Data Grid clusters. The actual heavy
 lifting of running parameter is done by `bilby
 <https://git.ligo.org/lscsoft/bilby>`_. We provide a `singularity container
 <https://www.sylabs.io/guides/2.6/user-guide/index.html>`_ for bilby_pipe which
-has all the prerequisite software (e.g.., `bilby
-<file:///home/user1/bilby_pipe/docs/_build/html/singularity.html>`_, `lalsuite
+has all the prerequisite software (e.g.., :code:`bilby`, `lalsuite
 <https://git.ligo.org/lscsoft/lalsuite>`_, `gwpy <https://gwpy.github.io/>`_,
 and `all supported bilby samplers
 <https://lscsoft.docs.ligo.org/bilby/samplers.html>`_.
@@ -108,5 +107,5 @@ starting with :code:`Singularity`.
 Unfortunately, :code:`singularity` requires root access to build from a recipe.
 As such, it is not possible to build recipes on the LIGO Data Grid clusters.
 Instead, one can install a local copy of :code:`singularity`. Alternatively one
-can use `singularity-hub <https://singularity-hub.org>`_ to set up automatic
+can use singularity-hub to set up automatic
 building of containers from a connected github account.

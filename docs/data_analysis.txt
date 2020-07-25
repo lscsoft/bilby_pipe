@@ -2,7 +2,7 @@
 Data Analysis
 =============
 
-.. automodule:: bilby_pipe.data_generation
+.. automodule:: bilby_pipe.data_analysis
 
 Command line interface for data analysis
 ----------------------------------------

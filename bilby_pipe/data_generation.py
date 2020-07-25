@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-Module containing the tools for data generation
-"""
+""" Script to perform data generation steps """
 import glob
 import os
 import sys
@@ -51,7 +49,7 @@ except ImportError:
 
 
 class DataGenerationInput(Input):
-    """ Handles user-input and creation of intermediate interferometer list
+    """ Handles user-input for the data generation script
 
     Parameters
     ----------
@@ -1160,10 +1158,12 @@ class DataGenerationInput(Input):
 
 
 def create_generation_parser():
+    """ Data generation parser creation """
     return create_parser(top_level=False)
 
 
 def main():
+    """ Data generation main logic """
     args, unknown_args = parse_args(sys.argv[1:], create_generation_parser())
     log_version_information()
     data = DataGenerationInput(args, unknown_args)
