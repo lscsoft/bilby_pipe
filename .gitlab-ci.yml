@@ -197,7 +197,7 @@ pages:
     - mkdir public/
     - mv htmlcov/ public/
     - mv /builds/lscsoft/bilby_pipe/coverage_badge.svg public/
-    - mv docs/_build/html/* public/
+    - mv docs/_build/* public/
   artifacts:
     paths:
       - public
