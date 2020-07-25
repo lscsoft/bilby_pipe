@@ -1,7 +1,5 @@
-# Minimal makefile for Sphinx documentation
-#
+# Minimal makefile for Sphinx documentation: note this doesn't build multi-version
 
-# You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python -msphinx
 SPHINXPROJ    = bilby_pipe
