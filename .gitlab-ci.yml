@@ -175,6 +175,12 @@ documentation:
     # Make the documentation
     - apt-get update
     - apt-get -y install graphviz
+    # Sphinx-multiversion needs to be run on the git repo itself
+    - cd ../
+    - rm bilby_pipe/ -r
+    - git clone https://git.ligo.org/lscsoft/bilby_pipe.git
+    - cd bilby_pipe/
+    # Installation and clean up
     - cd docs
     - pip install -r requirements.txt
     - make clean
@@ -182,6 +188,9 @@ documentation:
     - bilby_pipe_gracedb --json ../examples/gracedb/G298936.json --output ini --outdir .
     # Sphinx-multiversion needs to be run from the top-level
     - cd ..
+    - git fetch origin master
+    - git status
+    - git branch
     - sphinx-multiversion docs/ docs/_build/
 
   artifacts:
@@ -203,7 +212,7 @@ pages:
       - public
     expire_in: 30 days
   only:
-    - master
+  - master
 
 deploy_release:
   stage: deploy
