@@ -74,6 +74,11 @@ VERSION = "0.3.12"
 version_file = write_version_file(VERSION)
 long_description = get_long_description()
 
+MAIN = "bilby_pipe"
+JOB_CREATION = f"{MAIN}.job_creation"
+NODES = f"{JOB_CREATION}.nodes"
+
+
 setup(
     name="bilby_pipe",
     description="Automating the running of bilby for gravitational wave signals",
@@ -84,7 +89,7 @@ setup(
     license="MIT",
     version=VERSION,
     package_data={"bilby_pipe": [version_file, "data_files/*"]},
-    packages=["bilby_pipe"],
+    packages=[MAIN, JOB_CREATION, NODES],
     install_requires=[
         "future",
         "pycondor>=0.5",

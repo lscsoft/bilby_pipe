@@ -3,7 +3,7 @@
 Module containing the tools for outputting slurm submission scripts
 """
 
-from .utils import logger
+from ..utils import logger
 
 
 class SubmitSLURM(object):
