@@ -176,6 +176,19 @@ class TestMainInput(unittest.TestCase):
         B = start_times + inputs.duration - inputs.post_trigger_duration
         self.assertTrue(np.all(A == B))
 
+    def test_get_trigger_time_list_with_gaussian_noise_and_trigger_time(self):
+        args = self.args
+        args.trigger_time = 10
+        args.gaussian_noise = True
+        inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
+
+        self.assertEqual(
+            bilby_pipe.job_creation.bilby_pipe_dag_creator.get_trigger_time_list(
+                inputs
+            ),
+            [args.trigger_time],
+        )
+
     def test_get_trigger_time_list_gaussian_noise(self):
         inputs = bilby_pipe.main.MainInput(self.args, self.unknown_args_list)
 
