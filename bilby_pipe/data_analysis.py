@@ -155,30 +155,6 @@ class DataAnalysisInput(Input):
             )
 
     @property
-    def sampler(self):
-        return self._sampler
-
-    @sampler.setter
-    def sampler(self, sampler):
-        """ Setter for the sampler
-
-        By default, the input parser takes a list of samplers (to enable DAGs
-        to be specified to run over all the samplers). In the analysis script,
-        it must be given only a single sampler. This logic checks that is the
-        case and raises an error otherwise
-        """
-        if isinstance(sampler, str):
-            self._sampler = sampler
-        elif isinstance(sampler, list):
-            if len(sampler) == 1:
-                self._sampler = sampler[0]
-            else:
-                raise BilbyPipeError(
-                    "Data analysis script received a list of samplers with "
-                    "more than one element: {}. Unable to proceed".format(sampler)
-                )
-
-    @property
     def interferometers(self):
         try:
             return self._interferometers

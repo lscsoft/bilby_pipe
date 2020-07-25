@@ -1226,6 +1226,21 @@ class Input(object):
             self._postprocessing_arguments = postprocessing_arguments
 
     @property
+    def sampler(self):
+        return self._sampler
+
+    @sampler.setter
+    def sampler(self, sampler):
+        """ Setter for the sampler """
+
+        if not isinstance(sampler, str):
+            raise BilbyPipeError("Sampler must be a single string")
+        elif sampler in bilby.core.sampler.IMPLEMENTED_SAMPLERS:
+            self._sampler = sampler
+        else:
+            raise BilbyPipeError("Requested sampler {} not implemented".format(sampler))
+
+    @property
     def sampler_kwargs(self):
         return self._sampler_kwargs
 

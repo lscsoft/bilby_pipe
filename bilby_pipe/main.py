@@ -355,12 +355,18 @@ def write_complete_config_file(parser, args, inputs):
         )
 
 
+def perform_runtime_checks(inputs, args):
+    """ Perform a set of run-time checks """
+    inputs.sampler = args.sampler
+
+
 def main():
     """ Top-level interface for bilby_pipe """
     parser = create_parser(top_level=True)
     args, unknown_args = parse_args(get_command_line_arguments(), parser)
     log_version_information()
     inputs = MainInput(args, unknown_args)
+    perform_runtime_checks(inputs, args)
     inputs.pretty_print_prior()
     write_complete_config_file(parser, args, inputs)
     generate_dag(inputs)
