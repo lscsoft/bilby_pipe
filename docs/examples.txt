@@ -50,9 +50,9 @@ samples from the prior.
 
 Note you need to set the argument :code:`gaussian-noise = True`
 if you want to run on an injection.
-The prior is specified by a bilby prior file :code:`bbh_reduced.prior`:
+The prior is specified by a bilby prior file :code:`bbh_injection.prior`:
 
-.. literalinclude:: ../examples/injection/bbh_reduced.prior
+.. literalinclude:: ../examples/injection/bbh_injection.prior
 
 Running :code:`bilby_pipe` with this ini file
 

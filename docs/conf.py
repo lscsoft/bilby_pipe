@@ -19,7 +19,7 @@
 import os
 import sys
 
-import bilby
+import bilby_pipe
 
 sys.path.insert(0, os.path.abspath("../bilby_pipe/"))
 
@@ -66,10 +66,10 @@ author = u"Gregory Ashton"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-fullversion = bilby.__version__.split(":")[0]
+fullversion = bilby_pipe.__version__.split(":")[0]
 
 # The short X.Y version.
-version = ".".join(fullversion.split(".")[:2])
+version = ".".join(fullversion.split(".")[:3])
 
 # The full version, including alpha/beta/rc tags.
 release = fullversion
@@ -109,7 +109,7 @@ html_theme = "sphinx_rtd_theme"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
