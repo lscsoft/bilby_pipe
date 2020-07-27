@@ -75,6 +75,16 @@ class TestMainInput(unittest.TestCase):
         memory = "{} GB".format(self.args.request_memory_generation)
         self.assertEqual(inputs.request_memory_generation, memory)
 
+    def test_notification_set(self):
+        self.args.notification = "Always"
+        inputs = bilby_pipe.main.MainInput(self.args, [])
+        self.assertEqual(inputs.notification, "Always")
+
+    def test_notification_error_riased_set(self):
+        self.args.notification = "Sometimes"
+        with self.assertRaises(BilbyPipeError):
+            bilby_pipe.main.MainInput(self.args, [])
+
     def test_label(self):
         self.assertEqual(self.inputs.label, self.args.label)
 
