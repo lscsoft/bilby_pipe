@@ -18,7 +18,7 @@ class Node(object):
         self.request_disk = None
         self.online_pe = self.inputs.online_pe
         self.getenv = True
-        self.notification = False
+        self.notification = inputs.notification
         self.retry = None
         self.verbose = 0
         self.extra_lines = list(self.inputs.extra_lines)

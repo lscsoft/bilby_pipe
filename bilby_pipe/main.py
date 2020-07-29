@@ -63,6 +63,7 @@ class MainInput(Input):
 
         self.webdir = args.webdir
         self.email = args.email
+        self.notification = args.notification
         self.existing_dir = args.existing_dir
 
         self.scheduler = args.scheduler
@@ -142,6 +143,21 @@ class MainInput(Input):
         if os.path.isfile(ini) is False:
             raise FileNotFoundError("No ini file {} found".format(ini))
         self._ini = os.path.relpath(ini)
+
+    @property
+    def notification(self):
+        return self._notification
+
+    @notification.setter
+    def notification(self, notification):
+        valid_settings = ["Always", "Complete", "Error", "Never"]
+        if notification in valid_settings:
+            self._notification = notification
+        else:
+            raise BilbyPipeError(
+                "'{}' is not a valid notification setting. "
+                "Valid settings are {}.".format(notification, valid_settings)
+            )
 
     @property
     def initialdir(self):
