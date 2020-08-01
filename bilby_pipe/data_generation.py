@@ -789,10 +789,16 @@ class DataGenerationInput(Input):
                 logger.info(
                     message.format(self.sampling_frequency, self.resampling_method)
                 )
-                lal_timeseries = data.to_lal()
-                lal.ResampleREAL8TimeSeries(
-                    lal_timeseries, float(1 / self.sampling_frequency)
-                )
+                try:
+                    lal_timeseries = data.to_lal()
+                    lal.ResampleREAL8TimeSeries(
+                        lal_timeseries, float(1 / self.sampling_frequency)
+                    )
+                except Exception as e:
+                    raise BilbyPipeError(
+                        "The lal resampling method has failed with exception {} "
+                        "You may wish to try a different resampling method".format(e)
+                    )
                 data = gwpy.timeseries.TimeSeries(
                     lal_timeseries.data.data,
                     epoch=lal_timeseries.epoch,
