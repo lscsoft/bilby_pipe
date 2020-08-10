@@ -666,6 +666,7 @@ def create_parser(top_level=True):
             "and not by user request. "
             "If defined by 'Never' (the default), "
             "the owner will not receive e-mail, regardless to what happens to the job. "
+            "Note, an `email` arg is also required for notifications to be emailed. "
         ),
     )
     output_parser.add(

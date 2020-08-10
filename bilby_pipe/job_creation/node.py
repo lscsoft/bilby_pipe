@@ -72,6 +72,9 @@ class Node(object):
         )
         self.extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
 
+        if self.inputs.email is not None:
+            self.extra_lines.append("notify_user = {}".format(self.inputs.email))
+
         if self.online_pe:
             self.extra_lines.append("+Online_CBC_PE_Daily = True")
             self.requirements.append("((TARGET.Online_CBC_PE_Daily =?= True))")
