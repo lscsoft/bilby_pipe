@@ -828,7 +828,7 @@ class Input(object):
         cond_a = getattr(self, "trigger_time", None) is not None
         cond_b = getattr(self, "deltaT", None) is not None
         if cond_a and cond_b:
-            logger.info(
+            logger.debug(
                 "Setting geocent time prior using trigger-time={} and deltaT={}".format(
                     self.trigger_time, self.deltaT
                 )
@@ -884,21 +884,40 @@ class Input(object):
         else:
             raise ValueError("Unable to set prior: default_prior unavailable")
 
-        self._update_default_prior_to_sky_frame_parameters(priors)
+        priors = self._update_default_prior_to_sky_frame_parameters(priors)
 
-        if priors.get(self.time_parameter, None) is None and add_time:
+        if self.time_parameter in priors:
+            logger.debug("Using {} prior from prior_file".format(self.time_parameter))
+        elif add_time:
             priors[self.time_parameter] = self.create_time_prior()
         else:
-            logger.info("Using {} prior from prior_file".format(self.time_parameter))
+            logger.debug("No time prior available or requested")
 
         if self.calibration_model is not None:
             priors.update(self.calibration_prior)
         return priors
 
+    def _get_default_sky_priors(self):
+        return bilby.core.prior.PriorDict(
+            dict(
+                dec=bilby.core.prior.Cosine(name="dec"),
+                ra=bilby.core.prior.Uniform(
+                    name="ra", minimum=0, maximum=2 * np.pi, boundary="periodic"
+                ),
+            )
+        )
+
+    def _priors_contains_default_sky_prior(self, priors):
+        sky_priors = self._get_default_sky_priors()
+        for key in sky_priors:
+            if sky_priors[key] != priors.get(key, None):
+                return False
+        return True
+
     def _update_default_prior_to_sky_frame_parameters(self, priors):
         if (
-            getattr(self, "_prior_file", None) in self.default_prior_files.values()
-            and not self.reference_frame == "sky"
+            self._priors_contains_default_sky_prior(priors)
+            and self.reference_frame != "sky"
         ):
             if "ra" in priors:
                 del priors["ra"]
@@ -913,6 +932,7 @@ class Input(object):
                 )
             if "zenith" not in priors:
                 priors["zenith"] = bilby.core.prior.Sine(latex_label="$\\kappa$")
+        return priors
 
     @property
     def calibration_model(self):

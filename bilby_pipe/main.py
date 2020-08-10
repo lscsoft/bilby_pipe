@@ -70,6 +70,7 @@ class MainInput(Input):
         self.scheduler_args = args.scheduler_args
         self.scheduler_module = args.scheduler_module
         self.scheduler_env = args.scheduler_env
+        self.scheduler_analysis_time = args.scheduler_analysis_time
 
         self.waveform_approximant = args.waveform_approximant
 
@@ -338,6 +339,7 @@ def write_complete_config_file(parser, args, inputs):
         "_prior_dict",
         "timeslides",
         "_log_directory",
+        "scheduler_module",
     ]
     differences = []
     for key, val in inputs.__dict__.items():
@@ -387,7 +389,7 @@ def main():
     write_complete_config_file(parser, args, inputs)
     generate_dag(inputs)
 
-    if len(unknown_args) > 1:
+    if len(unknown_args) > 0:
         msg = [
             tcolors.WARNING,
             "Unrecognized arguments {}".format(unknown_args),

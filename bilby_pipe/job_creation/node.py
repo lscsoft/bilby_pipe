@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pycondor
 
-from ..utils import CHECKPOINT_EXIT_CODE, ArgumentsString, logger
+from ..utils import CHECKPOINT_EXIT_CODE, ArgumentsString, BilbyPipeError, logger
 
 
 class Node(object):
@@ -70,7 +70,9 @@ class Node(object):
         self.extra_lines.extend(
             _log_output_error_submit_lines(self.log_directory, job_name)
         )
-        self.extra_lines.append("accounting_group = {}".format(self.inputs.accounting))
+
+        if self.inputs.scheduler.lower() == "condor":
+            self.add_accounting()
 
         if self.online_pe:
             self.extra_lines.append("+Online_CBC_PE_Daily = True")
@@ -101,7 +103,22 @@ class Node(object):
             retry=self.retry,
             verbose=self.verbose,
         )
+
+        # Hack to allow passing walltime down to slurm
+        setattr(self.job, "slurm_walltime", self.slurm_walltime)
+
         logger.debug("Adding job: {}".format(job_name))
+
+    def add_accounting(self):
+        """ Add the accounting-group extra lines """
+        if self.inputs.accounting:
+            self.extra_lines.append(
+                "accounting_group = {}".format(self.inputs.accounting)
+            )
+        else:
+            raise BilbyPipeError(
+                "No accounting tag provided - this is required for condor submission"
+            )
 
     @staticmethod
     def _checkpoint_submit_lines():
@@ -162,6 +179,12 @@ class Node(object):
             )
 
         return lines, " && ".join(requirements)
+
+    @property
+    def slurm_walltime(self):
+        """ Default wall-time for base-name """
+        # One hour
+        return "1:00:00"
 
 
 def _log_output_error_submit_lines(logdir, prefix):

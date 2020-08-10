@@ -2,6 +2,9 @@
 Using bilby_pipe
 ================
 
+Basics
+------
+
 The primary user-interface for this code is a command line tool
 :code:`bilby_pipe` which is available after following the `installation
 instructions <installation.txt>`_. To see the help for this tool, run
@@ -51,6 +54,64 @@ Alternatively, you can initialise and submit your jobs with
 .. code-block:: console
 
    $ bilby_pipe my-run.ini --submit
+
+Using the slurm batch scheduler
+-------------------------------
+
+By default, :code:`bilby_pipe` runs under a HTCondor environment (the default
+for the LIGO data grid). It can also be used on a slurm-based cluster. Here we
+give a brief description of the steps required to run under slurm, but a full
+list of available options, see the output of `bilby_pipe --help`.
+
+To use slurm, add :code:`scheduler=slurm` to your ini file. Typically, slurm
+needs you to configure the correct environment, you can do this by
+passing it in to :code:`scheduler-env=my-environment`. This will add the
+following line to your submit scripts.
+
+.. code-block:: console
+
+   $ source activate my-environment
+
+(Note: for conda users, this is equivalent to :code:`conda activate
+my-environment`).
+
+If the cluster you are using does not provide network access on the compute
+nodes, the data generation step may fail if an attempt is made to remotely
+access the data. (If you are creating simulated data, or have local copies of
+the data, this is, of course, not a problem). To resolve this issue, you can
+set `local-generation=True` in your ini file. The generation steps will then be
+run on the head node when you invoke :code:`bilby_pipe` after which you simply
+submit the job.
+
+Slurm modules can be loaded using :code:`scheduler-modules`, a space-separated
+list of modules to load. Additional commands to :code:`sbatch` can be given
+using the :code:`scheduler-args` command.
+
+Putting all this together, adding these lines to your ini file
+
+.. code-block:: console
+
+   scheduler = slurm
+   scheduler-args = arg1=val1 arg2=val2
+   scheduler-modules = git python
+   scheduler-env = my-environment
+
+Will produce a :code:`slurm` submit files which contains
+
+.. code-block:: console
+
+   #SBATCH --arg1=val1
+   #SBATCH --arg2=val2
+
+   module load git python
+
+and individual bash scripts containing
+
+.. code-block:: console
+
+   module load git python
+
+   source activate my-environment
 
 
 Summary webpage

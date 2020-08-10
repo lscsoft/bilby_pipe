@@ -29,20 +29,6 @@ class TestDataAnalysisInput(unittest.TestCase):
         if os.path.isdir(self.outdir):
             shutil.rmtree(self.outdir)
 
-    def test_cluster_setting(self):
-        args_list = self.default_args_list
-        args_list.append("--cluster")
-        args_list.append("10")
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
-        self.assertEqual(self.inputs.cluster, 10)
-
-    def test_process_setting(self):
-        args_list = self.default_args_list
-        args_list.append("--process")
-        args_list.append("10")
-        self.inputs = DataAnalysisInput(*parse_args(args_list, self.parser), test=True)
-        self.assertEqual(self.inputs.process, 10)
-
     def test_unset_sampling_seed(self):
         self.assertEqual(type(self.inputs.sampling_seed), int)
 

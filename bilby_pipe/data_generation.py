@@ -79,8 +79,6 @@ class DataGenerationInput(Input):
 
         # Admin arguments
         self.ini = args.ini
-        self.cluster = args.cluster
-        self.process = args.process
 
         # Run index arguments
         self.idx = args.idx
@@ -271,30 +269,6 @@ class DataGenerationInput(Input):
                     else:
                         injection_parameters[key] = 0
         self.meta_data["injection_parameters"] = injection_parameters
-
-    @property
-    def cluster(self):
-        return self._cluster
-
-    @cluster.setter
-    def cluster(self, cluster):
-        try:
-            self._cluster = int(cluster)
-        except (ValueError, TypeError):
-            logger.debug("Unable to convert input `cluster` to type int")
-            self._cluster = cluster
-
-    @property
-    def process(self):
-        return self._process
-
-    @process.setter
-    def process(self, process):
-        try:
-            self._process = int(process)
-        except (ValueError, TypeError):
-            logger.debug("Unable to convert input `process` to type int")
-            self._process = process
 
     @property
     def psd_length(self):
