@@ -29,7 +29,7 @@ class TestSlurm(unittest.TestCase):
 
     def test_create_slurm_submit(self):
         bilby_pipe.main.generate_dag(self.inputs)
-        filename = os.path.join(self.outdir, "submit/label_master_slurm.sh")
+        filename = os.path.join(self.outdir, "submit/slurm_label_master.sh")
         self.assertTrue(os.path.exists(filename))
 
 

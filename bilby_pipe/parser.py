@@ -47,11 +47,6 @@ def create_parser(top_level=True):
 
     """
 
-    if top_level is True:
-        required = True
-    else:
-        required = False
-
     parser = BilbyArgParser(
         usage=usage,
         ignore_unknown_config_file_keys=False,
@@ -116,12 +111,6 @@ def create_parser(top_level=True):
 
     if top_level is False:
         parser.add("--idx", type=int, help="The level A job index", default=0)
-        parser.add(
-            "--cluster", type=nonestr, help="The condor cluster ID", default=None
-        )
-        parser.add(
-            "--process", type=nonestr, help="The condor process ID", default=None
-        )
         parser.add(
             "--data-dump-file",
             type=nonestr,
@@ -414,8 +403,7 @@ def create_parser(top_level=True):
     )
     submission_parser.add(
         "--accounting",
-        type=str,
-        required=required,
+        type=nonestr,
         help="Accounting group to use (see, https://accounting.ligo.org/user)",
     )
     submission_parser.add("--label", type=str, default="label", help="Output label")
@@ -428,10 +416,10 @@ def create_parser(top_level=True):
         "--local-generation",
         action="store_true",
         help=(
-            "Run the data generation job locally. Note that if you are "
+            "Run the data generation job locally. This may be useful for "
             "running on a cluster where the compute nodes do not have "
-            "internet access, e.g. on ARCCA, you will need to run the "
-            "data generation job locally."
+            "internet access. For HTCondor, this is done using the local "
+            "universe, for slurm, the jobs will be run at run-time"
         ),
     )
     submission_parser.add(
@@ -444,7 +432,7 @@ def create_parser(top_level=True):
         default=28800,
         type=int,
         help=(
-            "Time after which the job will be self-evicted."
+            "Time after which the job will self-evict when scheduler=condor."
             " After this, condor will restart the job. Default is 28800."
             " This is used to decrease the chance of HTCondor hard evictions"
         ),
@@ -483,18 +471,23 @@ def create_parser(top_level=True):
         "--scheduler-args",
         type=nonestr,
         default=None,
-        help="Command line arguments to pass to scheduler jobs",
+        help="Space-separated #SBATCH command line args to pass to slurm (slurm only)",
     )
     submission_parser.add(
         "--scheduler-module",
         type=nonestr,
-        help="Modules scheduler loads during runtime",
+        action="append",
+        default=None,
+        help="Space-separated list of modules to load at runtime (slurm only)",
     )
     submission_parser.add(
         "--scheduler-env",
         type=nonestr,
         default=None,
-        help="Environment scheduler sources during runtime",
+        help="Python environment to activate (slurm only)",
+    )
+    submission_parser.add(
+        "--scheduler-analysis-time", type=nonestr, default="7-00:00:00", help="",
     )
     submission_parser.add(
         "--submit",
@@ -505,7 +498,10 @@ def create_parser(top_level=True):
         "--transfer-files",
         action=StoreBoolean,
         default=True,
-        help="If true, use HTCondor file transfer mechanism, default is True",
+        help=(
+            "If true, use HTCondor file transfer mechanism, default is True"
+            "for non-condor schedulers, this option is ignored"
+        ),
     )
     submission_parser.add(
         "--log-directory",

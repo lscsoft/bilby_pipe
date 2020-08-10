@@ -63,3 +63,9 @@ class AnalysisNode(Node):
     @property
     def result_file(self):
         return "{}/{}_result.json".format(self.inputs.result_directory, self.job_name)
+
+    @property
+    def slurm_walltime(self):
+        """ Default wall-time for base-name """
+        # Seven days
+        return self.inputs.scheduler_analysis_time

@@ -50,8 +50,7 @@ class DataAnalysisInput(Input):
 
         # Admin arguments
         self.ini = args.ini
-        self.cluster = args.cluster
-        self.process = args.process
+        self.scheduler = args.scheduler
         self.periodic_restart_time = args.periodic_restart_time
         self.request_cpus = args.request_cpus
 
@@ -110,30 +109,6 @@ class DataAnalysisInput(Input):
 
         if test is False:
             self._load_data_dump()
-
-    @property
-    def cluster(self):
-        return self._cluster
-
-    @cluster.setter
-    def cluster(self, cluster):
-        try:
-            self._cluster = int(cluster)
-        except (ValueError, TypeError):
-            logger.debug("Unable to convert input `cluster` to type int")
-            self._cluster = cluster
-
-    @property
-    def process(self):
-        return self._process
-
-    @process.setter
-    def process(self, process):
-        try:
-            self._process = int(process)
-        except (ValueError, TypeError):
-            logger.debug("Unable to convert input `process` to type int")
-            self._process = process
 
     @property
     def sampling_seed(self):
@@ -245,8 +220,9 @@ class DataAnalysisInput(Input):
         return likelihood, priors
 
     def run_sampler(self):
-        signal.signal(signal.SIGALRM, handler=sighandler)
-        signal.alarm(self.periodic_restart_time)
+        if self.scheduler.lower() == "condor":
+            signal.signal(signal.SIGALRM, handler=sighandler)
+            signal.alarm(self.periodic_restart_time)
 
         likelihood, priors = self.get_likelihood_and_priors()
 

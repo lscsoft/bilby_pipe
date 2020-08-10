@@ -51,6 +51,9 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(args.mode_array, complete_args.mode_array[0])
         exclude_keys.append("mode_array")
 
+        self.assertEqual(args.scheduler_module, complete_args.scheduler_module[0])
+        exclude_keys.append("scheduler_module")
+
         mismatched_keys = []
         if args != complete_args:
             for key in vars(args).copy():
@@ -60,7 +63,7 @@ class TestMainInput(unittest.TestCase):
                     if val != complete_val:
                         print(key, val, type(val), complete_val, type(complete_val))
                         mismatched_keys.append(key)
-        self.assertTrue(len(mismatched_keys) == 0)
+        self.assertEqual(len(mismatched_keys), 0)
 
 
 if __name__ == "__main__":
