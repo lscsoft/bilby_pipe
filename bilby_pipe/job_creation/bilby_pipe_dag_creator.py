@@ -52,14 +52,20 @@ def get_parallel_list(inputs):
 
 
 def generate_dag(inputs):
+    """ Core logic setting up parent-child structure between nodes """
     dag = Dag(inputs)
     trigger_times = get_trigger_time_list(inputs)
 
+    # Iterate over all generation nodes and store them in a list
     generation_node_list = []
     for idx, trigger_time in enumerate(trigger_times):
-        generation_node = GenerationNode(
-            inputs, trigger_time=trigger_time, idx=idx, dag=dag
-        )
+        kwargs = dict(trigger_time=trigger_time, idx=idx, dag=dag)
+        if idx > 0:
+            # Make all generation nodes depend on the 0th generation node
+            # Ensures any cached files (e.g. the distance-marginalization
+            # lookup table) are only built once.
+            kwargs["parent"] = generation_node_list[0]
+        generation_node = GenerationNode(inputs, **kwargs)
         generation_node_list.append(generation_node)
 
     detectors_list = get_detectors_list(inputs)
