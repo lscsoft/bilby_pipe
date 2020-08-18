@@ -495,6 +495,17 @@ def create_parser(top_level=True):
         help="Attempt to submit the job after the build",
     )
     submission_parser.add(
+        "--condor-job-priority",
+        type=int,
+        default=0,
+        help=(
+            "Job priorities allow a user to sort their HTCondor jobs to determine "
+            "which are tried to be run first. "
+            "A job priority can be any integer: larger values denote better priority. "
+            "By default HTCondor job priority=0. "
+        ),
+    )
+    submission_parser.add(
         "--transfer-files",
         action=StoreBoolean,
         default=True,
