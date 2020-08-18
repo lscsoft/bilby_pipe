@@ -404,8 +404,8 @@ def get_args():
     parser.add_argument(
         "--reference-frequency",
         type=int,
-        default=100,
-        help=("The reference frequency to run tests at, default 100"),
+        default=20,
+        help=("The reference frequency to run tests at, default 20"),
     )
     parser.add_argument(
         "--generation-seed",
