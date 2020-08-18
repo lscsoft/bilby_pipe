@@ -21,6 +21,7 @@ class Node(object):
         self.notification = inputs.notification
         self.retry = None
         self.verbose = 0
+        self.condor_job_priority = inputs.condor_job_priority
         self.extra_lines = list(self.inputs.extra_lines)
         self.requirements = (
             [self.inputs.requirements] if self.inputs.requirements else []
@@ -74,6 +75,7 @@ class Node(object):
         if self.inputs.scheduler.lower() == "condor":
             self.add_accounting()
 
+        self.extra_lines.append(f"priority = {self.condor_job_priority}")
         if self.inputs.email is not None:
             self.extra_lines.append("notify_user = {}".format(self.inputs.email))
 
