@@ -3,7 +3,25 @@ from ..node import Node
 
 
 class GenerationNode(Node):
-    def __init__(self, inputs, trigger_time, idx, dag):
+    def __init__(self, inputs, trigger_time, idx, dag, parent=None):
+        """
+        Node for data generation jobs
+
+        Parameters:
+        -----------
+        inputs: bilby_pipe.main.MainInput
+            The user-defined inputs
+        trigger_time: float
+            The trigger time to use in generating analysis data
+        idx: int
+            The index of the data-generation job, used to label data products
+        dag: bilby_pipe.dag.Dag
+            The dag structure
+        parent: bilby_pipe.job_creation.node.Node (optional)
+            Any job to set as the parent to this job - used to enforce
+            dependencies
+        """
+
         super().__init__(inputs)
         self.inputs = inputs
         self.trigger_time = trigger_time
@@ -20,6 +38,8 @@ class GenerationNode(Node):
         if self.inputs.timeslide_file is not None:
             self.arguments.add("timeslide-file", self.inputs.timeslide_file)
         self.process_node()
+        if parent:
+            self.job.add_parent(parent.job)
 
     @property
     def executable(self):
