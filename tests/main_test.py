@@ -51,14 +51,14 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(self.inputs.request_cpus, self.args.request_cpus)
 
     def test_request_memory(self):
-        memory = "{} GB".format(self.args.request_memory)
+        memory = f"{self.args.request_memory} GB"
         self.assertEqual(self.inputs.request_memory, memory)
 
     def test_request_memory_generation_default_non_roq(self):
         mem_int = bilby_pipe.utils.request_memory_generation_lookup(
             self.args.duration, roq=False
         )
-        memory = "{} GB".format(mem_int)
+        memory = f"{mem_int} GB"
         self.assertEqual(self.inputs.request_memory_generation, memory)
 
     def test_request_memory_generation_default_roq(self):
@@ -66,13 +66,13 @@ class TestMainInput(unittest.TestCase):
         mem_int = bilby_pipe.utils.request_memory_generation_lookup(
             self.args.duration, roq=True
         )
-        memory = "{} GB".format(mem_int)
+        memory = f"{mem_int} GB"
         self.assertEqual(self.inputs.request_memory_generation, memory)
 
     def test_request_memory_generation_set(self):
         self.args.request_memory_generation = 4
         inputs = bilby_pipe.main.MainInput(self.args, [])
-        memory = "{} GB".format(self.args.request_memory_generation)
+        memory = f"{self.args.request_memory_generation} GB"
         self.assertEqual(inputs.request_memory_generation, memory)
 
     def test_notification_set(self):

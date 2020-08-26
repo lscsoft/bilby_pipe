@@ -52,26 +52,22 @@ class SubmitSLURM(object):
             f.write("#!/bin/bash\n")
 
             for arg in slurm_args.split():
-                f.write("#SBATCH {}\n".format(arg))
+                f.write(f"#SBATCH {arg}\n")
 
             f.write("#SBATCH --time=00:10:00\n")
 
             # write output to standard file
             f.write(
-                "#SBATCH --output={}/{}_master_slurm.out\n".format(
-                    self.submit_dir, self.label
-                )
+                f"#SBATCH --output={self.submit_dir}/{self.label}_master_slurm.out\n"
             )
             f.write(
-                "#SBATCH --error={}/{}_master_slurm.err\n".format(
-                    self.submit_dir, self.label
-                )
+                f"#SBATCH --error={self.submit_dir}/{self.label}_master_slurm.err\n"
             )
 
             if self.scheduler_module:
                 for module in self.scheduler_module:
                     if module is not None:
-                        f.write("\nmodule load {}\n".format(module))
+                        f.write(f"\nmodule load {module}\n")
 
             # if self.scheduler_env is not None:
             #    f.write("\nsource activate {}\n".format(self.scheduler_env))
@@ -88,14 +84,14 @@ class SubmitSLURM(object):
                 # Generate the real slurm arguments from the dag node and the parsed slurm args
                 job_slurm_args = slurm_args
                 job_slurm_args += " --nodes=1"
-                job_slurm_args += " --ntasks-per-node={}".format(node.request_cpus)
+                job_slurm_args += f" --ntasks-per-node={node.request_cpus}"
                 job_slurm_args += " --mem={}G".format(
                     int(float(node.request_memory.split(" ")[0]))
                 )
-                job_slurm_args += " --time={}".format(node.slurm_walltime)
-                job_slurm_args += " --job-name={}".format(node.name)
+                job_slurm_args += f" --time={node.slurm_walltime}"
+                job_slurm_args += f" --job-name={node.name}"
 
-                submit_str = "\njid{}=($(sbatch {} ".format(indx, job_slurm_args)
+                submit_str = f"\njid{indx}=($(sbatch {job_slurm_args} "
 
                 # get list of all parents associated with job
                 parents = [job.name for job in node.parents]
@@ -106,33 +102,31 @@ class SubmitSLURM(object):
                     submit_str += "--dependency=afterok"
 
                     for parent in parents:
-                        submit_str += ":${{jid{}[-1]}}".format(job_dict[parent])
+                        submit_str += f":${{jid{job_dict[parent]}[-1]}}"
                 # get output file path from dag and use for slurm
                 output_file = self._output_name_from_dag(node.extra_lines)
 
-                submit_str += " --output={}".format(output_file)
-                submit_str += " --error={}".format(output_file.replace(".out", ".err"))
+                submit_str += f" --output={output_file}"
+                submit_str += f" --error={output_file.replace('.out', '.err')}"
 
                 job_script = self._write_individual_processes(
                     node.name, node.executable, node.args[0].arg
                 )
 
-                submit_str += " {}))\n\n".format(job_script)
+                submit_str += f" {job_script}))\n\n"
                 submit_str += (
                     f'echo "jid{indx} ${{jid{indx}[-1]}}" >> {self.slurm_id_file}'
                 )
 
-                f.write("{}\n".format(submit_str))
+                f.write(f"{submit_str}\n")
 
         # print out how to submit
-        command_line = "sbatch {}".format(self.slurm_master_bash)
+        command_line = f"sbatch {self.slurm_master_bash}"
 
         if self.submit:
             subprocess.run([command_line], shell=True)
         else:
-            logger.info(
-                "slurm scripts written, to run jobs submit:\n$ {}".format(command_line)
-            )
+            logger.info(f"slurm scripts written, to run jobs submit:\n$ {command_line}")
 
     def _write_individual_processes(self, name, executable, args):
 
@@ -146,15 +140,15 @@ class SubmitSLURM(object):
             if self.scheduler_module:
                 for module in self.scheduler_module:
                     if module is not None:
-                        ff.write("\nmodule load {}\n".format(module))
+                        ff.write(f"\nmodule load {module}\n")
 
             if self.scheduler_env is not None:
-                ff.write("\nsource activate {}\n\n".format(self.scheduler_env))
+                ff.write(f"\nsource activate {self.scheduler_env}\n\n")
                 # Call python from the venv on the script directly to avoid
                 # "bad interpreter" from shebang exceeding 128 chars
-                job_str = "python {} {}\n\n".format(executable, args)
+                job_str = f"python {executable} {args}\n\n"
             else:
-                job_str = "{} {}\n\n".format(executable, args)
+                job_str = f"{executable} {args}\n\n"
 
             ff.write(job_str)
 

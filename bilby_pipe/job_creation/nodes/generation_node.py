@@ -62,9 +62,7 @@ class GenerationNode(Node):
             )
             universe = "local"
         else:
-            logger.debug(
-                "All data will be grabbed in the {} universe".format(self._universe)
-            )
+            logger.debug(f"All data will be grabbed in the {self._universe} universe")
             universe = self._universe
         return universe
 

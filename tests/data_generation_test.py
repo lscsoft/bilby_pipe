@@ -221,8 +221,8 @@ class TestDataGenerationInput(unittest.TestCase):
         args_list = [
             "--ini",
             "tests/test_data_generation.ini",
-            "--generation-seed={}".format(generation_seed),
-            "--idx={}".format(idx),
+            f"--generation-seed={generation_seed}",
+            f"--idx={idx}",
             "--gaussian-noise",
             "--trigger-time",
             "2",
@@ -238,8 +238,8 @@ class TestDataGenerationInput(unittest.TestCase):
         args_list = [
             "--ini",
             "tests/test_data_generation.ini",
-            "--generation-seed={}".format(generation_seed),
-            "--idx={}".format(idx),
+            f"--generation-seed={generation_seed}",
+            f"--idx={idx}",
             "--gaussian-noise",
             "--trigger-time",
             "1126259462",
@@ -258,8 +258,8 @@ class TestDataGenerationInput(unittest.TestCase):
         args_list = [
             "--ini",
             "tests/test_data_generation.ini",
-            "--generation-seed={}".format(generation_seed),
-            "--idx={}".format(idx),
+            f"--generation-seed={generation_seed}",
+            f"--idx={idx}",
             "--gaussian-noise",
             "--trigger-time",
             "1126259462",
@@ -439,7 +439,7 @@ class TestDataReading(unittest.TestCase):
             shutil.rmtree(self.outdir)
 
     def test_read_data_gwf(self):
-        self.inputs.data_dict = {self.det: "{}/test_data.gwf".format(self.data_dir)}
+        self.inputs.data_dict = {self.det: f"{self.data_dir}/test_data.gwf"}
         data = self.inputs._gwpy_read(
             self.det, self.channel, self.start_time, self.end_time
         )
@@ -447,7 +447,7 @@ class TestDataReading(unittest.TestCase):
         self.assertEqual(len(data), 16384)
 
     def test_read_data_txt(self):
-        self.inputs.data_dict = {self.det: "{}/test_data.txt".format(self.data_dir)}
+        self.inputs.data_dict = {self.det: f"{self.data_dir}/test_data.txt"}
         data = self.inputs._gwpy_read(
             self.det, self.channel, self.start_time, self.end_time
         )
@@ -455,7 +455,7 @@ class TestDataReading(unittest.TestCase):
         self.assertEqual(len(data), 16384)
 
     def test_read_data_hdf5(self):
-        self.inputs.data_dict = {self.det: "{}/test_data.hdf5".format(self.data_dir)}
+        self.inputs.data_dict = {self.det: f"{self.data_dir}/test_data.hdf5"}
         data = self.inputs._gwpy_read(
             self.det, self.channel, self.start_time, self.end_time
         )

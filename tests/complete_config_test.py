@@ -25,9 +25,7 @@ class TestMainInput(unittest.TestCase):
         inputs = bilby_pipe.main.MainInput(args, unknown_args)
 
         bilby_pipe.main.write_complete_config_file(self.parser, args, inputs)
-        complete_args_list = [
-            self.outdir + "/{}_config_complete.ini".format(inputs.label)
-        ]
+        complete_args_list = [self.outdir + f"/{inputs.label}_config_complete.ini"]
         complete_args, complete_unknown_args = self.parser.parse_known_args(
             complete_args_list
         )

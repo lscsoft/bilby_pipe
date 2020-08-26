@@ -360,7 +360,7 @@ class TestInput(unittest.TestCase):
         filename = inputs.default_prior_files["4s"]
         temp_filename = "4s-copy"
         copyfile(filename, temp_filename)
-        inputs.prior_file = "not-a-directory/{}".format(temp_filename)
+        inputs.prior_file = f"not-a-directory/{temp_filename}"
         self.assertEqual(inputs.prior_file, temp_filename)
         os.remove(temp_filename)
 

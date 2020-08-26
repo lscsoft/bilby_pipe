@@ -55,10 +55,10 @@ def get_results_filenames(args):
         results_files += glob.glob(glob_string)
     results_files = [rf for rf in results_files if os.path.isfile(rf)]
     if len(results_files) == 0:
-        raise FileNotFoundError("No results found in path {}".format(args.directory))
+        raise FileNotFoundError(f"No results found in path {args.directory}")
 
     if args.filter is not None:
-        logger.info("Filtering results to only '{}' results".format(args.filter))
+        logger.info(f"Filtering results to only '{args.filter}' results")
         results_files = [rf for rf in results_files if args.filter in rf]
 
     if any("merge" in item for item in results_files):
@@ -66,7 +66,7 @@ def get_results_filenames(args):
         results_files = [rf for rf in results_files if "merge" in rf]
 
     if args.n is not None:
-        logger.info("Truncating to first {} results".format(args.n))
+        logger.info(f"Truncating to first {args.n} results")
         results_files = results_files[: args.n]
     return results_files
 
@@ -85,7 +85,7 @@ def read_in_result_list(args, results_filenames):
             results.append(read_in_result(f))
         except json.decoder.JSONDecodeError:
             pass
-    print("Read in {} results from directory {}".format(len(results), args.directory))
+    print(f"Read in {len(results)} results from directory {args.directory}")
 
     print("Checking if results are complete")
     results_u = []
@@ -93,24 +93,22 @@ def read_in_result_list(args, results_filenames):
         if r._posterior is not None:
             results_u.append(r)
     if len(results_u) < len(results):
-        print("Results incomplete, truncating to {}".format(len(results_u)))
+        print(f"Results incomplete, truncating to {len(results_u)}")
         results = results_u
     else:
         print("Results complete")
 
     if args.print:
-        print(
-            "List of result-labels: {}".format(sorted([res.label for res in results]))
-        )
+        print(f"List of result-labels: {sorted([res.label for res in results])}")
     return ResultList(results)
 
 
 def get_basename(args):
     if args.outdir is None:
         args.outdir = args.directory
-    basename = "{}/".format(args.outdir)
+    basename = f"{args.outdir}/"
     if args.label is not None:
-        basename += "{}_".format(args.label)
+        basename += f"{args.label}_"
     return basename
 
 
@@ -141,7 +139,7 @@ def make_meta_data_plot(results, basename):
         show_titles=True,
         range=[1, 1, 1],
     )
-    fig.savefig("{}meta.png".format(basename))
+    fig.savefig(f"{basename}meta.png")
 
 
 def main(args=None):
@@ -158,6 +156,6 @@ def main(args=None):
         for name, p in results[0].priors.items()
         if isinstance(p, str) or p.is_fixed is False
     ]
-    logger.info("Parameters = {}".format(keys))
-    make_pp_plot(results, filename="{}pp.png".format(basename), keys=keys)
+    logger.info(f"Parameters = {keys}")
+    make_pp_plot(results, filename=f"{basename}pp.png", keys=keys)
     make_meta_data_plot(results, basename)

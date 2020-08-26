@@ -42,7 +42,7 @@ class DataAnalysisInput(Input):
     """
 
     def __init__(self, args, unknown_args, test=False):
-        logger.info("Command line arguments: {}".format(args))
+        logger.info(f"Command line arguments: {args}")
 
         # Generic initialisation
         self.meta_data = dict()
@@ -120,7 +120,7 @@ class DataAnalysisInput(Input):
             sampling_seed = np.random.randint(1, 1e6)
         self._samplng_seed = sampling_seed
         np.random.seed(sampling_seed)
-        logger.info("Sampling seed set to {}".format(sampling_seed))
+        logger.info(f"Sampling seed set to {sampling_seed}")
 
         if self.sampler == "cpnest":
             self.sampler_kwargs["seed"] = self.sampler_kwargs.get(
@@ -134,10 +134,10 @@ class DataAnalysisInput(Input):
         except AttributeError:
             ifos = self.data_dump.interferometers
             names = [ifo.name for ifo in ifos]
-            logger.info("Found data for detectors = {}".format(names))
+            logger.info(f"Found data for detectors = {names}")
             ifos_to_use = [ifo for ifo in ifos if ifo.name in self.detectors]
             names_to_use = [ifo.name for ifo in ifos_to_use]
-            logger.info("Using data for detectors = {}".format(names_to_use))
+            logger.info(f"Using data for detectors = {names_to_use}")
             self._interferometers = bilby.gw.detector.InterferometerList(ifos_to_use)
             self.print_detector_information(self._interferometers)
             return self._interferometers

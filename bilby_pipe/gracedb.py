@@ -126,7 +126,7 @@ def read_from_json(json_file):
     """
 
     if os.path.isfile(json_file) is False:
-        raise FileNotFoundError("File {} not found".format(json_file))
+        raise FileNotFoundError(f"File {json_file} not found")
 
     try:
         with open(json_file, "r") as file:
@@ -165,7 +165,7 @@ def calibration_lookup(trigger_time, detector):
     )
 
     if os.path.isdir(base) is False:
-        raise BilbyPipeError("Unable to read from calibration folder {}".format(base))
+        raise BilbyPipeError(f"Unable to read from calibration folder {base}")
 
     calenv = CALENVS_LOOKUP[detector]
     times = list()
@@ -185,7 +185,7 @@ def calibration_lookup(trigger_time, detector):
     for time in times:
         if trigger_time > time:
             directory = os.path.dirname(calenv)
-            calib_file = "{}/{}".format(directory, files[time])
+            calib_file = f"{directory}/{files[time]}"
     return os.path.abspath(calib_file)
 
 
@@ -230,9 +230,7 @@ def read_candidate(candidate):
 def _read_cbc_candidate(candidate):
     if "mchirp" not in candidate["extra_attributes"]["CoincInspiral"]:
         raise BilbyPipeError(
-            "Unable to determine chirp mass for {} from GraceDB".format(
-                candidate["graceid"]
-            )
+            f"Unable to determine chirp mass for {candidate['graceid']} from GraceDB"
         )
     chirp_mass = candidate["extra_attributes"]["CoincInspiral"]["mchirp"]
     superevent = candidate["superevent"]
@@ -270,10 +268,10 @@ def prior_lookup(duration, scale_factor, outdir, template=None):
 
     """
 
-    roq_folder = "/home/cbc/ROQ_data/IMRPhenomPv2/{}s".format(duration)
+    roq_folder = f"/home/cbc/ROQ_data/IMRPhenomPv2/{duration}s"
     if os.path.isdir(roq_folder) is False:
         logger.warning("Requested ROQ folder does not exist")
-        return "{}s".format(duration), None, duration, 20, 1024
+        return f"{duration}s", None, duration, 20, 1024
 
     roq_params = np.genfromtxt(os.path.join(roq_folder, "params.dat"), names=True)
 
@@ -345,7 +343,7 @@ def create_config_file(
         distance_marginalization_lookup_table = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "data_files",
-            "{}s_distance_marginalization_lookup.npz".format(duration),
+            f"{duration}s_distance_marginalization_lookup.npz",
         )
 
         if sampler_kwargs == "FastTest":
@@ -417,7 +415,7 @@ def create_config_file(
         )
     else:
         raise BilbyPipeError(
-            "search_type should be either 'cbc' or 'burst', not {}".format(search_type)
+            f"search_type should be either 'cbc' or 'burst', not {search_type}"
         )
 
     config_dict = dict(
@@ -460,7 +458,7 @@ def create_config_file(
         "# Configuration ini file generated from GraceDB "
         "for event id {} superevent id {}".format(gracedb, superevent)
     )
-    filename = "{}/bilby_config.ini".format(outdir)
+    filename = f"{outdir}/bilby_config.ini"
     _parser = parser.create_parser()
     _parser.write_to_file(
         filename=filename,
@@ -690,7 +688,7 @@ def main(args=None, unknown_args=None):
     if len(unknown_args) > 1 and args.output == "ini":
         msg = [
             tcolors.WARNING,
-            "Unrecognized arguments {}, these will be ignored".format(unknown_args),
+            f"Unrecognized arguments {unknown_args}, these will be ignored",
             tcolors.END,
         ]
         logger.warning(" ".join(msg))
@@ -702,13 +700,13 @@ def main(args=None, unknown_args=None):
         candidate = read_from_json(json)
         gracedb = candidate["graceid"]
         if outdir is None:
-            outdir = "outdir_{}".format(gracedb)
+            outdir = f"outdir_{gracedb}"
         check_directory_exists_and_if_not_mkdir(outdir)
     elif args.gracedb:
         gracedb = args.gracedb
         gracedb_url = args.gracedb_url
         if outdir is None:
-            outdir = "outdir_{}".format(gracedb)
+            outdir = f"outdir_{gracedb}"
         check_directory_exists_and_if_not_mkdir(outdir)
         candidate = read_from_gracedb(gracedb, gracedb_url, outdir)
     else:
@@ -730,7 +728,7 @@ def main(args=None, unknown_args=None):
         convert_to_flat_in_component_mass = False
     else:
         raise BilbyPipeError(
-            "Candidate pipeline {} not recognised.".format(candidate["pipeline"])
+            f"Candidate pipeline {candidate['pipeline']} not recognised."
         )
 
     filename = create_config_file(

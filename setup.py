@@ -7,12 +7,12 @@ from pathlib import Path
 
 from setuptools import setup
 
-# check that python version is 3.5 or above
+# check that python version is 3.6 or above
 python_version = sys.version_info
 print("Running Python version %s.%s.%s" % python_version[:3])
-if python_version < (3, 5):
-    sys.exit("Python < 3.5 is not supported, aborting setup")
-print("Confirmed Python version 3.5.0 or above")
+if python_version < (3, 6):
+    sys.exit("Python < 3.6 is not supported, aborting setup")
+print("Confirmed Python version 3.6.0 or above")
 
 
 def write_version_file(version):
@@ -53,11 +53,11 @@ def write_version_file(version):
         git_version = "{}: ({}) {}".format(
             version, "UNCLEAN" if git_diff else "CLEAN", git_log.rstrip()
         )
-        print("parsed git version info as: {!r}".format(git_version))
+        print(f"parsed git version info as: {git_version!r}")
 
     with open(version_file, "w") as f:
         print(git_version, file=f)
-        print("created {}".format(version_file))
+        print(f"created {version_file}")
 
     return version_file.name
 
@@ -127,7 +127,6 @@ setup(
         ]
     },
     classifiers=[
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: MIT License",

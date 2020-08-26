@@ -6,7 +6,7 @@ class PESummaryNode(Node):
     def __init__(self, inputs, merged_node_list, generation_node_list, dag):
         super().__init__(inputs)
         self.dag = dag
-        self.job_name = "{}_pesummary".format(inputs.label)
+        self.job_name = f"{inputs.label}_pesummary"
         self.request_cpus = 1
 
         n_results = len(merged_node_list)
@@ -20,7 +20,7 @@ class PESummaryNode(Node):
         if self.inputs.email is not None:
             self.arguments.add("email", self.inputs.email)
         self.arguments.add("config", " ".join([self.inputs.ini] * n_results))
-        self.arguments.add("samples", "{}".format(" ".join(result_files)))
+        self.arguments.add("samples", f"{' '.join(result_files)}")
 
         # Using append here as summary pages doesn't take a full name for approximant
         self.arguments.append("-a")
@@ -38,7 +38,7 @@ class PESummaryNode(Node):
 
         if isinstance(self.inputs.summarypages_arguments, dict):
             if "labels" not in self.inputs.summarypages_arguments.keys():
-                self.arguments.append("--labels {}".format(" ".join(labels)))
+                self.arguments.append(f"--labels {' '.join(labels)}")
             else:
                 if len(labels) != len(result_files):
                     raise BilbyPipeError(
@@ -68,7 +68,7 @@ class PESummaryNode(Node):
                 elif key == "publication":
                     self.arguments.add_flag("publication")
                 elif key == "labels":
-                    self.arguments.add("labels", "{}".format(" ".join(val)))
+                    self.arguments.add("labels", f"{' '.join(val)}")
                 else:
                     not_recognised_arguments[key] = val
             if not_recognised_arguments != {}:

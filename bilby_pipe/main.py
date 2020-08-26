@@ -39,7 +39,7 @@ class MainInput(Input):
 
     def __init__(self, args, unknown_args):
         logger.debug("Creating new Input object")
-        logger.debug("Command line arguments: {}".format(args))
+        logger.debug(f"Command line arguments: {args}")
 
         self.known_args = args
         self.unknown_args = unknown_args
@@ -121,7 +121,7 @@ class MainInput(Input):
                 "waveform",
                 "format",
             ]:
-                attr = "plot_{}".format(plot_attr)
+                attr = f"plot_{plot_attr}"
                 setattr(self, attr, getattr(args, attr))
 
         self.postprocessing_executable = args.postprocessing_executable
@@ -143,7 +143,7 @@ class MainInput(Input):
     @ini.setter
     def ini(self, ini):
         if os.path.isfile(ini) is False:
-            raise FileNotFoundError("No ini file {} found".format(ini))
+            raise FileNotFoundError(f"No ini file {ini} found")
         self._ini = os.path.relpath(ini)
 
     @property
@@ -181,15 +181,13 @@ class MainInput(Input):
 
     @n_simulation.setter
     def n_simulation(self, n_simulation):
-        logger.info("Setting n_simulation={}".format(n_simulation))
+        logger.info(f"Setting n_simulation={n_simulation}")
         if isinstance(n_simulation, int) and n_simulation >= 0:
             self._n_simulation = n_simulation
         elif n_simulation is None:
             self._n_simulation = 0
         else:
-            raise BilbyPipeError(
-                "Input n_simulation={} not understood".format(n_simulation)
-            )
+            raise BilbyPipeError(f"Input n_simulation={n_simulation} not understood")
 
     @property
     def request_memory(self):
@@ -197,8 +195,8 @@ class MainInput(Input):
 
     @request_memory.setter
     def request_memory(self, request_memory):
-        logger.info("Setting analysis request_memory={}GB".format(request_memory))
-        self._request_memory = "{} GB".format(request_memory)
+        logger.info(f"Setting analysis request_memory={request_memory}GB")
+        self._request_memory = f"{request_memory} GB"
 
     @property
     def request_memory_generation(self):
@@ -211,10 +209,8 @@ class MainInput(Input):
             request_memory_generation = request_memory_generation_lookup(
                 self.duration, roq=roq
             )
-        logger.info(
-            "Setting request_memory_generation={}GB".format(request_memory_generation)
-        )
-        self._request_memory_generation = "{} GB".format(request_memory_generation)
+        logger.info(f"Setting request_memory_generation={request_memory_generation}GB")
+        self._request_memory_generation = f"{request_memory_generation} GB"
 
     @property
     def request_cpus(self):
@@ -222,7 +218,7 @@ class MainInput(Input):
 
     @request_cpus.setter
     def request_cpus(self, request_cpus):
-        logger.info("Setting analysis request_cpus = {}".format(request_cpus))
+        logger.info(f"Setting analysis request_cpus = {request_cpus}")
         self._request_cpus = request_cpus
 
     @staticmethod
@@ -233,7 +229,7 @@ class MainInput(Input):
                 msg = [
                     tcolors.WARNING,
                     "You appear to be using a tidal waveform with the",
-                    "{} source model.".format(args.frequency_domain_source_model),
+                    f"{args.frequency_domain_source_model} source model.",
                     "You may want to use `frequency-domain-source-model=",
                     "lal_binary_neutron_star`.",
                     tcolors.END,
@@ -257,10 +253,10 @@ class MainInput(Input):
                 )
             )
         elif self.injection_file is not None:
-            logger.info("Using injection file {}".format(self.injection_file))
+            logger.info(f"Using injection file {self.injection_file}")
         elif os.path.isfile(default_injection_file_name):
             # This is done to avoid overwriting the injection file
-            logger.info("Using injection file {}".format(default_injection_file_name))
+            logger.info(f"Using injection file {default_injection_file_name}")
             self.injection_file = default_injection_file_name
         else:
             logger.info("No injection file found, generating one now")
@@ -305,9 +301,7 @@ class MainInput(Input):
                 )
         elif self.n_simulation == 0 and self.gps_file is None:
             self.n_simulation = len(self.injection_df)
-            logger.info(
-                "Setting n_simulation={} to match injections".format(self.n_simulation)
-            )
+            logger.info(f"Setting n_simulation={self.n_simulation} to match injections")
 
 
 def write_complete_config_file(parser, args, inputs):
@@ -320,7 +314,7 @@ def write_complete_config_file(parser, args, inputs):
                 setattr(args, key, os.path.abspath(val))
         if isinstance(val, list):
             if isinstance(val[0], str):
-                setattr(args, key, "[{}]".format(", ".join(val)))
+                setattr(args, key, f"[{', '.join(val)}]")
     args.sampler_kwargs = str(inputs.sampler_kwargs)
     parser.write_to_file(
         filename=inputs.complete_ini_file,
@@ -363,10 +357,7 @@ def write_complete_config_file(parser, args, inputs):
 
     if len(differences) > 0:
         for key in differences:
-            print(
-                key,
-                "{} -- {}".format(inputs.__dict__[key], complete_inputs.__dict__[key]),
-            )
+            print(key, f"{inputs.__dict__[key]} -- {complete_inputs.__dict__[key]}")
         raise BilbyPipeError(
             "The written config file {} differs from the source {} in {}".format(
                 inputs.ini, inputs.complete_ini_file, differences
@@ -391,9 +382,5 @@ def main():
     generate_dag(inputs)
 
     if len(unknown_args) > 0:
-        msg = [
-            tcolors.WARNING,
-            "Unrecognized arguments {}".format(unknown_args),
-            tcolors.END,
-        ]
+        msg = [tcolors.WARNING, f"Unrecognized arguments {unknown_args}", tcolors.END]
         logger.warning(" ".join(msg))

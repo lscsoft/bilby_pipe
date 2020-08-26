@@ -14,9 +14,9 @@ class AnalysisNode(Node):
 
         data_label = generation_node.job_name
         base_name = data_label.replace("generation", "analysis")
-        self.base_job_name = "{}_{}_{}".format(base_name, "".join(detectors), sampler)
+        self.base_job_name = f"{base_name}_{''.join(detectors)}_{sampler}"
         if parallel_idx != "":
-            self.job_name = "{}_{}".format(self.base_job_name, parallel_idx)
+            self.job_name = f"{self.base_job_name}_{parallel_idx}"
         else:
             self.job_name = self.base_job_name
         self.label = self.job_name
@@ -62,7 +62,7 @@ class AnalysisNode(Node):
 
     @property
     def result_file(self):
-        return "{}/{}_result.json".format(self.inputs.result_directory, self.job_name)
+        return f"{self.inputs.result_directory}/{self.job_name}_result.json"
 
     @property
     def slurm_walltime(self):

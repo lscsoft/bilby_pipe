@@ -54,7 +54,7 @@ class TestCreateInjections(unittest.TestCase):
     def setUp(self):
         self.outdir = "outdir"
         self.example_prior_file = "tests/example_prior.prior"
-        self.filename = "{}/injection.dat".format(self.outdir)
+        self.filename = f"{self.outdir}/injection.dat"
 
     def tearDown(self):
         try:
@@ -63,7 +63,7 @@ class TestCreateInjections(unittest.TestCase):
             pass
 
     def test_create_injection_file(self):
-        filename = "{}/injections.dat".format(self.outdir)
+        filename = f"{self.outdir}/injections.dat"
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
@@ -78,7 +78,7 @@ class TestCreateInjections(unittest.TestCase):
         self.assertEqual(len(injections), n_injection)
 
     def test_create_injection_file_dat_ext(self):
-        filename = "{}/injections".format(self.outdir)
+        filename = f"{self.outdir}/injections"
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
@@ -94,7 +94,7 @@ class TestCreateInjections(unittest.TestCase):
         self.assertEqual(len(df), n_injection)
 
     def test_create_injection_file_json_ext(self):
-        filename = "{}/injections".format(self.outdir)
+        filename = f"{self.outdir}/injections"
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
@@ -110,7 +110,7 @@ class TestCreateInjections(unittest.TestCase):
         self.assertEqual(len(df), n_injection)
 
     def test_create_injection_file_with_gps_file(self):
-        filename = "{}/injections".format(self.outdir)
+        filename = f"{self.outdir}/injections"
         prior_file = self.example_prior_file
         n_injection = 2
         bilby_pipe.create_injections.create_injection_file(
@@ -134,7 +134,7 @@ class TestCreateInjections(unittest.TestCase):
         )
 
     def test_create_injection_file_json(self):
-        filename = "{}/injections.json".format(self.outdir)
+        filename = f"{self.outdir}/injections.json"
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(
@@ -150,7 +150,7 @@ class TestCreateInjections(unittest.TestCase):
         self.assertEqual(len(df), n_injection)
 
     def test_create_injection_file_generation_seed(self):
-        filename = "{}/injections".format(self.outdir)
+        filename = f"{self.outdir}/injections"
         prior_file = self.example_prior_file
         n_injection = 3
         bilby_pipe.create_injections.create_injection_file(

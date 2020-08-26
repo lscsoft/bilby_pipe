@@ -12,7 +12,7 @@ class Dag(object):
 
     def __init__(self, inputs):
         self.inputs = inputs
-        self.dag_name = "dag_{}".format(inputs.label)
+        self.dag_name = f"dag_{inputs.label}"
         self.submit_directory = inputs.submit_directory
 
         self.scheduler = self.inputs.scheduler
@@ -58,9 +58,7 @@ class Dag(object):
                 os.path.relpath(self.pycondor_dag.submit_file)
             )
             logger.info(
-                "DAG generation complete, to submit jobs run:\n  {}".format(
-                    command_line
-                )
+                f"DAG generation complete, to submit jobs run:\n  {command_line}"
             )
 
         # Debugging feature: create a "visualisation" of the DAG
@@ -87,20 +85,14 @@ class Dag(object):
         with open(self.bash_file, "w") as ff:
             ff.write("#!/usr/bin/env bash\n\n")
             for node in self.pycondor_dag.nodes:
-                ff.write("# {}\n".format(node.name))
+                ff.write(f"# {node.name}\n")
+                ff.write(f"# PARENTS {' '.join([job.name for job in node.parents])}\n")
                 ff.write(
-                    "# PARENTS {}\n".format(
-                        " ".join([job.name for job in node.parents])
-                    )
+                    f"# CHILDREN {' '.join([job.name for job in node.children])}\n"
                 )
-                ff.write(
-                    "# CHILDREN {}\n".format(
-                        " ".join([job.name for job in node.children])
-                    )
-                )
-                job_str = "{} {}\n\n".format(node.executable, node.args[0].arg)
+                job_str = f"{node.executable} {node.args[0].arg}\n\n"
                 ff.write(job_str)
 
     @property
     def bash_file(self):
-        return "{}/bash_{}.sh".format(self.submit_directory, self.inputs.label)
+        return f"{self.submit_directory}/bash_{self.inputs.label}.sh"

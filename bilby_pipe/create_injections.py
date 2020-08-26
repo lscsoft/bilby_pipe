@@ -196,7 +196,7 @@ class InjectionCreator(Input):
 
         if isinstance(n_injection, int) is False or n_injection < 1:
             raise BilbyPipeCreateInjectionsError(
-                "n_injection={}, but must be a positive integer".format(n_injection)
+                f"n_injection={n_injection}, but must be a positive integer"
             )
         self._n_injection = n_injection
 
@@ -230,9 +230,9 @@ class InjectionCreator(Input):
             dataframe.to_csv(path, index=False, header=True, sep=" ")
         else:
             raise BilbyPipeCreateInjectionsError(
-                "Extension {} not implemented".format(extension)
+                f"Extension {extension} not implemented"
             )
-        logger.info("Created injection file {}".format(path))
+        logger.info(f"Created injection file {path}")
 
     def generate_injection_file(self, filepath, extension):
         """Sets the generation seed and randomly generates parameters to create inj"""
@@ -251,7 +251,7 @@ def get_full_path(filename, extension):
     """Makes filename and ext consistent amongst user input"""
     ext_in_filename = os.path.splitext(filename)[1].lstrip(".")
     if ext_in_filename == "":
-        path = "{}.{}".format(filename, extension)
+        path = f"{filename}.{extension}"
     elif ext_in_filename == extension:
         path = filename
     else:
