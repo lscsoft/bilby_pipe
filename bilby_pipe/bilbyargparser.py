@@ -147,29 +147,25 @@ class BilbyArgParser(configargparse.ArgParser):
         comment=None,
     ):
         if os.path.isfile(filename) and not overwrite:
-            logger.warning(
-                "File {} already exists, not writing to file.".format(filename)
-            )
+            logger.warning(f"File {filename} already exists, not writing to file.")
         with open(filename, "w") as ff:
             __version__ = get_version_information()
             if include_description:
                 print(
-                    "## This file was written with bilby_pipe version {}\n".format(
-                        __version__
-                    ),
+                    f"## This file was written with bilby_pipe version {__version__}\n",
                     file=ff,
                 )
             if isinstance(comment, str):
                 print("#" + comment + "\n", file=ff)
             for group in self._action_groups[2:]:
                 print("#" * 80, file=ff)
-                print("## {}".format(group.title), file=ff)
+                print(f"## {group.title}", file=ff)
                 if include_description:
-                    print("# {}".format(group.description), file=ff)
+                    print(f"# {group.description}", file=ff)
                 print("#" * 80 + "\n", file=ff)
                 for action in group._group_actions:
                     if include_description:
-                        print("# {}".format(action.help), file=ff)
+                        print(f"# {action.help}", file=ff)
                     dest = action.dest
                     hyphen_dest = HyphenStr(dest)
                     if isinstance(args, dict):
@@ -200,7 +196,7 @@ class BilbyArgParser(configargparse.ArgParser):
             comment = self.inline_comments.get(self.numbers[hyphen_dest], "")
         else:
             comment = ""
-        print("{}={}{}".format(hyphen_dest, value, comment), file=ff)
+        print(f"{hyphen_dest}={value}{comment}", file=ff)
 
 
 class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
@@ -247,9 +243,7 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
                 continue
 
             raise configargparse.ConfigFileParserException(
-                "Unexpected line {} in {}: {}".format(
-                    ii, getattr(stream, "name", "stream"), line
-                )
+                f"Unexpected line {ii} in {getattr(stream, 'name', 'stream')}: {line}"
             )
 
         items = self.reconstruct_multiline_dictionary(items)
@@ -265,7 +259,7 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
                 if val != "{":
                     sub_dict_vals.append(val.rstrip("{"))
                 while True:
-                    next_line = "{}: {}".format(keys[ii + sub_ii], vals[ii + sub_ii])
+                    next_line = f"{keys[ii + sub_ii]}: {vals[ii + sub_ii]}"
                     items.pop(keys[ii + sub_ii])
                     if "}" not in next_line:
                         if "{" in next_line:

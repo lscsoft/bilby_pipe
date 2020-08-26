@@ -31,7 +31,7 @@ class TestBilbyArgParser(unittest.TestCase):
         bbargparser = BilbyArgParser()
         arg_key = "--key"
         arg_val = "val"
-        args_string = "{} {}".format(arg_key, arg_val)
+        args_string = f"{arg_key} {arg_val}"
         args, unknown_args = bbargparser.parse_known_args(args=args_string)
         self.assertTrue(arg_val in unknown_args)
 
@@ -82,7 +82,7 @@ class TestBilbyConfigFileParser(unittest.TestCase):
             for line in lines:
                 print(line, file=file)
 
-        print("File{}, content:".format(self.test_ini_filename))
+        print(f"File{self.test_ini_filename}, content:")
         print("-------BEGIN-------")
         with open(self.test_ini_filename, "r") as file:
             for line in file:
@@ -139,14 +139,14 @@ class TestBilbyConfigFileParser(unittest.TestCase):
     def test_sampler_kwargs_empty(self):
         kwargs_expected = dict()
         kwargs_str = "{}"
-        lines = ["sampler-kwargs: {}".format(kwargs_str)]
+        lines = [f"sampler-kwargs: {kwargs_str}"]
         self.write_tempory_ini_file(lines)
         args, unknown_args = parse_args([self.test_ini_filename], self.parser)
         self.assertEqual(convert_string_to_dict(args.sampler_kwargs), kwargs_expected)
 
     def test_prior_dict(self):
         kwargs_str = '{a=Uniform(name="a", minimum=0, maximum=1)}'
-        lines = ["prior-dict: {}".format(kwargs_str)]
+        lines = [f"prior-dict: {kwargs_str}"]
         self.write_tempory_ini_file(lines)
         args, unknown_args = parse_args([self.test_ini_filename], self.parser)
         self.assertEqual(args.prior_dict, kwargs_str)

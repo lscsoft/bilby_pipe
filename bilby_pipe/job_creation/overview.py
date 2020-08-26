@@ -30,7 +30,7 @@ def create_overview(
     """
 
     index_file_dir = inputs.webdir
-    index_file = "{}/overview.html".format(index_file_dir)
+    index_file = f"{index_file_dir}/overview.html"
     template = Template(string_template)
 
     if inputs.injection_waveform_approximant is None:
@@ -76,7 +76,7 @@ def create_overview(
     )
     with open(index_file, "w+") as f:
         print(filled_template, file=f)
-    logger.info("Overview page available at {}".format(index_file))
+    logger.info(f"Overview page available at {index_file}")
 
 
 string_template = """

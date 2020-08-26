@@ -46,9 +46,7 @@ class Node(object):
         if exe is not None:
             return exe
         else:
-            raise OSError(
-                "{} not installed on this system, unable to proceed".format(exe_name)
-            )
+            raise OSError(f"{exe_name} not installed on this system, unable to proceed")
 
     def setup_arguments(
         self, add_command_line_args=True, add_ini=True, add_unknown_args=True
@@ -75,7 +73,7 @@ class Node(object):
             self.add_accounting()
 
         if self.inputs.email is not None:
-            self.extra_lines.append("notify_user = {}".format(self.inputs.email))
+            self.extra_lines.append(f"notify_user = {self.inputs.email}")
 
         if self.online_pe:
             self.extra_lines.append("+Online_CBC_PE_Daily = True")
@@ -110,14 +108,12 @@ class Node(object):
         # Hack to allow passing walltime down to slurm
         setattr(self.job, "slurm_walltime", self.slurm_walltime)
 
-        logger.debug("Adding job: {}".format(job_name))
+        logger.debug(f"Adding job: {job_name}")
 
     def add_accounting(self):
         """ Add the accounting-group extra lines """
         if self.inputs.accounting:
-            self.extra_lines.append(
-                "accounting_group = {}".format(self.inputs.accounting)
-            )
+            self.extra_lines.append(f"accounting_group = {self.inputs.accounting}")
         else:
             raise BilbyPipeError(
                 "No accounting tag provided - this is required for condor submission"
@@ -126,7 +122,7 @@ class Node(object):
     @staticmethod
     def _checkpoint_submit_lines():
         return [
-            "+SuccessCheckpointExitCode = {}".format(CHECKPOINT_EXIT_CODE),
+            f"+SuccessCheckpointExitCode = {CHECKPOINT_EXIT_CODE}",
             "+WantFTOnCheckpoint = True",
         ]
 
@@ -134,8 +130,8 @@ class Node(object):
     def _condor_file_transfer_lines(inputs, outputs):
         return [
             "should_transfer_files = YES",
-            "transfer_input_files = {}".format(",".join(inputs)),
-            "transfer_output_files = {}".format(",".join(outputs)),
+            f"transfer_input_files = {','.join(inputs)}",
+            f"transfer_output_files = {','.join(outputs)}",
             "when_to_transfer_output = ON_EXIT_OR_EVICT",
             "stream_error = True",
             "stream_output = True",
@@ -149,7 +145,7 @@ class Node(object):
         try:
             return str(Path(path).resolve().relative_to(reference))
         except ValueError as exc:
-            exc.args = ("cannot format {} relative to {}".format(path, reference),)
+            exc.args = (f"cannot format {path} relative to {reference}",)
             raise
 
     def _osg_submit_options(self, executable, has_ligo_frames=False):
@@ -177,9 +173,7 @@ class Node(object):
         #       not all local pools advertise the CVMFS repo flags
         if executable.startswith("/cvmfs"):
             repo = executable.split(os.path.sep, 3)[2]
-            requirements.append(
-                "(HAS_CVMFS_{}=?=True)".format(re.sub("[.-]", "_", repo))
-            )
+            requirements.append(f"(HAS_CVMFS_{re.sub('[.-]', '_', repo)}=?=True)")
 
         return lines, " && ".join(requirements)
 
@@ -213,8 +207,8 @@ def _log_output_error_submit_lines(logdir, prefix):
      'error = test/job.err']
     """
     logpath = Path(logdir)
-    filename = "{}.{{}}".format(prefix)
+    filename = f"{prefix}.{{}}"
     return [
-        "{} = {}".format(opt, str(logpath / filename.format(opt[:3])))
+        f"{opt} = {str(logpath / filename.format(opt[:3]))}"
         for opt in ("log", "output", "error")
     ]

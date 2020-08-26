@@ -24,3 +24,13 @@ repos:
     hooks:
     -   id: isort # sort imports alphabetically and separates import into sections
         args: [-w=88, -m=3, -tc, -sp=setup.cfg ]
+-   repo: local
+    hooks:
+    -   id: flynt
+        name: flynt
+        entry: flynt
+        args: [--fail-on-change]
+        types: [python]
+        language: python
+        additional_dependencies:
+            - flynt

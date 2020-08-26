@@ -64,8 +64,8 @@ class DataGenerationInput(Input):
 
     def __init__(self, args, unknown_args, create_data=True):
 
-        logger.info("Command line arguments: {}".format(args))
-        logger.info("Unknown command line arguments: {}".format(unknown_args))
+        logger.info(f"Command line arguments: {args}")
+        logger.info(f"Unknown command line arguments: {unknown_args}")
 
         # Generic initialisation
         self.meta_data = dict(
@@ -109,9 +109,7 @@ class DataGenerationInput(Input):
 
         if args.timeslide_dict is not None:
             self.timeslide_dict = convert_string_to_dict(args.timeslide_dict)
-            logger.info(
-                "Read-in timeslide dict directly: {}".format(self.timeslide_dict)
-            )
+            logger.info(f"Read-in timeslide dict directly: {self.timeslide_dict}")
         elif args.timeslide_file is not None:
             self.gps_file = args.gps_file
             self.timeslide_file = args.timeslide_file
@@ -252,7 +250,7 @@ class DataGenerationInput(Input):
             generation_seed = generation_seed + self.idx
         self._generation_seed = generation_seed
         np.random.seed(generation_seed)
-        logger.info("Generation seed set to {}".format(generation_seed))
+        logger.info(f"Generation seed set to {generation_seed}")
 
     @property
     def injection_parameters(self):
@@ -282,7 +280,7 @@ class DataGenerationInput(Input):
             self.psd_duration = psd_length * self.duration
 
         else:
-            raise BilbyPipeError("Unable to set psd_length={}".format(psd_length))
+            raise BilbyPipeError(f"Unable to set psd_length={psd_length}")
 
     @property
     def psd_duration(self):
@@ -319,9 +317,7 @@ class DataGenerationInput(Input):
         elif self.trigger_time is not None:
             psd_start_time = -self.psd_duration
             logger.info(
-                "Using default PSD start time {} relative to start time".format(
-                    psd_start_time
-                )
+                f"Using default PSD start time {psd_start_time} relative to start time"
             )
             return psd_start_time
         else:
@@ -362,7 +358,7 @@ class DataGenerationInput(Input):
         elif isinstance(data_dict, dict):
             self._data_dict = data_dict
         else:
-            raise BilbyPipeError("Input data-dict={} not understood".format(data_dict))
+            raise BilbyPipeError(f"Input data-dict={data_dict} not understood")
 
     @property
     def channel_dict(self):
@@ -383,9 +379,7 @@ class DataGenerationInput(Input):
         if det in self.channel_dict:
             return self.channel_dict[det]
         else:
-            raise BilbyPipeError(
-                "Detector {} not given in the channel-dict".format(det)
-            )
+            raise BilbyPipeError(f"Detector {det} not given in the channel-dict")
 
     @property
     def sampling_frequency(self):
@@ -438,12 +432,12 @@ class DataGenerationInput(Input):
             "start_time",
             "duration",
         ]:
-            logger.info("{} = {}".format(prop, getattr(self, prop)))
+            logger.info(f"{prop} = {getattr(self, prop)}")
 
         self._set_interferometers_from_gaussian_noise()
 
         waveform_arguments = self.get_injection_waveform_arguments()
-        logger.info("Using waveform arguments: {}".format(waveform_arguments))
+        logger.info(f"Using waveform arguments: {waveform_arguments}")
         waveform_generator = self.waveform_generator_class(
             duration=self.duration,
             start_time=self.start_time,
@@ -510,7 +504,7 @@ class DataGenerationInput(Input):
             outdir = None
             label = None
 
-        logger.info("Injecting with {}".format(self.injection_waveform_approximant))
+        logger.info(f"Injecting with {self.injection_waveform_approximant}")
         (
             signal_and_data,
             meta_data,
@@ -558,7 +552,7 @@ class DataGenerationInput(Input):
 
     def _set_psd_from_file(self, ifo):
         psd_file = self.psd_dict[ifo.name]
-        logger.info("Setting {} PSD from file {}".format(ifo.name, psd_file))
+        logger.info(f"Setting {ifo.name} PSD from file {psd_file}")
         ifo.power_spectral_density = PowerSpectralDensity.from_power_spectral_density_file(
             psd_file=psd_file
         )
@@ -583,14 +577,14 @@ class DataGenerationInput(Input):
                 psd_data = None
                 self._set_psd_from_file(ifo)
             else:
-                logger.info("Setting PSD for {} from data".format(det))
+                logger.info(f"Setting PSD for {det} from data")
                 psd_data = self.__get_psd_data(det)
                 psd = self.__generate_psd(psd_data, roll_off)
                 ifo.power_spectral_density = PowerSpectralDensity(
                     frequency_array=psd.frequencies.value, psd_array=psd.value
                 )
 
-            logger.info("Getting analysis-segment data for {}".format(det))
+            logger.info(f"Getting analysis-segment data for {det}")
             data = self._get_data(
                 det, self.get_channel_type(det), self.start_time, end_time
             )
@@ -610,7 +604,7 @@ class DataGenerationInput(Input):
         # so here we calculate the actual start time
         actual_psd_start_time = self.start_time + self.psd_start_time
         actual_psd_end_time = actual_psd_start_time + self.psd_duration
-        logger.info("Getting psd-segment data for {}".format(det))
+        logger.info(f"Getting psd-segment data for {det}")
         psd_data = self._get_data(
             det, self.get_channel_type(det), actual_psd_start_time, actual_psd_end_time
         )
@@ -676,16 +670,14 @@ class DataGenerationInput(Input):
         if plot_psd:
             strain_spectogram_plot(
                 data=psd_strain_data,
-                extra_label="D{}".format(int(psd_time[1] - psd_time[0])),
+                extra_label=f"D{int(psd_time[1] - psd_time[0])}",
                 **plot_kwargs,
             )
 
         # plot psd_strain_data+strain_data  and zoom into strain_data segment
         data_with_psd = psd_strain_data.append(strain_data, inplace=False)
         strain_spectogram_plot(
-            data=data_with_psd,
-            extra_label="D{}".format(int(time[1] - time[0])),
-            **plot_kwargs,
+            data=data_with_psd, extra_label=f"D{int(time[1] - time[0])}", **plot_kwargs
         )
 
     def _get_data(self, det, channel_type, start_time, end_time, resample=True):
@@ -739,7 +731,7 @@ class DataGenerationInput(Input):
         if data is None and channel_type == "GWOSC":
             data = self._gwpy_fetch_open_data(det, start_time, end_time)
 
-        channel = "{}:{}".format(det, channel_type)
+        channel = f"{det}:{channel_type}"
         if data is None and self.data_dict is not None:
             data = self._gwpy_read(det, channel, start_time, end_time)
         if data is None:
@@ -821,10 +813,7 @@ class DataGenerationInput(Input):
         # Create data quality flag
         channel_num = 1
         quality_flag = f"{det}:DMT-SCIENCE:{channel_num}"
-        logger.info(
-            "Checking data quality {} {}-{}"
-            "".format(quality_flag, start_time, end_time)
-        )
+        logger.info(f"Checking data quality {quality_flag} {start_time}-{end_time}")
         try:
             flag = gwpy.segments.DataQualityFlag.query(
                 quality_flag, gwpy.time.to_gps(start_time), gwpy.time.to_gps(end_time)
@@ -851,7 +840,7 @@ class DataGenerationInput(Input):
                 data_is_good = True
                 logger.info("Data quality check: PASSED.")
         except Exception as e:
-            logger.warning("Error in Data Quality Check: {}.".format(e))
+            logger.warning(f"Error in Data Quality Check: {e}.")
             data_is_good = None
 
         return data_is_good
@@ -880,7 +869,7 @@ class DataGenerationInput(Input):
         logger.debug("data-dict provided, attempt read of data")
 
         if det not in self.data_dict:
-            logger.info("Detector {} not found in data-dict".format(det))
+            logger.info(f"Detector {det} not found in data-dict")
             return None
         else:
             source = self.data_dict[det]
@@ -888,9 +877,9 @@ class DataGenerationInput(Input):
 
         # If the source contains a glob-path, e.g. *gwf, glob it first
         if "*" in source:
-            logger.info("Globbing {}".format(source))
+            logger.info(f"Globbing {source}")
             source = glob.glob(source)
-            logger.info("Setting source={}".format(source))
+            logger.info(f"Setting source={source}")
 
         if "gwf" in format_ext:
             kwargs = dict(
@@ -913,11 +902,9 @@ class DataGenerationInput(Input):
             kwargs_string = ""
             for key, val in kwargs.items():
                 if isinstance(val, str):
-                    val = "'{}'".format(val)
-                kwargs_string += "{}={}, ".format(key, val)
-            logger.info(
-                "Running: gwpy.timeseries.TimeSeries.read({})".format(kwargs_string)
-            )
+                    val = f"'{val}'"
+                kwargs_string += f"{key}={val}, "
+            logger.info(f"Running: gwpy.timeseries.TimeSeries.read({kwargs_string})")
             data = gwpy.timeseries.TimeSeries.read(**kwargs)
 
             data = data.crop(start=start_time, end=end_time)
@@ -941,7 +928,7 @@ class DataGenerationInput(Input):
 
             return data
         except ValueError as e:
-            logger.info("Reading of data failed with error {}".format(e))
+            logger.info(f"Reading of data failed with error {e}")
             return None
 
     def _gwpy_get(self, channel, start_time, end_time, dtype="float64"):
@@ -970,7 +957,7 @@ class DataGenerationInput(Input):
         )
         if self.data_format:
             kwargs = dict(format=self.data_format)
-            logger.info("Extra kwargs passed to get(): {}".format(kwargs))
+            logger.info(f"Extra kwargs passed to get(): {kwargs}")
         else:
             kwargs = dict()
         try:
@@ -979,8 +966,8 @@ class DataGenerationInput(Input):
             )
             return data
         except RuntimeError as e:
-            logger.info("Unable to read data for channel {}".format(channel))
-            logger.debug("Error message {}".format(e))
+            logger.info(f"Unable to read data for channel {channel}")
+            logger.debug(f"Error message {e}")
         except ImportError:
             logger.info("Unable to read data as NDS2 is not installed")
         except TypeError:
@@ -1029,21 +1016,21 @@ class DataGenerationInput(Input):
     def add_calibration_model_to_interferometers(self, ifo):
         if self.calibration_model == "CubicSpline":
             ifo.calibration_model = bilby.gw.calibration.CubicSpline(
-                prefix="recalib_{}_".format(ifo.name),
+                prefix=f"recalib_{ifo.name}_",
                 minimum_frequency=ifo.minimum_frequency,
                 maximum_frequency=ifo.maximum_frequency,
                 n_points=self.spline_calibration_nodes,
             )
         else:
             raise BilbyPipeError(
-                "calibration model {} not implemented".format(self.calibration_model)
+                f"calibration model {self.calibration_model} not implemented"
             )
 
     @interferometers.setter
     def interferometers(self, interferometers):
         for ifo in interferometers:
             if isinstance(ifo, bilby.gw.detector.Interferometer) is False:
-                raise BilbyPipeError("ifo={} is not a bilby Interferometer".format(ifo))
+                raise BilbyPipeError(f"ifo={ifo} is not a bilby Interferometer")
             if self.minimum_frequency is not None:
                 ifo.minimum_frequency = self.minimum_frequency_dict[ifo.name]
             if self.maximum_frequency is not None:

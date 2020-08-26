@@ -14,7 +14,7 @@ class TestGraceDB(unittest.TestCase):
         self.directory = os.path.abspath(os.path.dirname(__file__))
         self.outdir = "outdir"
         self.example_gracedb_uid = "G298936"
-        self.example_gracedb_uid_outdir = "outdir_{}".format(self.example_gracedb_uid)
+        self.example_gracedb_uid_outdir = f"outdir_{self.example_gracedb_uid}"
         self.cert_dummy_path = os.path.join(self.directory, "temp/certdir/")
         self.tearDown()  # make sure that temp files deleted from previous attempts
         os.makedirs(self.cert_dummy_path)
@@ -112,7 +112,7 @@ class TestGraceDB(unittest.TestCase):
 
     def test_create_config_file_no_chirp_mass(self):
         gracedb_uid = "G298936"
-        example_json_data = "examples/gracedb/{}.json".format(gracedb_uid)
+        example_json_data = f"examples/gracedb/{gracedb_uid}.json"
         candidate = gracedb.read_from_json(example_json_data)
         channel_dict = dict(
             H1="GDS-CALIB_STRAIN_CLEAN",
@@ -141,7 +141,7 @@ class TestGraceDB(unittest.TestCase):
     #         self.assertTrue(prior in Input.get_default_prior_files())
 
     def test_parse_args(self):
-        example_json_data = "examples/gracedb/{}.json".format(self.example_gracedb_uid)
+        example_json_data = f"examples/gracedb/{self.example_gracedb_uid}.json"
         parser = gracedb.create_parser()
         args = parser.parse_args(["--json", example_json_data])
         self.assertEqual(args.gracedb, None)
@@ -152,7 +152,7 @@ class TestGraceDB(unittest.TestCase):
 
     def test_main(self):
         gracedb_uid = "G298936"
-        example_json_data = "examples/gracedb/{}.json".format(gracedb_uid)
+        example_json_data = f"examples/gracedb/{gracedb_uid}.json"
         parser = gracedb.create_parser()
         args = parser.parse_args(["--json", example_json_data])
         gracedb.main(args)

@@ -58,7 +58,7 @@ class TestUtils(unittest.TestCase):
 
     def test_write_to_file(self):
         bilby_pipe.utils.setup_logger(outdir=self.outdir, label="TEST")
-        self.assertTrue(os.path.isfile("{}/{}.log".format(self.outdir, "TEST")))
+        self.assertTrue(os.path.isfile(f"{self.outdir}/{'TEST'}.log"))
 
     def test_dict_converter(self):
         key = "test"

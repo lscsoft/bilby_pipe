@@ -54,14 +54,14 @@ class ArgumentsString(object):
         self.argument_list.append(argument)
 
     def add_positional_argument(self, value):
-        self.argument_list.append("{}".format(value))
+        self.argument_list.append(f"{value}")
 
     def add_flag(self, flag):
-        self.argument_list.append("--{}".format(flag))
+        self.argument_list.append(f"--{flag}")
 
     def add(self, argument, value):
-        self.argument_list.append("--{}".format(argument))
-        self.argument_list.append("{}".format(value))
+        self.argument_list.append(f"--{argument}")
+        self.argument_list.append(f"{value}")
 
     def add_unknown_args(self, unknown_args):
         self.argument_list += unknown_args
@@ -233,7 +233,7 @@ def run_command_line(arguments, directory=None):
         os.chdir(directory)
     else:
         pwd = None
-    print("\nRunning command $ {}\n".format(" ".join(arguments)))
+    print(f"\nRunning command $ {' '.join(arguments)}\n")
     subprocess.call(arguments)
     if pwd:
         os.chdir(pwd)
@@ -279,9 +279,9 @@ def check_directory_exists_and_if_not_mkdir(directory):
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
-        logger.debug("Making directory {}".format(directory))
+        logger.debug(f"Making directory {directory}")
     else:
-        logger.debug("Directory {} exists".format(directory))
+        logger.debug(f"Directory {directory} exists")
 
 
 def setup_logger(outdir=None, label=None, log_level="INFO"):
@@ -304,7 +304,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO"):
         try:
             level = getattr(logging, log_level.upper())
         except AttributeError:
-            raise ValueError("log_level {} not understood".format(log_level))
+            raise ValueError(f"log_level {log_level} not understood")
     else:
         level = int(log_level)
 
@@ -329,7 +329,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO"):
                 check_directory_exists_and_if_not_mkdir(outdir)
             else:
                 outdir = "."
-            log_file = "{}/{}.log".format(outdir, label)
+            log_file = f"{outdir}/{label}.log"
             file_handler = logging.FileHandler(log_file)
             file_handler.setFormatter(
                 logging.Formatter(
@@ -348,8 +348,8 @@ def log_version_information():
     import bilby
 
     version = get_version_information()
-    logger.info("Running bilby_pipe version: {}".format(version))
-    logger.info("Running bilby: {}".format(bilby.__version__))
+    logger.info(f"Running bilby_pipe version: {version}")
+    logger.info(f"Running bilby: {bilby.__version__}")
 
 
 def get_version_information():
@@ -383,15 +383,13 @@ def convert_string_to_tuple(string, key=None, n=None):
         tup = ast.literal_eval(string)
     except ValueError as e:
         if key is not None:
-            raise BilbyPipeError(
-                "Error {}: unable to convert {}: {}".format(e, key, string)
-            )
+            raise BilbyPipeError(f"Error {e}: unable to convert {key}: {string}")
         else:
-            raise BilbyPipeError("Error {}: unable to {}".format(e, string))
+            raise BilbyPipeError(f"Error {e}: unable to {string}")
     if n is not None:
         if len(tup) != n:
             raise BilbyPipeError(
-                "Passed string {} should be a tuple of length {}".format(string, n)
+                f"Passed string {string} should be a tuple of length {n}"
             )
 
     return tup
@@ -423,14 +421,12 @@ def convert_string_to_dict(string, key=None):
     try:
         dic = ast.literal_eval(string)
         if isinstance(dic, str):
-            raise BilbyPipeError("Unable to format {} into a dictionary".format(string))
+            raise BilbyPipeError(f"Unable to format {string} into a dictionary")
     except (ValueError, SyntaxError) as e:
         if key is not None:
-            raise BilbyPipeError(
-                "Error {}. Unable to parse {}: {}".format(e, key, string)
-            )
+            raise BilbyPipeError(f"Error {e}. Unable to parse {key}: {string}")
         else:
-            raise BilbyPipeError("Error {}. Unable to parse {}".format(e, string))
+            raise BilbyPipeError(f"Error {e}. Unable to parse {string}")
 
     # Convert values to bool/floats/ints where possible
     dic = convert_dict_values_if_possible(dic)
@@ -523,9 +519,9 @@ def write_config_file(config_dict, filename, comment=None, remove_none=False):
         raise ValueError("config-dict is not complete")
     with open(filename, "w+") as file:
         if comment is not None:
-            print("{}".format(comment), file=file)
+            print(f"{comment}", file=file)
         for key, val in config_dict.items():
-            print("{}={}".format(key, val), file=file)
+            print(f"{key}={val}", file=file)
 
 
 def test_connection():
@@ -642,7 +638,7 @@ def convert_detectors_input(string):
     if isinstance(string, list):
         string = ",".join(string)
     if isinstance(string, str) is False:
-        raise BilbyPipeError("Detector input {} not understood".format(string))
+        raise BilbyPipeError(f"Detector input {string} not understood")
     # Remove square brackets
     string = string.replace("[", "").replace("]", "")
     # Remove added quotes
@@ -699,9 +695,7 @@ def kv_parser(kv_str, remove_leading_namespace=False):
         k, v = kv_str.split("=", 1)
         return {k: v}
     except ValueError:
-        raise BilbyPipeInternalError(
-            "Error in ini-dict reader when reading {}".format(kv_str)
-        )
+        raise BilbyPipeInternalError(f"Error in ini-dict reader when reading {kv_str}")
 
 
 def check_if_represents_int(s):

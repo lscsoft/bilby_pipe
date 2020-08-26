@@ -51,10 +51,8 @@ for ii, filename in enumerate(filenames):
         waveform_arguments=waveform_arguments,
     )
 
-    print("Generating lookup table for prior-file {}".format(filename))
-    dest = "{}_distance_marginalization_lookup.npz".format(
-        os.path.splitext(filename)[0]
-    )
+    print(f"Generating lookup table for prior-file {filename}")
+    dest = f"{os.path.splitext(filename)[0]}_distance_marginalization_lookup.npz"
     priors = bilby.gw.prior.BBHPriorDict(filename)
 
     if "plot" in sys.argv:

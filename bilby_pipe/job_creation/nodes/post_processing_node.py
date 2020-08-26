@@ -6,7 +6,7 @@ class PostProcessSingleResultsNode(Node):
         super().__init__(inputs)
         self.dag = dag
         self.request_cpus = 1
-        self.job_name = "{}_postprocess_single".format(merged_node.label)
+        self.job_name = f"{merged_node.label}_postprocess_single"
 
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
@@ -36,7 +36,7 @@ class PostProcessAllResultsNode(Node):
         super().__init__(inputs)
         self.dag = dag
         self.request_cpus = 1
-        self.job_name = "{}_postprocess_all".format(self.inputs.label)
+        self.job_name = f"{self.inputs.label}_postprocess_all"
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
         )

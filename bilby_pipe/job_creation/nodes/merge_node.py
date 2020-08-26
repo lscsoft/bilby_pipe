@@ -6,8 +6,8 @@ class MergeNode(Node):
         super().__init__(inputs)
         self.dag = dag
 
-        self.job_name = "{}_merge".format(parallel_node_list[0].base_job_name)
-        self.label = "{}_merge".format(parallel_node_list[0].base_job_name)
+        self.job_name = f"{parallel_node_list[0].base_job_name}_merge"
+        self.label = f"{parallel_node_list[0].base_job_name}_merge"
         self.request_cpus = 1
         self.setup_arguments(
             add_ini=False, add_unknown_args=False, add_command_line_args=False
@@ -37,4 +37,4 @@ class MergeNode(Node):
 
     @property
     def result_file(self):
-        return "{}/{}_result.json".format(self.inputs.result_directory, self.label)
+        return f"{self.inputs.result_directory}/{self.label}_result.json"

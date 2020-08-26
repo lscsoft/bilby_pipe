@@ -58,9 +58,7 @@ def create_parser(top_level=True):
     parser.add(
         "--version",
         action="version",
-        version="%(prog)s={version}\nbilby={bilby_version}".format(
-            version=__version__, bilby_version=bilby.__version__
-        ),
+        version=f"%(prog)s={__version__}\nbilby={bilby.__version__}",
     )
 
     calibration_parser = parser.add_argument_group(
@@ -487,7 +485,7 @@ def create_parser(top_level=True):
         help="Python environment to activate (slurm only)",
     )
     submission_parser.add(
-        "--scheduler-analysis-time", type=nonestr, default="7-00:00:00", help="",
+        "--scheduler-analysis-time", type=nonestr, default="7-00:00:00", help=""
     )
     submission_parser.add(
         "--submit",
@@ -874,9 +872,7 @@ def main():
         sys.exit()
     else:
         parser = create_parser()
-        logger.info(
-            "Default config file written to {}".format(os.path.abspath(filename))
-        )
+        logger.info(f"Default config file written to {os.path.abspath(filename)}")
         parser.write_to_file(
             filename=filename, overwrite=True, include_description=True
         )

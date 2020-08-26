@@ -144,7 +144,7 @@ def get_base_label(args, review_name):
 
     for attr in SAMPLER_KEYS:
         if getattr(args, attr, None) is not None:
-            base_label += "_{}{}".format(attr, getattr(args, attr))
+            base_label += f"_{attr}{getattr(args, attr)}"
 
     return base_label
 
@@ -183,8 +183,8 @@ def get_default_setup(args, review_name):
 
     top_level_dir = get_top_level_dir(args)
     base_label = get_base_label(args, review_name)
-    rundir = "outdir_{}".format(base_label)
-    filename = "{}/review_{}.ini".format(top_level_dir, base_label)
+    rundir = f"outdir_{base_label}"
+    filename = f"{top_level_dir}/review_{base_label}.ini"
 
     base_dict = dict(
         label=base_label,
@@ -210,9 +210,7 @@ def get_default_setup(args, review_name):
     if args.roq:
         base_dict["likelihood-type"] = "ROQGravitationalWaveTransient"
         if args.roq_folder is None:
-            base_dict["roq-folder"] = "/home/cbc/ROQ_data/IMRPhenomPv2/{}".format(
-                args.prior
-            )
+            base_dict["roq-folder"] = f"/home/cbc/ROQ_data/IMRPhenomPv2/{args.prior}"
         else:
             base_dict["roq-folder"] = args.roq_folder
 
@@ -299,9 +297,7 @@ def pp_test(args):
     config_dict["n-simulation"] = 100
     config_dict["sampler_kwargs"]["check_point_plot"] = False
     config_dict["postprocessing-executable"] = "bilby_pipe_pp_test"
-    config_dict["postprocessing-arguments"] = "{}/result --outdir {}".format(
-        rundir, rundir
-    )
+    config_dict["postprocessing-arguments"] = f"{rundir}/result --outdir {rundir}"
     ini_parser = parser.create_parser()
     write_ini_file(ini_parser, filename, config_dict)
     return filename
@@ -447,10 +443,10 @@ def main():
 
     if args.submit or args.build:
         dirname = os.path.dirname(filename)
-        logger.info("Building and submitting the ini file {}".format(filename))
+        logger.info(f"Building and submitting the ini file {filename}")
         arguments = ["bilby_pipe", filename]
         if args.submit:
             arguments.append("--submit")
         run_command_line(arguments, directory=dirname)
     else:
-        logger.info("Built ini file {}".format(filename))
+        logger.info(f"Built ini file {filename}")

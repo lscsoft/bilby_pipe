@@ -40,7 +40,7 @@ class TestPP(unittest.TestCase):
         for i in range(self.N_results):
             result = bilby.core.result.Result()
             result.outdir = self.outdir
-            result.label = "label_{}".format(i)
+            result.label = f"label_{i}"
             result.search_parameter_keys = ["A", "B"]
             result.priors = self.priors
             result.posterior = pd.DataFrame(
@@ -53,7 +53,7 @@ class TestPP(unittest.TestCase):
                     interferometers=dict(H1=dict(optimal_SNR=1), L1=dict(optimal_SNR=1))
                 )
             )
-            filename = "{}/{}_result.json".format(result.outdir, result.label)
+            filename = f"{result.outdir}/{result.label}_result.json"
             result.save_to_file(filename)
             self.results_filenames.append(filename)
 

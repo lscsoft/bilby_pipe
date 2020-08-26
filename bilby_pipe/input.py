@@ -32,7 +32,7 @@ class Input(object):
 
     @property
     def complete_ini_file(self):
-        return "{}/{}_config_complete.ini".format(self.outdir, self.label)
+        return f"{self.outdir}/{self.label}_config_complete.ini"
 
     @property
     def idx(self):
@@ -183,22 +183,20 @@ class Input(object):
         elif os.path.isfile(gps_file):
             self._gps_file = os.path.relpath(gps_file)
         else:
-            raise FileNotFoundError(
-                "Input file gps_file={} not understood".format(gps_file)
-            )
+            raise FileNotFoundError(f"Input file gps_file={gps_file} not understood")
 
         self._parse_gps_file()
 
     def _parse_gps_file(self):
         gpstimes = self.read_gps_file()
         n = len(gpstimes)
-        logger.info("{} start times found in gps_file={}".format(n, self.gps_file))
+        logger.info(f"{n} start times found in gps_file={self.gps_file}")
         self.gpstimes = gpstimes
 
     def read_gps_file(self):
         gpstimes = np.loadtxt(self.gps_file, ndmin=2, delimiter=",")
         if gpstimes.ndim > 1:
-            logger.info("Reading column 0 from gps_file={}".format(self.gps_file))
+            logger.info(f"Reading column 0 from gps_file={self.gps_file}")
             gpstimes = gpstimes[:, 0]
         return gpstimes
 
@@ -225,7 +223,7 @@ class Input(object):
             self._timeslide_file = os.path.relpath(timeslide_file)
         else:
             raise FileNotFoundError(
-                "Input file timeslide_file={} not understood".format(timeslide_file)
+                f"Input file timeslide_file={timeslide_file} not understood"
             )
 
         if hasattr(self, "_timeslide_file"):
@@ -270,9 +268,7 @@ class Input(object):
         for i in range(len(self.detectors)):
             self.timeslides.update({self.detectors[i]: times[i].flatten()})
         logger.info(
-            "{} timeslides found in timeslide_file={}".format(
-                number_rows, self.timeslide_file
-            )
+            f"{number_rows} timeslides found in timeslide_file={self.timeslide_file}"
         )
 
     def get_timeslide_dict(self, idx):
@@ -285,12 +281,12 @@ class Input(object):
             raise BilbyPipeError("Timeslide file must be provided.")
         if any(len(t) <= idx for t in self.timeslides.values()):
             raise BilbyPipeError(
-                "Timeslide index={} > number of timeslides available.".format(idx)
+                f"Timeslide index={idx} > number of timeslides available."
             )
         timeslide_val = {
             det: timeslide[idx] for det, timeslide in self.timeslides.items()
         }
-        logger.info("Timeslide value: {}".format(timeslide_val))
+        logger.info(f"Timeslide value: {timeslide_val}")
         return timeslide_val
 
     @property
@@ -302,7 +298,7 @@ class Input(object):
         """
         if self.frequency_domain_source_model in bilby.gw.source.__dict__.keys():
             model = self._frequency_domain_source_model
-            logger.info("Using the {} source model".format(model))
+            logger.info(f"Using the {model} source model")
             return bilby.gw.source.__dict__[model]
         elif "." in self.frequency_domain_source_model:
             split_model = self._frequency_domain_source_model.split(".")
@@ -311,7 +307,7 @@ class Input(object):
             return getattr(import_module(module), func)
         else:
             raise BilbyPipeError(
-                "No source model {} found.".format(self._frequency_domain_source_model)
+                f"No source model {self._frequency_domain_source_model} found."
             )
 
     @property
@@ -400,16 +396,14 @@ class Input(object):
         if trigger_time is None:
             logger.debug("No trigger time given")
         elif isinstance(trigger_time, str) and "GW" in trigger_time:
-            logger.info(
-                "Using gwosc to find trigger time for event {}".format(trigger_time)
-            )
+            logger.info(f"Using gwosc to find trigger time for event {trigger_time}")
             trigger_time = event_gps(trigger_time)
         else:
             trigger_time = float(trigger_time)
 
         self._trigger_time = trigger_time
         if trigger_time is not None:
-            logger.info("Setting trigger time {}".format(trigger_time))
+            logger.info(f"Setting trigger time {trigger_time}")
 
     @property
     def start_time(self):
@@ -442,7 +436,7 @@ class Input(object):
         self._verify_start_time(start_time)
         self._start_time = start_time
         if start_time is not None:
-            logger.info("Setting segment start time {}".format(start_time))
+            logger.info(f"Setting segment start time {start_time}")
 
     @property
     def duration(self):
@@ -452,7 +446,7 @@ class Input(object):
     def duration(self, duration):
         self._duration = duration
         if duration is not None:
-            logger.info("Setting segment duration {}s".format(duration))
+            logger.info(f"Setting segment duration {duration}s")
 
     @property
     def injection_numbers(self):
@@ -491,9 +485,7 @@ class Input(object):
             raise BilbyPipeError("Setting injection df with non-pandas DataFrame")
         elif self.injection_numbers is not None:
             logger.info(
-                "Truncating injection injection df to rows {}".format(
-                    self.injection_numbers
-                )
+                f"Truncating injection injection df to rows {self.injection_numbers}"
             )
             try:
                 self._injection_df = injection_df.iloc[self.injection_numbers]
@@ -519,9 +511,7 @@ class Input(object):
             self.total_number_of_injections = len(self.injection_df)
             self.injection = True
         else:
-            raise FileNotFoundError(
-                "Injection file {} not found".format(injection_file)
-            )
+            raise FileNotFoundError(f"Injection file {injection_file} not found")
 
     @property
     def injection_dict(self):
@@ -654,7 +644,7 @@ class Input(object):
         for det in self.detectors:
             if det not in minimum_frequency_dict.keys():
                 raise BilbyPipeError(
-                    "Input minimum frequency required for detector {}".format(det)
+                    f"Input minimum frequency required for detector {det}"
                 )
         self._minimum_frequency_dict = minimum_frequency_dict
 
@@ -703,7 +693,7 @@ class Input(object):
         for det in maximum_frequency_dict.keys():
             if det not in self.detectors:
                 raise BilbyPipeError(
-                    "Input maximum frequency required for detector {}".format(det)
+                    f"Input maximum frequency required for detector {det}"
                 )
         self._maximum_frequency_dict = maximum_frequency_dict
 
@@ -722,7 +712,7 @@ class Input(object):
 
     def get_distance_file_lookup_table(self, prior_file_str):
         direc = os.path.dirname(self.default_prior_files[prior_file_str])
-        fname = "{}_distance_marginalization_lookup.npz".format(prior_file_str)
+        fname = f"{prior_file_str}_distance_marginalization_lookup.npz"
         return os.path.join(direc, fname)
 
     @property
@@ -744,9 +734,9 @@ class Input(object):
                 prior_file
             )
         else:
-            raise FileNotFoundError("No prior file {} available".format(prior_file))
+            raise FileNotFoundError(f"No prior file {prior_file} available")
 
-        logger.info("Setting prior-file to {}".format(self._prior_file))
+        logger.info(f"Setting prior-file to {self._prior_file}")
 
     @property
     def prior_dict(self):
@@ -768,7 +758,7 @@ class Input(object):
             self._prior_dict = None
             return
         else:
-            raise BilbyPipeError("prior_dict={} not understood".format(prior_dict))
+            raise BilbyPipeError(f"prior_dict={prior_dict} not understood")
 
         self._prior_dict = {
             self._convert_prior_dict_key(key): val for key, val in prior_dict.items()
@@ -782,7 +772,7 @@ class Input(object):
         """
         if "-" in key:
             key_replaced = key.replace("-", "_")
-            logger.debug("Converting prior-dict key {} to {}".format(key, key_replaced))
+            logger.debug(f"Converting prior-dict key {key} to {key_replaced}")
             key = key_replaced
         return key
 
@@ -822,7 +812,7 @@ class Input(object):
 
     @property
     def time_parameter(self):
-        return "{}_time".format(self.time_reference)
+        return f"{self.time_reference}_time"
 
     def create_time_prior(self):
         cond_a = getattr(self, "trigger_time", None) is not None
@@ -836,7 +826,7 @@ class Input(object):
             if self.time_reference == "geocent":
                 latex_label = "$t_c$"
             else:
-                latex_label = "$t_{}$".format(self.time_reference[0])
+                latex_label = f"$t_{self.time_reference[0]}$"
             time_prior = get_time_prior(
                 time=self.trigger_time,
                 uncertainty=self.deltaT / 2.0,
@@ -887,7 +877,7 @@ class Input(object):
         priors = self._update_default_prior_to_sky_frame_parameters(priors)
 
         if self.time_parameter in priors:
-            logger.debug("Using {} prior from prior_file".format(self.time_parameter))
+            logger.debug(f"Using {self.time_parameter} prior from prior_file")
         elif add_time:
             priors[self.time_parameter] = self.create_time_prior()
         else:
@@ -941,7 +931,7 @@ class Input(object):
     @calibration_model.setter
     def calibration_model(self, calibration_model):
         if calibration_model is not None:
-            logger.info("Setting calibration_model={}".format(calibration_model))
+            logger.info(f"Setting calibration_model={calibration_model}")
             self._calibration_model = calibration_model
         else:
             logger.info(
@@ -1007,7 +997,7 @@ class Input(object):
     @calibration_model.setter
     def calibration_model(self, calibration_model):
         if calibration_model is not None:
-            logger.info("Setting calibration_model={}".format(calibration_model))
+            logger.info(f"Setting calibration_model={calibration_model}")
             self._calibration_model = calibration_model
         else:
             logger.info(
@@ -1074,9 +1064,7 @@ class Input(object):
         }
 
         logger.debug(
-            "Initialise likelihood {} with kwargs: \n{}".format(
-                Likelihood, likelihood_kwargs
-            )
+            f"Initialise likelihood {Likelihood} with kwargs: \n{likelihood_kwargs}"
         )
 
         return Likelihood(**likelihood_kwargs)
@@ -1093,9 +1081,7 @@ class Input(object):
             likelihood_kwargs = dict()
         elif not isinstance(likelihood_kwargs, dict):
             raise TypeError(
-                "Type {} not understood for likelihood kwargs.".format(
-                    type(likelihood_kwargs)
-                )
+                f"Type {type(likelihood_kwargs)} not understood for likelihood kwargs."
             )
         forbidden_keys = [
             "interferometers",
@@ -1131,7 +1117,7 @@ class Input(object):
             weights = self.likelihood_roq_weights
         else:
             weights = self.meta_data["weight_file"]
-            logger.info("Loading ROQ weights from {}".format(weights))
+            logger.info(f"Loading ROQ weights from {weights}")
 
         return dict(
             weights=weights, roq_params=params, roq_scale_factor=self.roq_scale_factor
@@ -1201,9 +1187,7 @@ class Input(object):
             self._waveform_generator_class = wfg_class
         else:
             raise BilbyPipeError(
-                "Cannot import waveform generator class {}.{}".format(
-                    module, class_name
-                )
+                f"Cannot import waveform generator class {module}.{class_name}"
             )
 
     @property
@@ -1258,7 +1242,7 @@ class Input(object):
         elif sampler in bilby.core.sampler.IMPLEMENTED_SAMPLERS:
             self._sampler = sampler
         else:
-            raise BilbyPipeError("Requested sampler {} not implemented".format(sampler))
+            raise BilbyPipeError(f"Requested sampler {sampler} not implemented")
 
     @property
     def sampler_kwargs(self):
@@ -1300,10 +1284,8 @@ class Input(object):
             prior = self._get_priors(add_time=False)
         except Exception as e:
             raise BilbyPipeError(
-                get_colored_string(
-                    "Unable to parse prior, exception raised {}".format(e)
-                )
+                get_colored_string(f"Unable to parse prior, exception raised {e}")
             )
         prior_as_str = {key: str(val) for key, val in prior.items()}
         pp = json.dumps(prior_as_str, indent=2)
-        logger.info("Input prior = {}".format(pp))
+        logger.info(f"Input prior = {pp}")

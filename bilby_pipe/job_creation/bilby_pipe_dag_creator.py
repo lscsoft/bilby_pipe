@@ -31,7 +31,7 @@ def get_trigger_time_list(inputs):
         trigger_times = start_times + inputs.duration - inputs.post_trigger_duration
     else:
         raise BilbyPipeError("Unable to determine input trigger times from ini file")
-    logger.info("Setting segment trigger-times {}".format(trigger_times))
+    logger.info(f"Setting segment trigger-times {trigger_times}")
     return trigger_times
 
 
@@ -48,7 +48,7 @@ def get_parallel_list(inputs):
     if inputs.n_parallel == 1:
         return [""]
     else:
-        return ["par{}".format(idx) for idx in range(inputs.n_parallel)]
+        return [f"par{idx}" for idx in range(inputs.n_parallel)]
 
 
 def generate_dag(inputs):

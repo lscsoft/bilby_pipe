@@ -52,7 +52,7 @@ def create_parser():
 def _parse_and_load():
     args, unknown_args = parse_args(get_command_line_arguments(), create_parser())
 
-    logger.info("Generating plots for results file {}".format(args.result))
+    logger.info(f"Generating plots for results file {args.result}")
 
     result = CBCResult.from_json(args.result)
     if "data_dump" in result.meta_data and os.path.exists(
@@ -68,7 +68,7 @@ def _parse_and_load():
         outdir = args.outdir
     else:
         outdir = result.outdir
-    logger.info("Plots will be made in {}".format(outdir))
+    logger.info(f"Plots will be made in {outdir}")
 
     check_directory_exists_and_if_not_mkdir(outdir)
     result.outdir = outdir
@@ -84,8 +84,7 @@ def plot_calibration():
         _format = args.plot_format
     else:
         logger.info(
-            "Requested format '{}' not recognised. "
-            "Falling back to png.".format(args.format)
+            f"Requested format '{args.format}' not recognised. Falling back to png."
         )
         _format = "png"
 
@@ -104,12 +103,12 @@ def plot_corner():
             "chi_eff",
             "chi_p",
         ],
-        filename="{}/{}_intrinsic_corner.png".format(result.outdir, result.label),
+        filename=f"{result.outdir}/{result.label}_intrinsic_corner.png",
     )
     logger.info("Generating extrinsic parameter corner")
     result.plot_corner(
         ["luminosity_distance", "redshift", "theta_jn", "ra", "dec", "geocent_time"],
-        filename="{}/{}_extrinsic_corner.png".format(result.outdir, result.label),
+        filename=f"{result.outdir}/{result.label}_extrinsic_corner.png",
     )
 
 
@@ -125,7 +124,7 @@ def plot_skymap():
     try:
         result.plot_skymap(maxpts=5000)
     except Exception as e:
-        logger.info("Unable to generate skymap: error {}".format(e))
+        logger.info(f"Unable to generate skymap: error {e}")
 
 
 def plot_waveform():
@@ -154,8 +153,7 @@ def plot_waveform():
         _format = args.format
     else:
         logger.info(
-            "Requested format '{}' not recognised. "
-            "Falling back to png.".format(args.format)
+            f"Requested format '{args.format}' not recognised. Falling back to png."
         )
         _format = "png"
 

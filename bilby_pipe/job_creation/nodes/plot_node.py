@@ -15,7 +15,7 @@ class PlotNode(Node):
         self.arguments.add("result", merged_node.result_file)
         self.arguments.add("outdir", self.inputs.result_directory)
         for plot_type in ["calibration", "corner", "marginal", "skymap", "waveform"]:
-            if getattr(inputs, "plot_{}".format(plot_type), False):
+            if getattr(inputs, f"plot_{plot_type}", False):
                 self.arguments.add_flag(plot_type)
         self.arguments.add("format", inputs.plot_format)
         self.process_node()
@@ -42,8 +42,6 @@ class PlotNode(Node):
             )
             universe = "local"
         else:
-            logger.debug(
-                "All data will be grabbed in the {} universe".format(self._universe)
-            )
+            logger.debug(f"All data will be grabbed in the {self._universe} universe")
             universe = self._universe
         return universe
