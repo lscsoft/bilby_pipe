@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## v1.0.1: 2020-26-08
+### Added
+- Priority setting for condor
+- Email notofications
+
+### Changed
+- Python 3.6+ requirement
+- Review files to use reference frequency of 100Hz
+- Improved parent-child relation to avoid recreating cached files
+- Job creation modularised
+- Overhaul and improvements to the slurm backend
+
+
 ## v1.0.00: 2020-27-07
 ### Added
 - Trigger-time now able to use event names (!333)
