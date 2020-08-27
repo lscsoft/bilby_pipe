@@ -77,7 +77,7 @@ fiducial_bbh_injections = {
 
 
 fiducial_bns_injections = {
-    "128s_tidal": dict(
+    "128s_tidal_lowspin": dict(
         chirp_mass=1.486,
         mass_ratio=0.9,
         a_1=0.04,
