@@ -464,8 +464,7 @@ class TestDataReading(unittest.TestCase):
 
 
 def load_test_strain_data():
-    """Helper function to load data from gwpy_data.pickle
-    """
+    """Helper function to load data from gwpy_data.pickle"""
     ifo = DataDump.from_pickle("tests/DATA/gwpy_data.pickle").interferometers[0]
     timeseries = ifo.strain_data.to_gwpy_timeseries()
     metadata = ifo.meta_data

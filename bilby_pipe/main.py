@@ -237,7 +237,7 @@ class MainInput(Input):
                 logger.warning(" ".join(msg))
 
     def check_injection(self):
-        """ Check injection behaviour
+        """Check injection behaviour
 
         If injections are requested, either use the injection-dict,
         injection-file, or create an injection-file

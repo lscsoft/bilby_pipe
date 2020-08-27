@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt  # noqa isort:skip
 
 
 def create_parser():
-    """ Generate a parser for the plot script
+    """Generate a parser for the plot script
 
     Returns
     -------
