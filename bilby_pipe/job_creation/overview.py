@@ -12,7 +12,7 @@ from ..utils import logger
 def create_overview(
     inputs, generation_node_list, parallel_node_list, merged_node_list, plot_node_list
 ):
-    """ Create an overview.html page to see the progress of jobs
+    """Create an overview.html page to see the progress of jobs
 
     Parameters
     ----------

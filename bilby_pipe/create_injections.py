@@ -38,7 +38,7 @@ class BilbyPipeCreateInjectionsError(BilbyPipeError):
 
 
 def create_parser():
-    """ Generate a parser for the create_injections.py script
+    """Generate a parser for the create_injections.py script
 
     Additional options can be added to the returned parser before calling
     `parser.parse_args` to generate the arguments`

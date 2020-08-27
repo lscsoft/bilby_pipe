@@ -221,7 +221,7 @@ def get_default_setup(args, review_name):
 
 
 def fiducial_bbh(args):
-    """ Review test: fiducial binary black hole in Gaussian noise
+    """Review test: fiducial binary black hole in Gaussian noise
 
     Parameters
     ----------
@@ -247,7 +247,7 @@ def fiducial_bbh(args):
 
 
 def fiducial_bns(args):
-    """ Review test: fiducial binary neutron star in Gaussian noise
+    """Review test: fiducial binary neutron star in Gaussian noise
 
     Parameters
     ----------
@@ -276,7 +276,7 @@ def fiducial_bns(args):
 
 
 def pp_test(args):
-    """ Review test: pp-test
+    """Review test: pp-test
 
     Parameters
     ----------

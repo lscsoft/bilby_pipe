@@ -30,7 +30,7 @@ def sighandler(signum, frame):
 
 
 class DataAnalysisInput(Input):
-    """ Handles user-input for the data analysis script
+    """Handles user-input for the data analysis script
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ class DataAnalysisInput(Input):
         return os.path.relpath(result_dir)
 
     def get_likelihood_and_priors(self):
-        """ Read in the likelihood and prior from the data dump
+        """Read in the likelihood and prior from the data dump
 
         This reads in the data dump values and reconstructs the likelihood and
         priors. Note, care must be taken to use the "search_priors" which differ
@@ -242,8 +242,8 @@ class DataAnalysisInput(Input):
 
         if self.convert_to_flat_in_component_mass:
             try:
-                result_reweighted = bilby.gw.prior.convert_to_flat_in_component_mass_prior(
-                    self.result
+                result_reweighted = (
+                    bilby.gw.prior.convert_to_flat_in_component_mass_prior(self.result)
                 )
                 result_reweighted.save_to_file()
             except Exception as e:

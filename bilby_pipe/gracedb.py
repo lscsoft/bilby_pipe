@@ -41,7 +41,7 @@ BURST_PIPELINES = ["cwb"]
 
 
 def x509userproxy(outdir):
-    """ Copies X509_USER_PROXY certificate from user's os.environ and
+    """Copies X509_USER_PROXY certificate from user's os.environ and
     places it inside the outdir, if the X509_USER_PROXY exists.
 
     Parameters
@@ -111,7 +111,7 @@ def read_from_gracedb(gracedb, gracedb_url, outdir):
 
 
 def read_from_json(json_file):
-    """ Read GraceDB events from json file
+    """Read GraceDB events from json file
 
     Parameters
     ----------
@@ -138,7 +138,7 @@ def read_from_json(json_file):
 
 
 def calibration_lookup(trigger_time, detector):
-    """ Lookup function for the relevant calibration file
+    """Lookup function for the relevant calibration file
 
     Assumes that it is running on CIT where the calibration files are stored
     under /home/cbc/pe/O3/calibrationenvelopes
@@ -190,7 +190,7 @@ def calibration_lookup(trigger_time, detector):
 
 
 def calibration_dict_lookup(trigger_time, detectors):
-    """ Dictionary lookup function for the relevant calibration files
+    """Dictionary lookup function for the relevant calibration files
 
     Parameters
     ----------
@@ -248,7 +248,7 @@ def _read_burst_candidate(candidate):
 
 
 def prior_lookup(duration, scale_factor, outdir, template=None):
-    """ Lookup the appropriate prior and apply rescaling factors
+    """Lookup the appropriate prior and apply rescaling factors
 
     Parameters
     ----------
@@ -301,7 +301,7 @@ def create_config_file(
     search_type="cbc",
     online=False,
 ):
-    """ Creates ini file from defaults and candidate contents
+    """Creates ini file from defaults and candidate contents
 
     Parameters
     ----------
@@ -473,7 +473,7 @@ def create_config_file(
 
 
 def determine_duration_and_scale_factor_from_parameters(chirp_mass):
-    """ Determine appropriate duration and roq scale factor from chirp mass
+    """Determine appropriate duration and roq scale factor from chirp mass
 
     Parameters
     ----------
@@ -517,7 +517,7 @@ def determine_duration_and_scale_factor_from_parameters(chirp_mass):
 def generate_prior_from_template(
     duration, roq_params, scale_factor=1, outdir=".", template=None
 ):
-    """ Generate a prior file from a template and write it to file
+    """Generate a prior file from a template and write it to file
 
     Parameters
     ----------
@@ -560,7 +560,7 @@ def generate_prior_from_template(
 def generate_burst_prior_from_template(
     minimum_frequency, maximum_frequency, outdir, template=None
 ):
-    """ Generate a prior file from a template and write it to file
+    """Generate a prior file from a template and write it to file
 
     Parameters
     ----------

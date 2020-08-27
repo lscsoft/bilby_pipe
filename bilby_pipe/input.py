@@ -172,7 +172,7 @@ class Input(object):
 
     @gps_file.setter
     def gps_file(self, gps_file):
-        """ Set the gps_file
+        """Set the gps_file
 
         At setting, will check the file exists, read the contents, identify
         which element to generate data for, and create the interferometers.
@@ -581,9 +581,11 @@ class Input(object):
         self, spline_calibration_amplitude_uncertainty_dict
     ):
         if spline_calibration_amplitude_uncertainty_dict is not None:
-            self._spline_calibration_amplitude_uncertainty_dict = convert_string_to_dict(
-                spline_calibration_amplitude_uncertainty_dict,
-                "spline-calibration-amplitude-uncertainty-dict",
+            self._spline_calibration_amplitude_uncertainty_dict = (
+                convert_string_to_dict(
+                    spline_calibration_amplitude_uncertainty_dict,
+                    "spline-calibration-amplitude-uncertainty-dict",
+                )
             )
         else:
             logger.debug("spline_calibration_amplitude_uncertainty_dict")
@@ -608,7 +610,7 @@ class Input(object):
 
     @property
     def minimum_frequency(self):
-        """ The minimum frequency
+        """The minimum frequency
 
         If a per-detector dictionary is given, this will return the minimum
         frequency value. To access the dictionary,
@@ -650,7 +652,7 @@ class Input(object):
 
     @property
     def maximum_frequency(self):
-        """ The maximum frequency
+        """The maximum frequency
 
         If a per-detector dictionary is given, this will return the maximum
         frequency value. To access the dictionary,
@@ -730,8 +732,8 @@ class Input(object):
             self._prior_file = os.path.basename(prior_file)
         elif prior_file in self.default_prior_files:
             self._prior_file = self.default_prior_files[prior_file]
-            self.distance_marginalization_lookup_table = self.get_distance_file_lookup_table(
-                prior_file
+            self.distance_marginalization_lookup_table = (
+                self.get_distance_file_lookup_table(prior_file)
             )
         else:
             raise FileNotFoundError(f"No prior file {prior_file} available")
@@ -740,7 +742,7 @@ class Input(object):
 
     @property
     def prior_dict(self):
-        """ The input prior_dict from the ini (if given)
+        """The input prior_dict from the ini (if given)
 
         Note, this is not the bilby prior (see self.priors for that), this is
         a key-val dictionary where the val's are strings which are converting
@@ -766,7 +768,7 @@ class Input(object):
 
     @staticmethod
     def _convert_prior_dict_key(key):
-        """ Converts the prior dict key to standard form
+        """Converts the prior dict key to standard form
 
         In the ini read, mass_1 -> mass-1, this corrects for that
         """
@@ -850,7 +852,7 @@ class Input(object):
         self._priors = priors
 
     def _get_priors(self, add_time=True):
-        """ Construct the priors
+        """Construct the priors
 
         Parameters
         ----------

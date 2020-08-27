@@ -77,8 +77,7 @@ class TestTimeslide(unittest.TestCase):
 
     @mock.patch("bilby_pipe.data_generation.logger")
     def test_data_generation_data_get_with_timeslide_values(self, mock_logger):
-        """Test timeslide values configured in bilby_pipe.data_generation._get_data()
-        """
+        """Test timeslide values configured in bilby_pipe.data_generation._get_data()"""
         gps_times = np.loadtxt(self.gps_file)
         timeslides = np.loadtxt(self.timeslide_file)
         idx = 0
@@ -133,7 +132,7 @@ class TestTimeslide(unittest.TestCase):
     def generate_gps_and_timeslide_files(
         self, timeslide_filename, gps_filename, num_rows, num_detectors
     ):
-        """ Generates a gps and timeslide file
+        """Generates a gps and timeslide file
 
         gps times : [0, 0, 0, 0, 0]
         timeslide : [ [0, 1], [0, 1] ...]

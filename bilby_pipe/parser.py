@@ -14,7 +14,7 @@ __version__ = get_version_information()
 
 
 class StoreBoolean(argparse.Action):
-    """ argparse class for robust handling of booleans with configargparse
+    """argparse class for robust handling of booleans with configargparse
 
     When using configargparse, if the argument is setup with
     action="store_true", but the default is set to True, then there is no way,
@@ -32,7 +32,7 @@ class StoreBoolean(argparse.Action):
 
 
 def create_parser(top_level=True):
-    """ Creates the BilbyArgParser for bilby_pipe
+    """Creates the BilbyArgParser for bilby_pipe
 
     Parameters
     ----------

@@ -49,7 +49,7 @@ except ImportError:
 
 
 class DataGenerationInput(Input):
-    """ Handles user-input for the data generation script
+    """Handles user-input for the data generation script
 
     Parameters
     ----------
@@ -180,7 +180,7 @@ class DataGenerationInput(Input):
             self.create_data(args)
 
     def create_data(self, args):
-        """ Function to iterarate through data generation method
+        """Function to iterate through data generation method
 
         Note, the data methods are mutually exclusive and only one can be given to
         the parser.
@@ -452,7 +452,7 @@ class DataGenerationInput(Input):
         )
 
     def inject_signal_into_time_domain_data(self, data, ifo):
-        """ Method to inject a signal into time-domain interferometer data
+        """Method to inject a signal into time-domain interferometer data
 
         Parameters of the injection are obtained from the `injection_parameters` or
         the injection file (if injection_parameters has not been set).
@@ -553,8 +553,8 @@ class DataGenerationInput(Input):
     def _set_psd_from_file(self, ifo):
         psd_file = self.psd_dict[ifo.name]
         logger.info(f"Setting {ifo.name} PSD from file {psd_file}")
-        ifo.power_spectral_density = PowerSpectralDensity.from_power_spectral_density_file(
-            psd_file=psd_file
+        ifo.power_spectral_density = (
+            PowerSpectralDensity.from_power_spectral_density_file(psd_file=psd_file)
         )
 
     def _set_interferometers_from_data(self):
@@ -681,7 +681,7 @@ class DataGenerationInput(Input):
         )
 
     def _get_data(self, det, channel_type, start_time, end_time, resample=True):
-        """ Read in data using gwpy
+        """Read in data using gwpy
 
         If the channel_type is "GWOSC", open data is obtained. Otherwise, we
         try to read in the data first using "read" if a data_dict exists and
@@ -846,7 +846,7 @@ class DataGenerationInput(Input):
         return data_is_good
 
     def _gwpy_read(self, det, channel, start_time, end_time, dtype="float64"):
-        """ Wrapper function to gwpy.timeseries.TimeSeries.read()
+        """Wrapper function to gwpy.timeseries.TimeSeries.read()
 
         Parameters
         ----------
@@ -932,7 +932,7 @@ class DataGenerationInput(Input):
             return None
 
     def _gwpy_get(self, channel, start_time, end_time, dtype="float64"):
-        """ Wrapper function to gwpy.timeseries.TimeSeries.get()
+        """Wrapper function to gwpy.timeseries.TimeSeries.get()
 
         Parameters
         ----------
@@ -978,7 +978,7 @@ class DataGenerationInput(Input):
             return data
 
     def _gwpy_fetch_open_data(self, det, start_time, end_time):
-        """ Wrapper function to gwpy.timeseries.TimeSeries.fetch_open_data()
+        """Wrapper function to gwpy.timeseries.TimeSeries.fetch_open_data()
 
         Parameters
         ----------

@@ -16,7 +16,7 @@ print("Confirmed Python version 3.6.0 or above")
 
 
 def write_version_file(version):
-    """ Writes a file with version information to be used at run time
+    """Writes a file with version information to be used at run time
 
     Parameters
     ----------
