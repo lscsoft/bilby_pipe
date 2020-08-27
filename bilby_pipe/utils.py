@@ -181,6 +181,7 @@ DEFAULT_DISTANCE_LOOKUPS = {
     "64s": (50, 2e3),
     "128s": (1, 5e2),
     "128s_tidal": (1, 5e2),
+    "128s_tidal_lowspin": (1, 5e2),
 }
 
 DURATION_LOOKUPS = {
@@ -192,6 +193,7 @@ DURATION_LOOKUPS = {
     "64s": 64,
     "128s": 128,
     "128s_tidal": 128,
+    "128s_tidal_lowspin": 128,
 }
 
 MAXIMUM_FREQUENCY_LOOKUPS = {
@@ -203,6 +205,7 @@ MAXIMUM_FREQUENCY_LOOKUPS = {
     "64s": 2048,
     "128s": 4096,
     "128s_tidal": 2048,
+    "128s_tidal_lowspin": 2048,
 }
 
 SAMPLER_SETTINGS = {
