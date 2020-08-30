@@ -10,9 +10,9 @@ from importlib import import_module
 
 import numpy as np
 import pandas as pd
-from gwosc.datasets import event_gps
 
 import bilby
+from gwosc.datasets import event_gps
 
 from . import utils
 from .utils import (
