@@ -39,16 +39,13 @@ def write_version_file(version):
             subprocess.check_output(["git", "diff", "."])
             + subprocess.check_output(["git", "diff", "--cached", "."])
         ).decode("utf-8")
-    except subprocess.CalledProcessError as exc:  # git calls failed
+    except subprocess.CalledProcessError:  # git calls failed
         # we already have a version file, let's use it
         if version_file.is_file():
             return version_file.name
-        # otherwise error out
-        exc.args = (
-            "unable to obtain git version information, and {} doesn't "
-            "exist, cannot continue ({})".format(version_file, str(exc)),
-        )
-        raise
+        # otherwise just return the version information
+        else:
+            return version
     else:
         git_version = "{}: ({}) {}".format(
             version, "UNCLEAN" if git_diff else "CLEAN", git_log.rstrip()
