@@ -266,6 +266,17 @@ class TestInput(unittest.TestCase):
         wfa = inputs.get_default_waveform_arguments()
         self.assertEqual(wfa["mode_array"], [[2, 2], [2, -2]])
 
+        inputs.mode_array = "[2, 4]"
+        wfa = inputs.get_default_waveform_arguments()
+        self.assertEqual(wfa["mode_array"], [[2, 4]])
+
+        with self.assertRaises(BilbyPipeError):
+            inputs.mode_array = "[2]"
+            wfa = inputs.get_default_waveform_arguments()
+        with self.assertRaises(BilbyPipeError):
+            inputs.mode_array = "[[[2, 3], [2, 3]]]"
+            wfa = inputs.get_default_waveform_arguments()
+
     def test_injection_waveform_arguments(self):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = ["H1"]
