@@ -95,6 +95,7 @@ Putting all this together, adding these lines to your ini file
    scheduler-args = arg1=val1 arg2=val2
    scheduler-modules = git python
    scheduler-env = my-environment
+   scheduler-analysis-time = 1-00:00:00   # Limit job to 1 day
 
 Will produce a :code:`slurm` submit files which contains
 
