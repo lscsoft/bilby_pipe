@@ -21,7 +21,13 @@ class AnalysisNode(Node):
             self.job_name = self.base_job_name
         self.label = self.job_name
 
-        self.setup_arguments()
+        if self.inputs.use_mpi:
+            self.setup_arguments(
+                parallel_program=self._get_executable_path("bilby_pipe_analysis")
+            )
+
+        else:
+            self.setup_arguments()
 
         if self.inputs.transfer_files or self.inputs.osg:
             data_dump_file = generation_node.data_dump_file
@@ -50,6 +56,9 @@ class AnalysisNode(Node):
 
     @property
     def executable(self):
+        if self.inputs.use_mpi:
+            return self._get_executable_path("mpiexec")
+
         return self._get_executable_path("bilby_pipe_analysis")
 
     @property
