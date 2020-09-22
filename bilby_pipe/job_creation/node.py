@@ -50,9 +50,16 @@ class Node(object):
             raise OSError(f"{exe_name} not installed on this system, unable to proceed")
 
     def setup_arguments(
-        self, add_command_line_args=True, add_ini=True, add_unknown_args=True
+        self,
+        parallel_program=None,
+        add_command_line_args=True,
+        add_ini=True,
+        add_unknown_args=True,
     ):
         self.arguments = ArgumentsString()
+        if parallel_program is not None:
+            self.arguments.add("np", self.inputs.request_cpus)
+            self.arguments.add_positional_argument(parallel_program)
         if add_ini:
             self.arguments.add_positional_argument(self.inputs.complete_ini_file)
         if add_unknown_args:

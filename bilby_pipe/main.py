@@ -111,6 +111,8 @@ class MainInput(Input):
         self.request_memory_generation = args.request_memory_generation
         self.request_cpus = args.request_cpus
         self.sampler_kwargs = args.sampler_kwargs
+        self.mpi_samplers = ["pymultinest"]
+        self.use_mpi = (self.sampler in self.mpi_samplers) and (self.request_cpus > 1)
 
         if self.create_plots:
             for plot_attr in [
@@ -220,6 +222,16 @@ class MainInput(Input):
     def request_cpus(self, request_cpus):
         logger.info(f"Setting analysis request_cpus = {request_cpus}")
         self._request_cpus = request_cpus
+
+    @property
+    def use_mpi(self):
+        return self._use_mpi
+
+    @use_mpi.setter
+    def use_mpi(self, use_mpi):
+        if use_mpi:
+            logger.info(f"Turning on MPI for {self.sampler}")
+        self._use_mpi = use_mpi
 
     @staticmethod
     def check_source_model(args):
