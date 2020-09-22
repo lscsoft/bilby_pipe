@@ -338,6 +338,17 @@ class Input(object):
             logger.debug("mode_array not set")
             self._mode_array = None
 
+        # Ensure it is a list of lists
+        if np.array(self._mode_array).ndim == 1:
+            self._mode_array = [self._mode_array]
+
+        if np.array(self._mode_array).ndim == 2:
+            for mode in self._mode_array:
+                if len(mode) != 2:
+                    raise BilbyPipeError(f"mode_array {self._mode_array} is invalid")
+        if np.array(self._mode_array).ndim > 2:
+            raise BilbyPipeError(f"mode_array {self._mode_array} is invalid")
+
     def get_default_waveform_arguments(self):
         return dict(
             reference_frequency=self.reference_frequency,
