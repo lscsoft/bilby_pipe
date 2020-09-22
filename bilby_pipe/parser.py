@@ -469,7 +469,11 @@ def create_parser(top_level=True):
         "--scheduler-args",
         type=nonestr,
         default=None,
-        help="Space-separated #SBATCH command line args to pass to slurm (slurm only)",
+        help=(
+            "Space-separated #SBATCH command line args to pass to slurm. "
+            "The args needed will depend on the setup of your slurm scheduler."
+            "Please consult documentation for your local cluster (slurm only)."
+        ),
     )
     submission_parser.add(
         "--scheduler-module",
