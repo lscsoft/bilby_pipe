@@ -24,6 +24,7 @@ from .utils import (
     get_colored_string,
     get_time_prior,
     logger,
+    pretty_print_dictionary,
 )
 
 
@@ -350,7 +351,7 @@ class Input(object):
             raise BilbyPipeError(f"mode_array {self._mode_array} is invalid")
 
     def get_default_waveform_arguments(self):
-        return dict(
+        wfa = dict(
             reference_frequency=self.reference_frequency,
             waveform_approximant=self.waveform_approximant,
             minimum_frequency=self.minimum_frequency,
@@ -363,6 +364,12 @@ class Input(object):
             mode_array=self.mode_array,
         )
 
+        if self.waveform_arguments_dict is not None:
+            wfa.update(convert_string_to_dict(self.waveform_arguments_dict))
+
+        logger.debug(f"Default waveform_arguments: {pretty_print_dictionary(wfa)}")
+        return wfa
+
     def get_injection_waveform_arguments(self):
         """Get the dict of the waveform arguments needed for creating injections.
 
@@ -374,6 +381,7 @@ class Input(object):
             self.injection_waveform_approximant = self.waveform_approximant
         waveform_arguments = self.get_default_waveform_arguments()
         waveform_arguments["waveform_approximant"] = self.injection_waveform_approximant
+        waveform_arguments["numerical_relativity_file"] = self.numerical_relativity_file
         return waveform_arguments
 
     @property
@@ -1299,6 +1307,5 @@ class Input(object):
             raise BilbyPipeError(
                 get_colored_string(f"Unable to parse prior, exception raised {e}")
             )
-        prior_as_str = {key: str(val) for key, val in prior.items()}
-        pp = json.dumps(prior_as_str, indent=2)
+        pp = pretty_print_dictionary(prior)
         logger.info(f"Input prior = {pp}")

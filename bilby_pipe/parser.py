@@ -853,7 +853,24 @@ def create_parser(top_level=True):
         help="Post-Newtonian order to use for the amplitude. Also "
         "used to determine the waveform starting frequency.",
     )
-
+    waveform_parser.add(
+        "--numerical-relativity-file",
+        default=None,
+        type=nonestr,
+        help=(
+            "Path to a h5 numerical relativity file to inject, see"
+            "https://git.ligo.org/waveforms/lvcnr-lfs for examples"
+        ),
+    )
+    waveform_parser.add(
+        "--waveform-arguments-dict",
+        default=None,
+        type=nonestr,
+        help=(
+            "A dictionary of arbitrary additional waveform-arguments to pass"
+            "  to the bilby waveform generator's `waveform_arguments`"
+        ),
+    )
     waveform_parser.add(
         "--mode-array",
         default=None,
@@ -862,7 +879,6 @@ def create_parser(top_level=True):
         help="Array of modes to use for the waveform. Should be "
         "a list of lists, eg. [[2,2], [2,-2]]",
     )
-
     waveform_parser.add(
         "--frequency-domain-source-model",
         default="lal_binary_black_hole",
