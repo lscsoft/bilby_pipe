@@ -2,6 +2,7 @@
 A set of generic utilities used in bilby_pipe
 """
 import ast
+import json
 import logging
 import math
 import os
@@ -300,7 +301,7 @@ def setup_logger(outdir=None, label=None, log_level="INFO"):
         in https://docs.python.org/2/library/logging.html#logging-levels
     """
 
-    if "-v" in sys.argv:
+    if "-v" in sys.argv or "--verbose" in sys.argv:
         log_level = "DEBUG"
 
     if isinstance(log_level, str):
@@ -707,6 +708,24 @@ def check_if_represents_int(s):
         return True
     except ValueError:
         return False
+
+
+def pretty_print_dictionary(dictionary):
+    """Convert an input dictionary to a pretty-printed string
+
+    Parameters
+    ----------
+    dictionary: dict
+        Input dictionary
+
+    Returns
+    -------
+    pp: str
+        The dictionary pretty-printed as a string
+
+    """
+    dict_as_str = {key: str(val) for key, val in dictionary.items()}
+    return json.dumps(dict_as_str, indent=2)
 
 
 setup_logger()

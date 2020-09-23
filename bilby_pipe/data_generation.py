@@ -134,6 +134,8 @@ class DataGenerationInput(Input):
         self.pn_phase_order = args.pn_phase_order
         self.pn_amplitude_order = args.pn_amplitude_order
         self.mode_array = args.mode_array
+        self.waveform_arguments_dict = args.waveform_arguments_dict
+        self.numerical_relativity_file = args.numerical_relativity_file
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
         self.likelihood_type = args.likelihood_type
