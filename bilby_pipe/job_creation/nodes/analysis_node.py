@@ -41,7 +41,7 @@ class AnalysisNode(Node):
                     [self._relative_topdir(self.inputs.outdir, self.inputs.initialdir)],
                 )
             )
-            self.arguments.add("outdir", os.path.basename(self.inputs.outdir))
+            self.arguments.add("outdir", os.path.relpath(self.inputs.outdir))
 
         for det in detectors:
             self.arguments.add("detectors", det)
