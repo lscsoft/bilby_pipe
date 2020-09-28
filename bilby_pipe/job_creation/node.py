@@ -12,6 +12,9 @@ from ..utils import CHECKPOINT_EXIT_CODE, ArgumentsString, BilbyPipeError, logge
 class Node(object):
     """ Base Node object, handles creation of arguments, executables, etc """
 
+    # Flag to not run on the OSG - overwritten in child nodes
+    run_node_on_osg = False
+
     def __init__(self, inputs):
         self.inputs = inputs
         self._universe = "vanilla"
@@ -89,11 +92,19 @@ class Node(object):
             self.requirements.append("((TARGET.Online_CBC_PE_Daily =?= True))")
 
         if self.universe != "local" and self.inputs.osg:
-            _osg_lines, _osg_reqs = self._osg_submit_options(
-                self.executable, has_ligo_frames=True
-            )
-            self.extra_lines.extend(_osg_lines)
-            self.requirements.append(_osg_reqs)
+            if self.run_node_on_osg:
+                _osg_lines, _osg_reqs = self._osg_submit_options(
+                    self.executable, has_ligo_frames=True
+                )
+                self.extra_lines.extend(_osg_lines)
+                self.requirements.append(_osg_reqs)
+            else:
+                osg_local_node_lines = [
+                    "+flock_local = True",
+                    '+DESIRED_Sites = "nogrid"',
+                    "+should_transfer_files = NO",
+                ]
+                self.extra_lines.extend(osg_local_node_lines)
 
         self.job = pycondor.Job(
             name=job_name,

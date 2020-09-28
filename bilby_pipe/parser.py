@@ -531,6 +531,16 @@ def create_parser(top_level=True):
         default=False,
         help="If true, format condor submission for running on OSG, default is False",
     )
+    submission_parser.add(
+        "--analysis-executable",
+        default=None,
+        type=nonestr,
+        help=(
+            "Path to an executable to replace bilby_pipe_analysis, be aware"
+            " that this executable will pass the complete ini file (in the"
+            " outdir.)"
+        ),
+    )
 
     likelihood_parser = parser.add_argument_group(
         title="Likelihood arguments",

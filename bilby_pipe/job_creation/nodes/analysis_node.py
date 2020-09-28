@@ -4,6 +4,9 @@ from ..node import Node
 
 
 class AnalysisNode(Node):
+    # If --osg, run analysis nodes on the OSG
+    run_node_on_osg = True
+
     def __init__(self, inputs, generation_node, detectors, sampler, parallel_idx, dag):
         super().__init__(inputs)
         self.dag = dag
@@ -56,10 +59,12 @@ class AnalysisNode(Node):
 
     @property
     def executable(self):
-        if self.inputs.use_mpi:
+        if self.inputs.analysis_executable:
+            return self._get_executable_path(self.inputs.analysis_executable)
+        elif self.inputs.use_mpi:
             return self._get_executable_path("mpiexec")
-
-        return self._get_executable_path("bilby_pipe_analysis")
+        else:
+            return self._get_executable_path("bilby_pipe_analysis")
 
     @property
     def request_memory(self):
