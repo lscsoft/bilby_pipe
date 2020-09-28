@@ -19,7 +19,9 @@ class PESummaryNode(Node):
         self.arguments.add("webdir", self.inputs.webdir)
         if self.inputs.email is not None:
             self.arguments.add("email", self.inputs.email)
-        self.arguments.add("config", " ".join([self.inputs.ini] * n_results))
+        self.arguments.add(
+            "config", " ".join([self.inputs.complete_ini_file] * n_results)
+        )
         self.arguments.add("samples", f"{' '.join(result_files)}")
 
         # Using append here as summary pages doesn't take a full name for approximant
