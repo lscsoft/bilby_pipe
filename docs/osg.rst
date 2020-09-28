@@ -3,7 +3,7 @@ The Open Science Grid
 =====================
 
 The `Open Science Grid <https://opensciencegrid.org/>`_ (OSG), is an ideal
-resource for large-scale non-time-senstive analyses. :code`bilby_pipe` provides
+resource for large-scale non-time-senstive analyses. :code:`bilby_pipe` provides
 a simple interface to enable jobs to be submitted through the OSG.
 
 To run jobs through the OSG, login to
