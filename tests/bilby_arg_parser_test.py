@@ -4,11 +4,12 @@ import sys
 import unittest
 from unittest.mock import patch
 
+import bilby
 from bilby_pipe.bilbyargparser import BilbyArgParser
 from bilby_pipe.data_analysis import create_analysis_parser
 from bilby_pipe.main import parse_args
 from bilby_pipe.parser import create_parser
-from bilby_pipe.utils import convert_string_to_dict
+from bilby_pipe.utils import convert_prior_string_input, convert_string_to_dict
 
 
 class TestBilbyArgParser(unittest.TestCase):
@@ -150,6 +151,7 @@ class TestBilbyConfigFileParser(unittest.TestCase):
         self.write_tempory_ini_file(lines)
         args, unknown_args = parse_args([self.test_ini_filename], self.parser)
         self.assertEqual(args.prior_dict, kwargs_str)
+        self.assertEqual(unknown_args, [])
 
     def test_prior_dict_multiline(self):
         kwargs_str = "{a: Uniform(name='a', minimum=0, maximum=1), b: 1}"
@@ -157,6 +159,117 @@ class TestBilbyConfigFileParser(unittest.TestCase):
         self.write_tempory_ini_file(lines)
         args, unknown_args = parse_args([self.test_ini_filename], self.parser)
         self.assertEqual(args.prior_dict, kwargs_str)
+        self.assertEqual(unknown_args, [])
+
+    def test_prior_dict_multiline_complicated1(self):
+        expected_prior = bilby.core.prior.PriorDict(
+            dict(
+                a=bilby.core.prior.Uniform(name="a", minimum=0, maximum=1),
+                b=1,
+                c=2,
+                redshift=bilby.gw.prior.UniformSourceFrame(
+                    name="redshift",
+                    minimum=1,
+                    maximum=10,
+                    latex_label=r"$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$",
+                ),
+            )
+        )
+        lines = [
+            "prior-dict: {a: Uniform(name='a', minimum=0, maximum=1),",
+            "b: 1,",
+            "  c: 2,",
+            r"redshift: bilby.gw.prior.UniformSourceFrame(name='redshift',"
+            + r"minimum=1, maximum=10, latex_label='$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$'",
+            "}",
+        ]
+        self.write_tempory_ini_file(lines)
+        args, unknown_args = parse_args([self.test_ini_filename], self.parser)
+        prior = bilby.core.prior.PriorDict(convert_prior_string_input(args.prior_dict))
+        self.assertEqual(expected_prior, prior)
+        self.assertEqual(unknown_args, [])
+
+    def test_prior_dict_multiline_complicated2(self):
+        expected_prior = bilby.core.prior.PriorDict(
+            dict(
+                a=bilby.core.prior.Uniform(name="a", minimum=0, maximum=1),
+                b=1,
+                c=2,
+                redshift=bilby.gw.prior.UniformSourceFrame(
+                    name="redshift",
+                    minimum=1,
+                    maximum=10,
+                    latex_label=r"$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$",
+                ),
+            )
+        )
+        lines = [
+            "prior-dict: {a: Uniform(name='a', minimum=0, maximum=1),",
+            "b: 1,",
+            "  c: 2,",
+            r"redshift: bilby.gw.prior.UniformSourceFrame(name='redshift',"
+            + r"minimum=1, maximum=10, latex_label='$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$',",
+            "}",
+        ]
+        self.write_tempory_ini_file(lines)
+        args, unknown_args = parse_args([self.test_ini_filename], self.parser)
+        prior = bilby.core.prior.PriorDict(convert_prior_string_input(args.prior_dict))
+        self.assertEqual(expected_prior, prior)
+        self.assertEqual(unknown_args, [])
+
+    def test_prior_dict_multiline_complicated3(self):
+        expected_prior = bilby.core.prior.PriorDict(
+            dict(
+                a=bilby.core.prior.Uniform(name="a", minimum=0, maximum=1),
+                b=1,
+                c=2,
+                redshift=bilby.gw.prior.UniformSourceFrame(
+                    name="redshift",
+                    minimum=1,
+                    maximum=10,
+                    latex_label=r"$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$",
+                ),
+            )
+        )
+        lines = [
+            "prior-dict: {a: Uniform(name='a', minimum=0, maximum=1),",
+            "b: 1,",
+            "  c: 2,",
+            r"redshift: bilby.gw.prior.UniformSourceFrame(name='redshift',"
+            + r"minimum=1, maximum=10, latex_label='$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$'}",
+        ]
+        self.write_tempory_ini_file(lines)
+        args, unknown_args = parse_args([self.test_ini_filename], self.parser)
+        prior = bilby.core.prior.PriorDict(convert_prior_string_input(args.prior_dict))
+        self.assertEqual(expected_prior, prior)
+        self.assertEqual(unknown_args, [])
+
+    def test_prior_dict_multiline_complicated4(self):
+        expected_prior = bilby.core.prior.PriorDict(
+            dict(
+                a=bilby.core.prior.Uniform(name="a", minimum=0, maximum=1),
+                b=1,
+                c=2,
+                redshift=bilby.gw.prior.UniformSourceFrame(
+                    name="redshift",
+                    minimum=1,
+                    maximum=10,
+                    latex_label=r"$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$",
+                ),
+            )
+        )
+        lines = [
+            "prior-dict: {a: Uniform(name='a', minimum=0, maximum=1),",
+            "b: 1,",
+            r"redshift: bilby.gw.prior.UniformSourceFrame(name='redshift',"
+            + r"minimum=1, maximum=10, latex_label='$\rm{log}_{10}(M_{Lz}/\rm M_\odot))$',"
+            "  c: 2}",
+        ]
+        self.write_tempory_ini_file(lines)
+        args, unknown_args = parse_args([self.test_ini_filename], self.parser)
+        prior = bilby.core.prior.PriorDict(convert_prior_string_input(args.prior_dict))
+        self.assertEqual(expected_prior, prior)
+        self.assertEqual(unknown_args, [])
 
 
 if __name__ == "__main__":
