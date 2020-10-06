@@ -203,11 +203,17 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
     def parse(self, stream):
         """Parses the keys + values from a config file."""
 
+        # Pre-process lines to put multi-line dicts on single linesj
+        lines = "".join(list(stream))  # Form single string
+        lines = lines.replace(",\n", ", ")  # Multiline args on single lines
+        lines = lines.replace("\n}\n", "}\n")  # Trailing } on single lines
+        lines = lines.split("\n")
+
         items = dict()
         numbers = dict()
         comments = dict()
         inline_comments = dict()
-        for ii, line in enumerate(stream):
+        for ii, line in enumerate(lines):
             line = line.strip()
             if not line:
                 continue

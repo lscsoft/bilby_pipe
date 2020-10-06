@@ -737,7 +737,14 @@ def create_parser(top_level=True):
         "--prior-file", type=nonestr, default=None, help="The prior file"
     )
     prior_parser_main.add(
-        "--prior-dict", type=nonestr, default=None, help="A dictionary of priors"
+        "--prior-dict",
+        type=nonestr,
+        default=None,
+        help=(
+            "A dictionary of priors (alternative to prior-file). Multiline "
+            "dictionaries are supported, but each line must contain a single"
+            "parameter specification and finish with a comma."
+        ),
     )
     prior_parser.add(
         "--convert-to-flat-in-component-mass",
