@@ -1,6 +1,18 @@
 # All notable changes will be documented in this file
 
 ## v1.0.1: 2020-26-08
+### Changed
+- Updated bilby dependency to v1.0.2
+- Enable support for the OSG and documentation (!364)
+- PESummary now pointed to the "complete" config files (!366)
+- Fixed bug related to nested outdir (!365)
+- Add support for numerical relativity injection file (!361)
+- Add support for generic waveform-arguments (!361)
+- Improve behaviour for specifying single mode (!362)
+- Improve slurm documentation and version information (!363, !362)
+- Improve suppory for multi-line prior-dicts (!369)
+
+## v1.0.1: 2020-26-08
 ### Added
 - Priority setting for condor
 - Email notofications
