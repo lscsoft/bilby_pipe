@@ -38,7 +38,7 @@ def get_trigger_time_list(inputs):
 def get_detectors_list(inputs):
     detectors_list = []
     detectors_list.append(inputs.detectors)
-    if inputs.coherence_test:
+    if inputs.coherence_test and len(inputs.detectors) > 1:
         for detector in inputs.detectors:
             detectors_list.append([detector])
     return detectors_list
