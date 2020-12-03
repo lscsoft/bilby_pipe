@@ -20,7 +20,7 @@ cache:
 
 precommits-py3.7:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -32,24 +32,25 @@ precommits-py3.7:
     # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
     - pre-commit run --all-files --verbose --show-diff-on-failure
 
-precommits-py3.6:
-  stage: test
-  image: bilbydev/bilby_pipe-test-suite-python36
-  script:
-    - source activate python36
-    - mkdir -p .pip36
-    - pip install --upgrade pip
-    - pip --cache-dir=.pip36 install --upgrade bilby
-    - pip --cache-dir=.pip36 install .
-    - pip --cache-dir=.pip37 install pre-commit
-
-    # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
-    - pre-commit run --all-files --verbose --show-diff-on-failure
+  # Removed while debugging
+  #precommits-py3.6:
+  #  stage: test
+  #  image: quay.io/bilbydev/bilby_pipe-test-suite-python36
+  #  script:
+  #    - source activate python36
+  #    - mkdir -p .pip36
+  #    - pip install --upgrade pip
+  #    - pip --cache-dir=.pip36 install --upgrade bilby
+  #    - pip --cache-dir=.pip36 install .
+  #    - pip --cache-dir=.pip37 install pre-commit
+  #
+  #    # Run precommits (black, flake8, spellcheck, isort, no merge conflicts, etc)
+  #    - pre-commit run --all-files --verbose --show-diff-on-failure
 
 
 python-3.7:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -72,7 +73,7 @@ python-3.7:
 # Test that the examples build properly
 example-ini-file-builds:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -95,7 +96,7 @@ example-ini-file-builds:
 # Test that the examples build properly
 injection-regression-test:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -111,7 +112,7 @@ injection-regression-test:
 # Test that the review tests build properly
 review-test-build:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -130,17 +131,17 @@ review-test-build:
 
 example-ini-file-pesummary:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
-    - pip install --upgrade bilby pesummary
+    - pip install --upgrade bilby pesummary seaborn>=0.11
     - pip install .
     - cd tests/
     - bilby_pipe test_pesummary.ini --local --bilby-test-mode
 
 example-ini-file-gracedb:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   only:
     - schedules
   script:
@@ -153,7 +154,7 @@ example-ini-file-gracedb:
 
 python-3.6:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python36
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python36
   script:
     - source activate python36
     - mkdir -p .pip36
@@ -166,7 +167,7 @@ python-3.6:
 
 documentation:
   stage: test
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   script:
     - source activate python37
     - mkdir -p .pip37
@@ -216,7 +217,7 @@ pages:
 
 deploy_release:
   stage: deploy
-  image: bilbydev/bilby_pipe-test-suite-python37
+  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
   variables:
     TWINE_USERNAME: $PYPI_USERNAME
     TWINE_PASSWORD: $PYPI_PASSWORD
