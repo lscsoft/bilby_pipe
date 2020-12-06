@@ -208,6 +208,20 @@ class TestUtils(unittest.TestCase):
             ),
         )
 
+    def test_duplicatedict(self):
+        DuplicateErrorDict = bilby_pipe.utils.DuplicateErrorDict
+        d = DuplicateErrorDict()
+
+        # Testing regular setting
+        d["a"] = 1
+        self.assertEqual(d["a"], 1)
+        d["b"] = "str"
+        self.assertEqual(d["b"], "str")
+
+        # Test duplicate files
+        with self.assertRaises(bilby_pipe.utils.BilbyPipeError):
+            d["a"] = 1
+
 
 if __name__ == "__main__":
     unittest.main()
