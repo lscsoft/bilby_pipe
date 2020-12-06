@@ -349,6 +349,27 @@ def setup_logger(outdir=None, label=None, log_level="INFO"):
         handler.setLevel(level)
 
 
+def get_outdir_name(outdir, fail_on_match=False, base_increment="A"):
+    # Check if the directory exists
+    if os.path.exists(outdir) is False:
+        return outdir
+    else:
+        msg = f"The outdir {outdir} already exists."
+        if fail_on_match:
+            raise BilbyPipeError(msg)
+
+        while os.path.exists(outdir):
+            # Test if outdir is already an incremented-name
+            if outdir[-2] == "_" and outdir[-1].isalnum():
+                outdir = outdir[:-1] + chr(ord(outdir[-1]) + 1)
+            else:
+                outdir += f"_{base_increment}"
+
+        msg += f" Incrementing outdir to {outdir}"
+        logger.warning(get_colored_string(msg))
+        return outdir
+
+
 def log_version_information():
     import bilby
 

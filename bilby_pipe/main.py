@@ -26,6 +26,7 @@ from .parser import create_parser
 from .utils import (
     BilbyPipeError,
     get_command_line_arguments,
+    get_outdir_name,
     log_version_information,
     logger,
     parse_args,
@@ -387,6 +388,8 @@ def main():
     """ Top-level interface for bilby_pipe """
     parser = create_parser(top_level=True)
     args, unknown_args = parse_args(get_command_line_arguments(), parser)
+    if args.overwrite_outdir is False:
+        args.outdir = get_outdir_name(args.outdir)
     log_version_information()
     inputs = MainInput(args, unknown_args)
     perform_runtime_checks(inputs, args)
