@@ -908,6 +908,34 @@ def create_parser(top_level=True):
             " source function the users installation, e.g. examp.source.bbh"
         ),
     )
+    waveform_parser.add(
+        "--conversion-function",
+        default=None,
+        type=nonestr,
+        help=(
+            "Optional python path to a user-specified conversion function "
+            "If unspecified, this is determined by the frequency_domain_source_model."
+            "If the source-model contains binary_black_hole, "
+            "the conversion function is bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters. "
+            "If the source-model contains binary_neutron_star, "
+            "the generation function is bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters. "
+            "If you specify your own function, you may wish to use the I/O of those functions as templates"
+        ),
+    )
+    waveform_parser.add(
+        "--generation-function",
+        default=None,
+        type=nonestr,
+        help=(
+            "Optional python path to a user-specified generation function "
+            "If unspecified, this is determined by the frequency_domain_source_model."
+            "If the source-model contains binary_black_hole, "
+            "the generation function is bilby.gw.conversion.generate_all_bbh_parameters. "
+            "If the source-model contains binary_neutron_star, "
+            "the generation function is bilby.gw.conversion.generate_all_bns_parameters. "
+            "If you specify your own function, you may wish to use the I/O of those functions as templates"
+        ),
+    )
 
     return parser
 

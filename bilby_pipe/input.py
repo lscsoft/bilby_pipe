@@ -22,6 +22,7 @@ from .utils import (
     convert_string_to_dict,
     convert_string_to_list,
     get_colored_string,
+    get_function_from_string_path,
     get_time_prior,
     logger,
     pretty_print_dictionary,
@@ -302,10 +303,7 @@ class Input(object):
             logger.info(f"Using the {model} source model")
             return bilby.gw.source.__dict__[model]
         elif "." in self.frequency_domain_source_model:
-            split_model = self._frequency_domain_source_model.split(".")
-            module = ".".join(split_model[:-1])
-            func = split_model[-1]
-            return getattr(import_module(module), func)
+            return get_function_from_string_path(self._frequency_domain_source_model)
         else:
             raise BilbyPipeError(
                 f"No source model {self._frequency_domain_source_model} found."
@@ -1146,11 +1144,23 @@ class Input(object):
 
     @property
     def parameter_conversion(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
+        if self.conversion_function is not None:
+            logger.info(
+                f"Using user-specified conversion_function {self.conversion_function}"
+            )
+            return get_function_from_string_path(self.conversion_function)
+        elif "binary_neutron_star" in self._frequency_domain_source_model:
+            logger.info(
+                "Using conversion_function convert_to_lal_binary_neutron_star_parameters"
+            )
             return bilby.gw.conversion.convert_to_lal_binary_neutron_star_parameters
         elif "binary_black_hole" in self._frequency_domain_source_model:
+            logger.info(
+                "Using conversion_function convert_to_lal_binary_black_hole_parameters"
+            )
             return bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters
         else:
+            logger.info("No conversion function")
             return None
 
     @property
@@ -1213,11 +1223,17 @@ class Input(object):
 
     @property
     def parameter_generation(self):
-        if "binary_neutron_star" in self._frequency_domain_source_model:
+        if self.generation_function is not None:
+            logger.info(f"Using user-specified generation {self.generation_function}")
+            return get_function_from_string_path(self.generation_function)
+        elif "binary_neutron_star" in self._frequency_domain_source_model:
+            logger.info("Using generation_function generate_all_bns_parameters")
             return bilby.gw.conversion.generate_all_bns_parameters
         elif "binary_black_hole" in self._frequency_domain_source_model:
+            logger.info("Using generation_function generate_all_bbh_parameters")
             return bilby.gw.conversion.generate_all_bbh_parameters
         else:
+            logger.info("No conversion function")
             return None
 
     @property

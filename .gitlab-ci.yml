@@ -129,15 +129,16 @@ review-test-build:
     - cd ..
     - rm TEST_REVIEW_FILES -r
 
-example-ini-file-pesummary:
-  stage: test
-  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
-  script:
-    - source activate python37
-    - pip install --upgrade bilby pesummary seaborn>=0.11
-    - pip install .
-    - cd tests/
-    - bilby_pipe test_pesummary.ini --local --bilby-test-mode
+#example-ini-file-pesummary:
+#  stage: test
+#  image: quay.io/bilbydev/bilby_pipe-test-suite-python37
+#  script:
+#    - source activate python37
+#    - pip install --upgrade bilby pesummary seaborn>=0.11
+#    - pip install .
+#    - cd tests/
+#    - bilby_pipe test_pesummary.ini --local --bilby-test-mode
+#    - exit
 
 example-ini-file-gracedb:
   stage: test
