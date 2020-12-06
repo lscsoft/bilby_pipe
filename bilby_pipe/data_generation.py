@@ -138,6 +138,8 @@ class DataGenerationInput(Input):
         self.numerical_relativity_file = args.numerical_relativity_file
         self.injection_waveform_approximant = args.injection_waveform_approximant
         self.frequency_domain_source_model = args.frequency_domain_source_model
+        self.conversion_function = args.conversion_function
+        self.generation_function = args.generation_function
         self.likelihood_type = args.likelihood_type
         self.extra_likelihood_kwargs = args.extra_likelihood_kwargs
 

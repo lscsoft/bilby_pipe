@@ -12,6 +12,7 @@ import subprocess
 import sys
 import urllib
 import urllib.request
+from importlib import import_module
 from pathlib import Path
 
 import bilby
@@ -726,6 +727,18 @@ def pretty_print_dictionary(dictionary):
     """
     dict_as_str = {key: str(val) for key, val in dictionary.items()}
     return json.dumps(dict_as_str, indent=2)
+
+
+def get_function_from_string_path(python_path):
+    split = python_path.split(".")
+    module_str = ".".join(split[:-1])
+    func_str = split[-1]
+    try:
+        return getattr(import_module(module_str), func_str)
+    except ImportError as e:
+        raise BilbyPipeError(
+            f"Failed to load function {python_path}, full message: {e}"
+        )
 
 
 setup_logger()
