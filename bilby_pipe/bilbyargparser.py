@@ -8,7 +8,7 @@ import sys
 
 import configargparse
 
-from .utils import get_version_information, logger
+from .utils import DuplicateErrorDict, get_version_information, logger
 
 
 class HyphenStr(str):
@@ -209,7 +209,10 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
         lines = lines.replace("\n}\n", "}\n")  # Trailing } on single lines
         lines = lines.split("\n")
 
-        items = dict()
+        # items is where we store the key-value pairs read in from the config
+        # we use a DuplicateErrorDict so that an error is raised on duplicate
+        # entries (e.g., if the user has two identical keys)
+        items = DuplicateErrorDict()
         numbers = dict()
         comments = dict()
         inline_comments = dict()
@@ -256,6 +259,8 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
         return items, numbers, comments, inline_comments
 
     def reconstruct_multiline_dictionary(self, items):
+        # Convert items into a dictionary to avoid duplicate-line errors
+        items = dict(items)
         keys = list(items.keys())
         vals = list(items.values())
         for ii, val in enumerate(vals):

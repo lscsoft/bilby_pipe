@@ -729,6 +729,32 @@ def pretty_print_dictionary(dictionary):
     return json.dumps(dict_as_str, indent=2)
 
 
+class DuplicateErrorDict(dict):
+    """An dictionary with immutable key-value pairs
+
+    Once a key-value pair is initialized, any attempt to update the value for
+    an existing key will raise a BilbyPipeError.
+
+    Raises
+    ------
+    BilbyPipeError:
+        When a user attempts to update an existing key.
+
+    """
+
+    def __init__(self, color=True, *args):
+        dict.__init__(self, args)
+        self.color = color
+
+    def __setitem__(self, key, val):
+        if key in self:
+            msg = f"Your ini file contains duplicate '{key}' keys"
+            if self.color:
+                msg = get_colored_string(msg)
+            raise BilbyPipeError(msg)
+        dict.__setitem__(self, key, val)
+
+
 def get_function_from_string_path(python_path):
     split = python_path.split(".")
     module_str = ".".join(split[:-1])
