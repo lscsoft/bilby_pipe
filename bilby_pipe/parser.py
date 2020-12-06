@@ -424,7 +424,17 @@ def create_parser(top_level=True):
         "--local-plot", action="store_true", help="Run the plot job locally"
     )
 
-    submission_parser.add("--outdir", type=str, default=".", help="Output directory")
+    submission_parser.add(
+        "--outdir",
+        type=str,
+        default=".",
+        help="The output directory. If outdir already exists, an auto-incrementing naming scheme is used",
+    )
+    submission_parser.add(
+        "--overwrite-outdir",
+        action="store_true",
+        help="If given, overwrite the outdir (if it exists)",
+    )
     submission_parser.add(
         "--periodic-restart-time",
         default=28800,

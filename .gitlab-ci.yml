@@ -82,7 +82,7 @@ example-ini-file-builds:
     - cd examples/event
     - bilby_pipe GW150914.ini
     - cd outdir_GW150914/
-    - bilby_pipe GW150914_config_complete.ini # Check that the completed config file compiles
+    - bilby_pipe GW150914_config_complete.ini --overwrite-outdir # Check that the completed config file compiles
     - cd ../../gaussian_noise
     - bilby_pipe *ini
     - cd ../injection

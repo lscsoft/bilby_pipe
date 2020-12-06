@@ -446,6 +446,7 @@ def create_config_file(
         plot_marginal=False,
         plot_skymap=False,
         plot_waveform=False,
+        overwrite_outdir=True,
     )
     config_dict.update(extra_config_arguments)
 
