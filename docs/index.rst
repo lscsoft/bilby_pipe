@@ -13,5 +13,4 @@
    injections
    customisation
    structure
-   singularity
    osg
