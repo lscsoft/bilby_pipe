@@ -182,11 +182,6 @@ def create_parser(top_level=True):
         ),
     )
     data_gen_pars.add(
-        "--gaussian-noise",
-        action="store_true",
-        help="If true, use simulated Gaussian noise",
-    )
-    data_gen_pars.add(
         "--n-simulation",
         type=int,
         default=0,
@@ -221,6 +216,17 @@ def create_parser(top_level=True):
             "set the channel-dict keys to 'GWOSC'. Note, the "
             "dictionary should follow basic python dict syntax."
         ),
+    )
+    data_type_pars = data_gen_pars.add_mutually_exclusive_group()
+    data_type_pars.add(
+        "--gaussian-noise",
+        action="store_true",
+        help="If true, use simulated Gaussian noise",
+    )
+    data_type_pars.add(
+        "--zero-noise",
+        action="store_true",
+        help="Use a zero noise realisation",
     )
 
     det_parser = parser.add_argument_group(
@@ -330,12 +336,6 @@ def create_parser(top_level=True):
             "detectors, add another entry to the dictionary, e.g., "
             "{H1: 40, L1: 60, waveform: 20}."
         ),
-    )
-    det_parser.add(
-        "--zero-noise",
-        default=False,
-        action=StoreBoolean,
-        help="Use a zero noise realisation",
     )
     det_parser.add(
         "--tukey-roll-off",

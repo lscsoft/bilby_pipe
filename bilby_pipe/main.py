@@ -98,6 +98,7 @@ class MainInput(Input):
         self.gps_file = args.gps_file
         self.timeslide_file = args.timeslide_file
         self.gaussian_noise = args.gaussian_noise
+        self.zero_noise = args.zero_noise
         self.n_simulation = args.n_simulation
 
         self.injection = args.injection

@@ -209,7 +209,7 @@ class DataGenerationInput(Input):
         self.gaussian_noise = args.gaussian_noise
 
         # The following are all mutually exclusive methods to set the data
-        if self.gaussian_noise:
+        if self.gaussian_noise or self.zero_noise:
             if args.injection_file is not None:
                 logger.debug("Using provided injection file")
                 self._set_interferometers_from_injection_in_gaussian_noise()
@@ -410,12 +410,14 @@ class DataGenerationInput(Input):
                     self._set_psd_from_file(ifo)
 
         if self.zero_noise:
+            logger.info("Setting strain data from zero noise")
             ifos.set_strain_data_from_zero_noise(
                 sampling_frequency=self.sampling_frequency,
                 duration=self.duration,
                 start_time=self.start_time,
             )
         else:
+            logger.info("Simulating strain data from psd-colored noise")
             ifos.set_strain_data_from_power_spectral_densities(
                 sampling_frequency=self.sampling_frequency,
                 duration=self.duration,
