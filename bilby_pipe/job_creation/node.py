@@ -94,7 +94,7 @@ class Node(object):
         if self.universe != "local" and self.inputs.osg:
             if self.run_node_on_osg:
                 _osg_lines, _osg_reqs = self._osg_submit_options(
-                    self.executable, has_ligo_frames=True
+                    self.executable, has_ligo_frames=False
                 )
                 self.extra_lines.extend(_osg_lines)
                 self.requirements.append(_osg_reqs)
@@ -180,7 +180,7 @@ class Node(object):
             the extra requirements line to include
         """
         # required for OSG submission
-        lines = ["+OpenScienceGrid = True"]
+        lines = []
         requirements = ["(IS_GLIDEIN=?=True)"]
 
         # if we need GWF data:
