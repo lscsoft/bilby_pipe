@@ -181,7 +181,7 @@ class Node(object):
         """
         # required for OSG submission
         lines = []
-        requirements = ["(IS_GLIDEIN=?=True)"]
+        requirements = []
 
         # if we need GWF data:
         if has_ligo_frames:
