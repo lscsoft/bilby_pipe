@@ -109,10 +109,6 @@ class TestMainInput(unittest.TestCase):
         self.assertEqual(inputs.detectors, ["L1"])
 
         with self.assertRaises(BilbyPipeError):
-            args.detectors = "A1"
-            inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-
-        with self.assertRaises(BilbyPipeError):
             args.detectors = None
             inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
@@ -140,10 +136,6 @@ class TestMainInput(unittest.TestCase):
 
         args.detectors = ["H1", "l1"]
         inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
-
-        with self.assertRaises(BilbyPipeError):
-            args.detectors = ["H1", "error"]
-            inputs = bilby_pipe.main.MainInput(args, self.unknown_args_list)
 
     def test_create_summary_page(self):
         self.assertEqual(self.inputs.create_summary, self.args.create_summary)

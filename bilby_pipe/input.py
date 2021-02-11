@@ -47,14 +47,9 @@ class Input(object):
 
     @property
     def known_detectors(self):
-        try:
-            return self._known_detectors
-        except AttributeError:
-            return ["H1", "L1", "V1"]
-
-    @known_detectors.setter
-    def known_detectors(self, known_detectors):
-        self._known_detectors = utils.convert_detectors_input(known_detectors)
+        dirs = os.path.join(os.path.dirname(bilby.gw.detector.__file__), "detectors")
+        known_files = glob.glob(os.path.join(dirs, "*"))
+        return [os.path.basename(kf).split(".")[0] for kf in known_files]
 
     @property
     def detectors(self):
@@ -69,10 +64,12 @@ class Input(object):
     def _check_detectors_against_known_detectors(self):
         for element in self.detectors:
             if element not in self.known_detectors:
-                raise BilbyPipeError(
-                    'detectors contains "{}" not in the known '
+                msg = (
+                    'Argument detectors contains "{}" not in the known '
                     "detectors list: {} ".format(element, self.known_detectors)
+                    + ". This will likely fail at the data generation step"
                 )
+                logger.warning(get_colored_string(msg))
 
     @staticmethod
     def _split_string_by_space(string):
