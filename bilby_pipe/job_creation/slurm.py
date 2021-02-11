@@ -70,7 +70,7 @@ class SubmitSLURM(object):
                         f.write(f"\nmodule load {module}\n")
 
             # if self.scheduler_env is not None:
-            #    f.write("\nsource activate {}\n".format(self.scheduler_env))
+            #    f.write("\nsource {}\n".format(self.scheduler_env))
 
             # assign new job ID to each process
             jids = range(len(self.dag.nodes))
@@ -143,7 +143,7 @@ class SubmitSLURM(object):
                         ff.write(f"\nmodule load {module}\n")
 
             if self.scheduler_env is not None:
-                ff.write(f"\nsource activate {self.scheduler_env}\n\n")
+                ff.write(f"\nsource {self.scheduler_env}\n\n")
                 # Call python from the venv on the script directly to avoid
                 # "bad interpreter" from shebang exceeding 128 chars
                 job_str = f"python {executable} {args}\n\n"
