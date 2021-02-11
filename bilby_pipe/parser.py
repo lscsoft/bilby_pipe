@@ -427,7 +427,7 @@ def create_parser(top_level=True):
     submission_parser.add(
         "--outdir",
         type=str,
-        default=".",
+        default="outdir",
         help="The output directory. If outdir already exists, an auto-incrementing naming scheme is used",
     )
     submission_parser.add(

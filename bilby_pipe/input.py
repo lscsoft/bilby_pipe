@@ -98,6 +98,8 @@ class Input(object):
 
     @outdir.setter
     def outdir(self, outdir):
+        if outdir == ".":
+            raise BilbyPipeError("Unable to use '.' as an outdir")
         self._outdir = os.path.relpath(outdir)
 
     @property
