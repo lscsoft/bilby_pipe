@@ -103,6 +103,7 @@ class DataGenerationInput(Input):
         self.channel_dict = args.channel_dict
         self.data_dict = args.data_dict
         self.data_format = args.data_format
+        self.allow_tape = args.allow_tape
         self.tukey_roll_off = args.tukey_roll_off
         self.zero_noise = args.zero_noise
         self.resampling_method = args.resampling_method
@@ -956,20 +957,25 @@ class DataGenerationInput(Input):
 
         """
         logger.debug("Attempt to locate data")
-        logger.info(
-            "Calling TimeSeries.get('{}', start={}, end={}, dtype='{}')".format(
-                channel, start_time, end_time, dtype
-            )
+
+        kwargs = dict(
+            start=start_time,
+            end=end_time,
+            verbose=False,
+            allow_tape=self.allow_tape,
         )
+
         if self.data_format:
-            kwargs = dict(format=self.data_format)
-            logger.info(f"Extra kwargs passed to get(): {kwargs}")
-        else:
-            kwargs = dict()
+            kwargs["format"] = self.data_format
+
+        msg_list = ["Calling TimeSeries.get("]
+        msg_list += [f"'{channel}', "]
+        msg_list += [f"{key}={value}, " for key, value in kwargs.items()]
+        msg_list += [")"]
+        logger.info("".join(msg_list))
+
         try:
-            data = gwpy.timeseries.TimeSeries.get(
-                channel, start_time, end_time, verbose=False, dtype=dtype, **kwargs
-            )
+            data = gwpy.timeseries.TimeSeries.get(channel, **kwargs)
             return data
         except RuntimeError as e:
             logger.info(f"Unable to read data for channel {channel}")

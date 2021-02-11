@@ -207,6 +207,15 @@ def create_parser(top_level=True):
         ),
     )
     data_gen_pars.add(
+        "--allow-tape",
+        default=True,
+        action=StoreBoolean,
+        help=(
+            "If true (default), allow reading data from tape."
+            " See `gwpy.timeseries.TimeSeries.get() for more information."
+        ),
+    )
+    data_gen_pars.add(
         "--channel-dict",
         type=nonestr,
         default=None,
