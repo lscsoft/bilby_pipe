@@ -30,20 +30,6 @@ class TestInput(unittest.TestCase):
         out = inputs._split_string_by_space("H1 L1")
         self.assertEqual(out, ["H1", "L1"])
 
-    def test_known_detectors(self):
-        inputs = bilby_pipe.main.Input()
-        self.assertEqual(inputs.known_detectors, ["H1", "L1", "V1"])
-
-    def test_set_known_detectors_list(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.known_detectors = ["G1"]
-        self.assertEqual(inputs.known_detectors, ["G1"])
-
-    def test_set_known_detectors_string(self):
-        inputs = bilby_pipe.main.Input()
-        inputs.known_detectors = "G1 H1"
-        self.assertEqual(inputs.known_detectors, ["G1", "H1"])
-
     def test_detectors(self):
         inputs = bilby_pipe.main.Input()
         with self.assertRaises(AttributeError):
@@ -63,18 +49,6 @@ class TestInput(unittest.TestCase):
         inputs = bilby_pipe.main.Input()
         inputs.detectors = "L1 H1"
         self.assertEqual(inputs.detectors, ["H1", "L1"])
-
-    def test_unknown_detector(self):
-        inputs = bilby_pipe.main.Input()
-        with self.assertRaises(BilbyPipeError):
-            inputs.detectors = "G1"
-
-        with self.assertRaises(BilbyPipeError):
-            inputs.detectors = ["G1", "L1"]
-
-        inputs.known_detectors = inputs.known_detectors + ["G1"]
-        inputs.detectors = ["G1", "L1"]
-        self.assertEqual(inputs.detectors, ["G1", "L1"])
 
     def test_convert_string_to_list(self):
         for string in [
