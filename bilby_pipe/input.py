@@ -659,11 +659,7 @@ class Input(object):
 
     @minimum_frequency_dict.setter
     def minimum_frequency_dict(self, minimum_frequency_dict):
-        for det in self.detectors:
-            if det not in minimum_frequency_dict.keys():
-                raise BilbyPipeError(
-                    f"Input minimum frequency required for detector {det}"
-                )
+        self.test_frequency_dict(frequency_dict=minimum_frequency_dict, label="minimum")
         self._minimum_frequency_dict = minimum_frequency_dict
 
     @property
@@ -708,12 +704,16 @@ class Input(object):
 
     @maximum_frequency_dict.setter
     def maximum_frequency_dict(self, maximum_frequency_dict):
-        for det in maximum_frequency_dict.keys():
-            if det not in self.detectors:
-                raise BilbyPipeError(
-                    f"Input maximum frequency required for detector {det}"
-                )
+        self.test_frequency_dict(frequency_dict=maximum_frequency_dict, label="maximum")
         self._maximum_frequency_dict = maximum_frequency_dict
+
+    def test_frequency_dict(self, frequency_dict, label=""):
+        for det in self.detectors:
+            if det not in frequency_dict.keys():
+                raise BilbyPipeError(
+                    f"Input {label} frequency required for detector {det}"
+                )
+        return frequency_dict
 
     @property
     def default_prior_files(self):
