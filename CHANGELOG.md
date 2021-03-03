@@ -1,5 +1,18 @@
 # All notable changes will be documented in this file
 
+## v1.0.3: 2021-02-17
+### Changes
+- Clean up the submit scripts, fixing bugs in the OSG (!380, !389, !387, !386)
+- Force the use of outdirs to prevent complications (!382)
+- Regenerate look-up tables based on new distance priors (!381)
+
+### Added
+- Allow data from tape (!385)
+- Enable extra detectors (!383)
+- Behaviour to prevent overwriting of directories (!375)
+- Checking of duplicate entries (!372)
+- Option to pass through the conversion functions (!373)
+
 ## v1.0.1: 2020-26-08
 ### Changed
 - Updated bilby dependency to v1.0.2
