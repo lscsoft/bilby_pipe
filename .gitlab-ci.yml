@@ -41,6 +41,7 @@ python-3.7:
     - pip install --upgrade pip
     - pip --cache-dir=.pip37 install --upgrade bilby
     - pip --cache-dir=.pip37 install .
+    - test -z ${CONDA_PREFIX} && pip list installed || conda list
 
     # Run tests and collect coverage data
     - pytest --cov bilby_pipe
@@ -146,6 +147,7 @@ python-3.6:
     - pip install --upgrade pip
     - pip --cache-dir=.pip36 install --upgrade bilby
     - pip --cache-dir=.pip36 install .
+    - test -z ${CONDA_PREFIX} && pip list installed || conda list
 
     # run tests
     - pytest
