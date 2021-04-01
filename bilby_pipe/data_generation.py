@@ -1124,13 +1124,6 @@ class DataGenerationInput(Input):
 
         del basis_matrix_linear, basis_matrix_quadratic
 
-        if self.injection_parameters is not None:
-            likelihood.parameters.update(self.injection_parameters)
-            logger.info(
-                "ROQ likelihood at injection values = "
-                "{}".format(likelihood.log_likelihood_ratio())
-            )
-
         weight_file = os.path.join(self.data_directory, self.label + "_roq_weights.npz")
         self.meta_data["weight_file"] = weight_file
         likelihood.save_weights(weight_file)
