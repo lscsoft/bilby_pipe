@@ -470,7 +470,12 @@ def create_parser(top_level=True):
         "--request-cpus",
         type=int,
         default=1,
-        help="Use multi-processing (for available samplers: dynesty, ptemcee, cpnest)",
+        help=(
+            "Use multi-processing. This options sets the number of cores to "
+            "request. To use a pool of 8 threads on an 8-core CPU, set "
+            "request-cpus=8. For the dynesty, ptemcee, cpnest, and "
+            "bilby_mcmc samplers, no additional sampler-kwargs are required"
+        ),
     )
     submission_parser.add(
         "--singularity-image",
