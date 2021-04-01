@@ -97,6 +97,7 @@ setup(
         "gwpy",
         "gwosc",
         "matplotlib",
+        "astropy",
         "numpy",
         "tqdm",
         "corner",
