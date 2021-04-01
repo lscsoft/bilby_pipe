@@ -618,9 +618,12 @@ def create_parser(top_level=True):
         default="GravitationalWaveTransient",
         help=(
             "The likelihood. Can be one of [GravitationalWaveTransient, "
-            "ROQGravitationalWaveTransient] or python path to a bilby "
+            "ROQGravitationalWaveTransient, zero] or python path to a bilby "
             "likelihood class available in the users installation. "
-            "Need to specify --roq-folder if ROQ likelihood used"
+            "The --roq-folder is required if the ROQ likelihood used."
+            "The --roq-folder is required if the ROQ likelihood used."
+            "If `zero` is given, a testing ZeroLikelihood is used which always"
+            "return zero."
         ),
     )
     likelihood_parser.add(

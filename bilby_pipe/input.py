@@ -1046,7 +1046,7 @@ class Input(object):
                 self, "likelihood_lookup_table"
             )
 
-        if self.likelihood_type == "GravitationalWaveTransient":
+        if self.likelihood_type in ["GravitationalWaveTransient", "zero"]:
             Likelihood = bilby.gw.likelihood.GravitationalWaveTransient
             likelihood_kwargs.update(jitter_time=self.jitter_time)
 
@@ -1085,7 +1085,14 @@ class Input(object):
             f"Initialise likelihood {Likelihood} with kwargs: \n{likelihood_kwargs}"
         )
 
-        return Likelihood(**likelihood_kwargs)
+        likelihood = Likelihood(**likelihood_kwargs)
+
+        # If requested, use a zero likelihood: for testing purposes
+        if self.likelihood_type == "zero":
+            logger.info("Using a ZeroLikelihood")
+            likelihood = bilby.core.likelihood.ZeroLikelihood(likelihood)
+
+        return likelihood
 
     @property
     def extra_likelihood_kwargs(self):
