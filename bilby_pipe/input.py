@@ -1305,6 +1305,7 @@ class Input(object):
 
         # Keys are samplers, values are the dictionary inputs to update
         parallelisation_dict = dict(
+            bilby_mcmc=dict(npool=self.request_cpus),
             dynesty=dict(npool=self.request_cpus),
             ptemcee=dict(npool=self.request_cpus),
             cpnest=dict(nthreads=self.request_cpus),

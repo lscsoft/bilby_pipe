@@ -44,7 +44,7 @@ class SubmitSLURM(object):
             # reformat slurm options
             if self.scheduler_args is not None:
                 slurm_args = " ".join(
-                    ["--{}".format(arg) for arg in self.scheduler_args.split()]
+                    [f"--{arg}" for arg in self.scheduler_args.split()]
                 )
             else:
                 slurm_args = ""
