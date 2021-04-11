@@ -187,9 +187,14 @@ class BilbyArgParser(configargparse.ArgParser):
     def write_comment_if_needed(self, hyphen_dest, ff):
         """ Determine if the line is associated with a comment """
         if hyphen_dest in self.numbers:
-            previous_line = self.numbers[hyphen_dest] - 1
-            if previous_line in self.comments:
-                print(self.comments[previous_line], file=ff)
+            i = 1
+            while True:
+                previous_line = self.numbers[hyphen_dest] - i
+                if previous_line in self.comments:
+                    print(self.comments[previous_line], file=ff)
+                    i += 1
+                else:
+                    break
 
     def write_line(self, hyphen_dest, value, ff):
         if hyphen_dest in self.numbers:
@@ -204,10 +209,33 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
         """Parses the keys + values from a config file."""
 
         # Pre-process lines to put multi-line dicts on single linesj
-        lines = "".join(list(stream))  # Form single string
-        lines = lines.replace(",\n", ", ")  # Multiline args on single lines
-        lines = lines.replace("\n}\n", "}\n")  # Trailing } on single lines
-        lines = lines.split("\n")
+        lines = list(stream)  # Turn into a list
+        lines = [line.strip(" ") for line in lines]  # Strip trailing white space
+        first_chars = [line[0] for line in lines]  # Pull out the first character
+
+        ii = 0
+        lines_repacked = []
+        while ii < len(lines):
+            if first_chars[ii] == "#":
+                lines_repacked.append(lines[ii])
+                ii += 1
+            else:
+                # Find the next comment
+                jj = ii + 1
+                while jj < len(first_chars) and first_chars[jj] != "#":
+                    jj += 1
+
+                int_lines = "".join(lines[ii:jj])  # Form single string
+                int_lines = int_lines.replace(",\n#", ", \n#")  #
+                int_lines = int_lines.replace(
+                    ",\n", ", "
+                )  # Multiline args on single lines
+                int_lines = int_lines.replace(
+                    "\n}\n", "}\n"
+                )  # Trailing } on single lines
+                int_lines = int_lines.split("\n")
+                lines_repacked += int_lines
+                ii = jj
 
         # items is where we store the key-value pairs read in from the config
         # we use a DuplicateErrorDict so that an error is raised on duplicate
@@ -216,7 +244,7 @@ class BilbyConfigFileParser(configargparse.DefaultConfigFileParser):
         numbers = dict()
         comments = dict()
         inline_comments = dict()
-        for ii, line in enumerate(lines):
+        for ii, line in enumerate(lines_repacked):
             line = line.strip()
             if not line:
                 continue
