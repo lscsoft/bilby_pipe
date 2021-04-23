@@ -78,7 +78,7 @@ class AnalysisNode(Node):
 
     @property
     def result_file(self):
-        return f"{self.inputs.result_directory}/{self.job_name}_result.json"
+        return f"{self.inputs.result_directory}/{self.job_name}_result.{self.inputs.result_format}"
 
     @property
     def slurm_walltime(self):

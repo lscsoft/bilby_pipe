@@ -50,7 +50,7 @@ def create_parser():
 
 def get_results_filenames(args):
     results_files = []
-    for extension in ["json", "h5", "hdf5"]:
+    for extension in ["json", "h5", "hdf5", "pkl"]:
         glob_string = os.path.join(args.directory, "*result*" + extension)
         results_files += glob.glob(glob_string)
     results_files = [rf for rf in results_files if os.path.isfile(rf)]

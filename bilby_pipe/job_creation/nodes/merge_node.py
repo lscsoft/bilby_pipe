@@ -17,6 +17,7 @@ class MergeNode(Node):
             self.arguments.append(pn.result_file)
         self.arguments.add("outdir", self.inputs.result_directory)
         self.arguments.add("label", self.label)
+        self.arguments.add("extension", self.inputs.result_format)
         self.arguments.add_flag("merge")
 
         self.process_node()
@@ -37,4 +38,4 @@ class MergeNode(Node):
 
     @property
     def result_file(self):
-        return f"{self.inputs.result_directory}/{self.label}_result.json"
+        return f"{self.inputs.result_directory}/{self.label}_result.{self.inputs.result_format}"

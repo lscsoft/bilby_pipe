@@ -54,7 +54,15 @@ def _parse_and_load():
 
     logger.info(f"Generating plots for results file {args.result}")
 
-    result = CBCResult.from_json(args.result)
+    extension = os.path.splitext(args.result)[-1][1:]
+    if extension == "json":
+        result = CBCResult.from_json(args.result)
+    elif extension == "hdf5":
+        result = CBCResult.from_hdf5(args.result)
+    elif extension == "pkl":
+        result = CBCResult.from_pickle(args.result)
+    else:
+        raise ValueError(f"Result format {extension} not understood.")
     if "data_dump" in result.meta_data and os.path.exists(
         result.meta_data["data_dump"]
     ):
