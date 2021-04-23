@@ -739,6 +739,13 @@ def create_parser(top_level=True):
         default=None,
         help="Arguments (in the form of a dictionary) to pass to the summarypages executable",
     )
+    output_parser.add(
+        "--result-format",
+        type=str,
+        default="json",
+        choices=["json", "hdf5", "pickle"],
+        help="Format to save the result file in.",
+    )
 
     prior_parser = parser.add_argument_group(
         title="Prior arguments", description="Specify the prior settings."

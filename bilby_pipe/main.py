@@ -63,6 +63,7 @@ class MainInput(Input):
         self.transfer_files = args.transfer_files
         self.osg = args.osg
         self.analysis_executable = args.analysis_executable
+        self.result_format = args.result_format
 
         self.webdir = args.webdir
         self.email = args.email

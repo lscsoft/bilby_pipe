@@ -94,6 +94,9 @@ class TestMainInput(unittest.TestCase):
     def test_accounting(self):
         self.assertEqual(self.inputs.accounting, self.args.accounting)
 
+    def test_result_format(self):
+        self.assertEqual(self.inputs.result_format, self.args.result_format)
+
     def test_detectors_single(self):
         # Test the detector set in the ini file
         self.assertEqual(self.inputs.detectors, ["H1"])

@@ -57,6 +57,7 @@ class DataAnalysisInput(Input):
         # Naming arguments
         self.outdir = args.outdir
         self.label = args.label
+        self.result_format = args.result_format
 
         # Data dump file to run on
         self.data_dump_file = args.data_dump_file
@@ -241,6 +242,7 @@ class DataAnalysisInput(Input):
             meta_data=self.meta_data,
             result_class=self.result_class,
             exit_code=CHECKPOINT_EXIT_CODE,
+            save=self.result_format,
             **self.sampler_kwargs,
         )
 
