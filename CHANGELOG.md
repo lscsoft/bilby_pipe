@@ -1,5 +1,15 @@
 # All notable changes will be documented in this file
 
+## v1.0.4: 2021-05-14
+### Changes
+- Allow different result file formats (!395)
+- Address minor bugs (!394, !399)
+- Add dtype kwarg to TimeSeries.get call (!401)
+- Fixes to dependencies (!398, !404)
+
+### Added
+- Add parallelisation of bilby_mcmc (!397)
+- Added zero likelihood option (!396)
 
 ## v1.0.3: 2021-02-17
 ### Changes
