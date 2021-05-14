@@ -892,6 +892,7 @@ class DataGenerationInput(Input):
             kwargs = dict(
                 source=source, channel=channel, dtype=dtype, format="gwf.lalframe"
             )
+            type_kwargs = dict(dtype=dtype, subok=True, copy=False)
         elif "hdf5" in format_ext:
             kwargs = dict(source=source, start=start_time, end=end_time, format="hdf5")
         elif "txt" in format_ext:
@@ -911,8 +912,23 @@ class DataGenerationInput(Input):
                 if isinstance(val, str):
                     val = f"'{val}'"
                 kwargs_string += f"{key}={val}, "
-            logger.info(f"Running: gwpy.timeseries.TimeSeries.read({kwargs_string})")
-            data = gwpy.timeseries.TimeSeries.read(**kwargs)
+
+            if "gwf" in format_ext:
+                type_kwargs_string = ""
+                for key, val in type_kwargs.items():
+                    if isinstance(val, str):
+                        val = f"'{val}'"
+                    type_kwargs_string += f"{key}={val}, "
+                logger.info(
+                    f"Running: gwpy.timeseries.TimeSeries.read({kwargs_string}).astype({type_kwargs_string})"
+                )
+                data = gwpy.timeseries.TimeSeries.read(**kwargs).astype(**type_kwargs)
+
+            else:
+                logger.info(
+                    f"Running: gwpy.timeseries.TimeSeries.read({kwargs_string})"
+                )
+                data = gwpy.timeseries.TimeSeries.read(**kwargs)
 
             data = data.crop(start=start_time, end=end_time)
 
@@ -965,17 +981,27 @@ class DataGenerationInput(Input):
             allow_tape=self.allow_tape,
         )
 
+        type_kwargs = dict(
+            dtype=dtype,
+            subok=True,
+            copy=False,
+        )
+
         if self.data_format:
             kwargs["format"] = self.data_format
 
         msg_list = ["Calling TimeSeries.get("]
         msg_list += [f"'{channel}', "]
         msg_list += [f"{key}={value}, " for key, value in kwargs.items()]
+        msg_list += [").astype("]
+        msg_list += [f"{key}={value}, " for key, value in type_kwargs.items()]
         msg_list += [")"]
         logger.info("".join(msg_list))
 
         try:
-            data = gwpy.timeseries.TimeSeries.get(channel, **kwargs)
+            data = gwpy.timeseries.TimeSeries.get(channel, **kwargs).astype(
+                **type_kwargs
+            )
             return data
         except RuntimeError as e:
             logger.info(f"Unable to read data for channel {channel}")
@@ -985,8 +1011,11 @@ class DataGenerationInput(Input):
         except TypeError:
             logger.debug("Problem reading data try again without kwargs")
             data = gwpy.timeseries.TimeSeries.get(
-                channel, start_time, end_time, verbose=False, dtype=dtype
-            )
+                channel,
+                start_time,
+                end_time,
+                verbose=False,
+            ).astype(**type_kwargs)
             return data
 
     def _gwpy_fetch_open_data(self, det, start_time, end_time):
