@@ -26,7 +26,12 @@ class BilbyArgParser(configargparse.ArgParser):
     inline_comments = dict()
 
     def parse_known_args(
-        self, args=None, namespace=None, config_file_contents=None, env_vars=os.environ
+        self,
+        args=None,
+        namespace=None,
+        config_file_contents=None,
+        env_vars=os.environ,
+        **kwargs,
     ):
         """Supports all the same args as the ArgumentParser.parse_args(..),
         as well as the following additional args.

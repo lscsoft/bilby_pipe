@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 from ..utils import BilbyPipeError, convert_string_to_tuple, logger
@@ -53,6 +55,7 @@ def get_parallel_list(inputs):
 
 def generate_dag(inputs):
     """ Core logic setting up parent-child structure between nodes """
+    inputs = copy.deepcopy(inputs)
     dag = Dag(inputs)
     trigger_times = get_trigger_time_list(inputs)
 

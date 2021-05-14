@@ -342,19 +342,12 @@ def write_complete_config_file(parser, args, inputs):
     # Verify that the written complete config is identical to the source config
     complete_args = parser.parse([inputs.complete_ini_file])
     complete_inputs = MainInput(complete_args, "")
-    ignore_keys = [
-        "known_args",
-        "unknown_args",
-        "_ini",
-        "_webdir",
-        "_prior_dict",
-        "timeslides",
-        "_log_directory",
-        "scheduler_module",
-    ]
+    ignore_keys = ["scheduler_module"]
     differences = []
     for key, val in inputs.__dict__.items():
         if key in ignore_keys:
+            continue
+        if key not in complete_args:
             continue
         if isinstance(val, pd.DataFrame) and all(val == complete_inputs.__dict__[key]):
             continue
@@ -373,7 +366,7 @@ def write_complete_config_file(parser, args, inputs):
 
     if len(differences) > 0:
         for key in differences:
-            print(key, f"{inputs.__dict__[key]} -- {complete_inputs.__dict__[key]}")
+            print(key, f"{inputs.__dict__[key]} -> {complete_inputs.__dict__[key]}")
         raise BilbyPipeError(
             "The written config file {} differs from the source {} in {}".format(
                 inputs.ini, inputs.complete_ini_file, differences
