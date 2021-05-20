@@ -168,6 +168,7 @@ class DataGenerationInput(Input):
             args.spline_calibration_phase_uncertainty_dict
         )
         self.spline_calibration_nodes = args.spline_calibration_nodes
+        self.calibration_prior_boundary = args.calibration_prior_boundary
 
         # Marginalization
         self.distance_marginalization = args.distance_marginalization
