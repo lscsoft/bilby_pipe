@@ -45,7 +45,10 @@ def xml_to_dataframe(prior_file, reference_frequency):
         injection_values["luminosity_distance"].append(float(row["distance"]))
         injection_values["psi"].append(float(row["polarization"]))
         injection_values["phase"].append(float(row["coa_phase"]))
-        injection_values["geocent_time"].append(float(row["geocent_end_time"]))
+        injection_values["geocent_time"].append(
+            float(row["geocent_end_time"])
+            + float(row["geocent_end_time_ns"]) * (10 ** -9)
+        )
         injection_values["ra"].append(float(row["longitude"]))
         injection_values["dec"].append(float(row["latitude"]))
 
