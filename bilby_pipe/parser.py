@@ -389,6 +389,7 @@ def create_parser(top_level=True):
     injection_parser.add(
         "--injection-numbers",
         action="append",
+        type=nonestr,
         default=None,
         help=(
             "Specific injections rows to use from the injection_file, e.g. "
