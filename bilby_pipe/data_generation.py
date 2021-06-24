@@ -521,6 +521,7 @@ class DataGenerationInput(Input):
             waveform_generator=waveform_generator,
             parameters=parameters,
             det=ifo.name,
+            power_spectral_density=ifo.power_spectral_density,
             outdir=outdir,
             label=label,
         )
