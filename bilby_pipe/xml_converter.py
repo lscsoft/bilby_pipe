@@ -6,6 +6,7 @@ This a command line tool to convert XML injection files
 import argparse
 import json
 import os
+from math import pi
 
 import lalsimulation as lalsim
 import pandas as pd
@@ -19,7 +20,7 @@ except ImportError:
     raise ImportError("You do not have ligo.lw install: $ pip install python-liw-lw")
 
 
-def xml_to_dataframe(prior_file, reference_frequency):
+def xml_to_dataframe(prior_file, reference_frequency, convert_negative_ra=False):
     table = Table.read(prior_file, format="ligolw", tablename="sim_inspiral")
     injection_values = {
         "mass_1": [],
@@ -49,7 +50,10 @@ def xml_to_dataframe(prior_file, reference_frequency):
             float(row["geocent_end_time"])
             + float(row["geocent_end_time_ns"]) * (10 ** -9)
         )
-        injection_values["ra"].append(float(row["longitude"]))
+        if convert_negative_ra and float(row["longitude"]) < 0:
+            injection_values["ra"].append(float(row["longitude"]) + 2 * pi)
+        else:
+            injection_values["ra"].append(float(row["longitude"]))
         injection_values["dec"].append(float(row["latitude"]))
 
         args_list = [
@@ -108,9 +112,18 @@ def main():
         help=("The reference frequency to use for converting from xml"),
         required=True,
     )
+    parser.add_arg(
+        "--convert-negative-ra",
+        default=False,
+        help=("Convert (-pi,pi) RA range from (0,2pi)"),
+        action="store_true",
+        required=False,
+    )
 
     args = parser.parse_args()
-    injection_values = xml_to_dataframe(args.xml_file, args.reference_frequency)
+    injection_values = xml_to_dataframe(
+        args.xml_file, args.reference_frequency, args.convert_negative_ra
+    )
     basename = os.path.splitext(args.xml_file)[0]
     path = basename + os.path.extsep + args.format
     if args.format == "json":
