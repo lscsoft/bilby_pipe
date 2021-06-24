@@ -980,6 +980,7 @@ class Input(object):
                             maximum_frequency=self.maximum_frequency_dict[det],
                             n_nodes=self.spline_calibration_nodes,
                             label=det,
+                            boundary=self.calibration_prior_boundary,
                         )
                     )
                 elif (

@@ -106,6 +106,12 @@ def create_parser(top_level=True):
             "uncertainty model"
         ),
     )
+    calibration_parser.add(
+        "--calibration-prior-boundary",
+        type=nonestr,
+        default="reflective",
+        help="Boundary methods for the calibration prior boundary",
+    )
 
     if top_level is False:
         parser.add("--idx", type=int, help="The level A job index", default=0)
