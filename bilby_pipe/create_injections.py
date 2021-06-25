@@ -213,7 +213,7 @@ class InjectionCreator(Input):
                     uncertainty=self.deltaT / 2.0,
                 )
                 geocent_times.append(geocent_time)
-            inj_df["geocenter_times"] = geocent_times
+            inj_df["geocent_time"] = geocent_times
         return inj_df
 
     @staticmethod
