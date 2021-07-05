@@ -130,7 +130,7 @@ class TestCreateInjections(unittest.TestCase):
             len(df.columns.values) > 1, f"Column names: {df.columns.values}"
         )
         self.assertAlmostEqual(
-            df["geocenter_times"].iloc[0] / 100, gps_vals[0] / 100, places=1
+            df["geocent_time"].iloc[0] / 100, gps_vals[0] / 100, places=1
         )
 
     def test_create_injection_file_json(self):
