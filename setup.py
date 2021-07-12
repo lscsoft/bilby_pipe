@@ -45,7 +45,7 @@ def write_version_file(version):
             return version_file.name
         # otherwise just return the version information
         else:
-            return version
+            git_version = version
     else:
         git_version = "{}: ({}) {}".format(
             version, "UNCLEAN" if git_diff else "CLEAN", git_log.rstrip()
